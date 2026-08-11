@@ -1,0 +1,83 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-02 17:51+0000\n"
+"PO-Revision-Date: 2026-07-02 17:55+0000\n"
+"Last-Translator: \n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/home.html:14
+msgid "Sistema de Saúde Pública"
+msgstr "Public Health System"
+
+#: templates/home.html:18
+msgid "ExameSUS:"
+msgstr "ExameSUS:"
+
+#: templates/home.html:20
+msgid "acompanhamento de exames de forma simples e segura"
+msgstr "Simple and secure exam monitoring"
+
+#: templates/home.html:24
+msgid ""
+"Plataforma digital para facilitar o acesso aos agendamentos, resultados, "
+"histórico de exames e notificações de acompanhamento no Sistema Único de "
+"Saúde."
+msgstr ""
+"Digital platform to facilitate access to appointments, exam results, "
+"medical history, and follow-up notifications within the Brazilian Unified "
+"Health System (SUS)."
+
+#: templates/home.html:31
+msgid "Entrar no Sistema"
+msgstr "Login"
+
+#: templates/home.html:42
+msgid "O que o ExameSUS oferece?"
+msgstr "What does ExameSUS offer?"
+
+#: templates/home.html:52
+msgid "Agendamentos"
+msgstr "Appointments"
+
+#: templates/home.html:56
+msgid "Consulte exames agendados, datas, locais e situação do atendimento."
+msgstr "View scheduled exams, dates, locations, and appointment status."
+
+#: templates/home.html:68
+msgid "Resultados e Histórico"
+msgstr "Results and History"
+
+#: templates/home.html:72
+msgid "Consulte resultados e acompanhe todo o histórico de exames realizados."
+msgstr "View exam results and access your complete exam history."
+
+#: templates/home.html:84
+msgid "Notificações"
+msgstr "Notifications"
+
+#: templates/home.html:88
+msgid "Receba lembretes sobre exames agendados e novos resultados."
+msgstr "Receive reminders about scheduled exams and newly available results."
+
+#: templates/home.html:100
+msgid "Acesso Seguro"
+msgstr "Secure Access"
+
+#: templates/home.html:104
+msgid ""
+"Ambiente seguro para cidadãos, profissionais de saúde e administradores."
+msgstr ""
+"Secure environment for citizens, healthcare professionals, and administrators."

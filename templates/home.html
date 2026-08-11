@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+
+<section class="container py-5">
+
+    <div class="row align-items-center g-5">
+
+        <div class="col-lg-6">
+
+            <span class="badge bg-success mb-3">
+                {% trans "Sistema de Saúde Pública" %}
+            </span>
+
+            <h1 class="display-4 fw-bold lh-sm">
+                {% trans "ExameSUS:" %}
+                <br>
+                {% trans "acompanhamento de exames de forma simples e segura" %}
+            </h1>
+
+            <p class="lead text-muted mt-4">
+                {% trans "Plataforma digital para facilitar o acesso aos agendamentos, resultados, histórico de exames e notificações de acompanhamento no Sistema Único de Saúde." %}
+            </p>
+
+            <div class="mt-4">
+                <a href="{% url 'core:login' %}"
+                   class="btn btn-examesus btn-lg px-5">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    {% trans "Entrar no Sistema" %}
+                </a>
+            </div>
+
+        </div>
+
+        <div class="col-lg-6">
+
+            <div class="card card-examesus shadow-sm p-4">
+
+                <h2 class="fw-bold mb-4">
+                    {% trans "O que o ExameSUS oferece?" %}
+                </h2>
+
+                <div class="d-flex gap-3 mb-4">
+                    <div class="logo-box flex-shrink-0">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+
+                    <div>
+                        <h5 class="fw-bold">
+                            {% trans "Agendamentos" %}
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            {% trans "Consulte exames agendados, datas, locais e situação do atendimento." %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                    <div class="logo-box flex-shrink-0">
+                        <i class="bi bi-clipboard2-pulse"></i>
+                    </div>
+
+                    <div>
+                        <h5 class="fw-bold">
+                            {% trans "Resultados e Histórico" %}
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            {% trans "Consulte resultados e acompanhe todo o histórico de exames realizados." %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                    <div class="logo-box flex-shrink-0">
+                        <i class="bi bi-bell"></i>
+                    </div>
+
+                    <div>
+                        <h5 class="fw-bold">
+                            {% trans "Notificações" %}
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            {% trans "Receba lembretes sobre exames agendados e novos resultados." %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <div class="logo-box flex-shrink-0">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+
+                    <div>
+                        <h5 class="fw-bold">
+                            {% trans "Acesso Seguro" %}
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            {% trans "Ambiente seguro para cidadãos, profissionais de saúde e administradores." %}
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

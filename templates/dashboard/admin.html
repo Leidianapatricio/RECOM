@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="container py-4">
+
+    <div class="card card-examesus p-4 mb-4">
+
+        <h2 class="fw-bold">
+            Painel Administrativo
+        </h2>
+
+        <p class="text-muted mb-0">
+            Bem-vindo ao ExameSUS. Utilize os módulos abaixo para administrar o sistema.
+        </p>
+
+    </div>
+
+    <!-- Módulos -->
+
+    <div class="row g-4 mb-5">
+
+        <div class="col-md-6 col-lg-4">
+
+            <a href="{% url 'usuarios:listar' %}" class="text-decoration-none">
+
+                <div class="card dashboard-card bg-gradiente p-4 h-100">
+
+                    <h4>
+                        <i class="bi bi-people"></i>
+                        Usuários
+                    </h4>
+
+                    <p>Gerenciar cidadãos cadastrados.</p>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+
+            <a href="{% url 'unidades:listar' %}" class="text-decoration-none">
+
+                <div class="card dashboard-card bg-verde p-4 h-100">
+
+                    <h4>
+
+                        <i class="bi bi-hospital"></i>
+
+                        Unidades
+
+                    </h4>
+
+                    <p>
+
+                        Cadastro das unidades de saúde.
+
+                    </p>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+
+            <a href="{% url 'unidades:listar_profissionais' %}" class="text-decoration-none">
+
+                <div class="card dashboard-card bg-gradiente p-4 h-100">
+
+                    <h4>
+
+                        <i class="bi bi-person-badge"></i>
+
+                        Profissionais
+
+                    </h4>
+
+                    <p>
+
+                        Cadastro dos profissionais.
+
+                    </p>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+
+            <a href="{% url 'exames:listar_tipos' %}" class="text-decoration-none">
+
+                <div class="card dashboard-card bg-verde p-4 h-100">
+
+                    <h4>
+
+                        <i class="bi bi-clipboard2-pulse"></i>
+
+                        Exames
+
+                    </h4>
+
+                    <p>
+
+                        Cadastro dos tipos de exames.
+
+                    </p>
+
+                </div>
+
+            </a>
+
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+
+            <a href="{% url 'core:relatorios' %}" class="text-decoration-none">
+
+                <div class="card dashboard-card bg-laranja p-4 h-100">
+
+                    <h4>
+
+                        <i class="bi bi-bar-chart"></i>
+
+                        Relatórios
+
+                    </h4>
+
+                    <p>
+
+                        Indicadores do sistema.
+
+                    </p>
+
+                </div>
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <!-- Resumo -->
+
+    <div class="card card-examesus">
+
+        <div class="card-header">
+
+            <h4 class="mb-0">
+
+                Resumo do Sistema
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row text-center">
+
+                <div class="col-md-3">
+
+                    <h2 class="fw-bold text-primary">
+
+                        {{ total_usuarios }}
+
+                    </h2>
+
+                    <p>Usuários</p>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <h2 class="fw-bold text-success">
+
+                        {{ total_unidades }}
+
+                    </h2>
+
+                    <p>Unidades</p>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <h2 class="fw-bold text-warning">
+
+                        {{ total_profissionais }}
+
+                    </h2>
+
+                    <p>Profissionais</p>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <h2 class="fw-bold text-danger">
+
+                        {{ total_tipos_exames }}
+
+                    </h2>
+
+                    <p>Tipos de Exames</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

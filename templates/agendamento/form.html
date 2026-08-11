@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="container py-4">
+
+    <div class="card card-examesus p-4 mb-4">
+        <h2 class="fw-bold mb-1">{{ titulo }}</h2>
+        <p class="text-muted mb-0">{{ descricao }}</p>
+    </div>
+
+    <div class="card card-examesus p-4 mb-4">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-8">
+                <label class="form-label fw-semibold">CPF do cidadão</label>
+                <input type="text" name="cpf" class="form-control"
+                       placeholder="000.000.000-00"
+                       value="{{ cpf_busca|default:'' }}">
+            </div>
+
+            <div class="col-md-4">
+                <button class="btn btn-examesus w-100">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if usuario %}
+    <div class="card card-examesus p-4">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-semibold">CPF</label>
+                    {{ form.cpf }}
+                </div>
+
+                <div class="col-md-5 mb-3">
+                    <label class="form-label fw-semibold">Nome</label>
+                    {{ form.nome }}
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label class="form-label fw-semibold">Telefone</label>
+                    {{ form.telefone }}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-semibold">Tipo de exame</label>
+                    {{ form.tipo_exame }}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-semibold">Unidade de saúde</label>
+                    {{ form.unidade }}
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-semibold">Data</label>
+                    {{ form.data }}
+                </div>
+
+                <div class="col-12 mb-3">
+                    <label class="form-label fw-semibold">Observação</label>
+                    {{ form.observacao }}
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'core:dashboard_profissional' %}" class="btn btn-outline-secondary">
+                    Cancelar
+                </a>
+
+                <button class="btn btn-examesus">
+                    <i class="bi bi-calendar-plus"></i>
+                    Agendar Exame
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+</section>
+{% endblock %}

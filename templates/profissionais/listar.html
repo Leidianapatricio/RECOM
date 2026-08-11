@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="container py-4">
+
+    <div class="card card-examesus p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold">Profissionais de Saúde</h2>
+                <p class="text-muted">Cadastro dos profissionais do ExameSUS.</p>
+            </div>
+
+            <a href="{% url 'unidades:criar_profissional' %}" class="btn btn-examesus">
+                <i class="bi bi-plus-circle"></i>
+                Novo Profissional
+            </a>
+        </div>
+    </div>
+
+    <div class="card card-examesus p-4">
+
+        <form method="get" class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="q"
+                        value="{{ pesquisa }}"
+                        placeholder="Pesquisar profissional">
+
+                    <button class="btn btn-outline-success">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Especialidade</th>
+                        <th>Conselho</th>
+                        <th>Registro</th>
+                        <th>Unidade</th>
+                        <th width="160">Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for profissional in profissionais %}
+                    <tr>
+                        <td>{{ profissional.nome }}</td>
+                        <td>{{ profissional.especialidade }}</td>
+                        <td>{{ profissional.conselho }}</td>
+                        <td>{{ profissional.registro }}</td>
+                        <td>{{ profissional.unidade.nome }}</td>
+
+                        <td>
+                            <a href="{% url 'unidades:editar_profissional' profissional.id %}"
+                               class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <form method="post"
+                                  action="{% url 'unidades:excluir_profissional' profissional.id %}"
+                                  class="d-inline">
+                                {% csrf_token %}
+
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Deseja realmente excluir este profissional?')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            Nenhum profissional cadastrado.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

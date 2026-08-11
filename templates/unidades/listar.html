@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="container py-4">
+
+    <div class="card card-examesus p-4 mb-4">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+                <h2 class="fw-bold mb-1">Unidades de Saúde</h2>
+                <p class="text-muted mb-0">
+                    Cadastro das unidades de saúde do ExameSUS.
+                </p>
+            </div>
+
+            <a href="{% url 'unidades:criar' %}" class="btn btn-examesus">
+                <i class="bi bi-plus-circle"></i>
+                Nova Unidade
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="card card-examesus p-4">
+
+        <form method="get" class="row mb-4">
+
+            <div class="col-md-6">
+
+                <div class="input-group">
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="q"
+                        placeholder="Pesquisar unidade..."
+                        value="{{ pesquisa }}">
+
+                    <button class="btn btn-outline-success">
+
+                        <i class="bi bi-search"></i>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Nome</th>
+                        <th>Endereço</th>
+                        <th>Contato</th>
+                        <th width="170">Ações</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for unidade in unidades %}
+
+                    <tr>
+
+                        <td>{{ unidade.nome }}</td>
+                        <td>{{ unidade.endereco }}</td>
+                        <td>{{ unidade.contato }}</td>
+
+                        <td>
+
+                            <a
+                                href="{% url 'unidades:editar' unidade.id %}"
+                                class="btn btn-warning btn-sm">
+
+                                <i class="bi bi-pencil"></i>
+
+                            </a>
+
+                            <a
+                                href="{% url 'unidades:excluir' unidade.id %}"
+                                class="btn btn-danger btn-sm">
+
+                                <i class="bi bi-trash"></i>
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="4" class="text-center text-muted py-4">
+
+                            Nenhuma unidade cadastrada.
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <nav>
+
+            <ul class="pagination justify-content-center">
+
+                {% if unidades.has_previous %}
+
+                    <li class="page-item">
+
+                        <a class="page-link"
+                           href="?page={{ unidades.previous_page_number }}&q={{ pesquisa }}">
+
+                            Anterior
+
+                        </a>
+
+                    </li>
+
+                {% endif %}
+
+                <li class="page-item active">
+
+                    <span class="page-link">
+
+                        {{ unidades.number }}
+
+                    </span>
+
+                </li>
+
+                {% if unidades.has_next %}
+
+                    <li class="page-item">
+
+                        <a class="page-link"
+                           href="?page={{ unidades.next_page_number }}&q={{ pesquisa }}">
+
+                            Próxima
+
+                        </a>
+
+                    </li>
+
+                {% endif %}
+
+            </ul>
+
+        </nav>
+
+    </div>
+
+</section>
+
+{% endblock %}

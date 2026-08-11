@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="container py-4">
+
+    <div class="card card-examesus p-4 mb-4">
+        <h2 class="fw-bold mb-1">Relatórios</h2>
+        <p class="text-muted mb-0">
+            Indicadores gerais do sistema ExameSUS com filtros por status, unidade e tipo de exame.
+        </p>
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="card dashboard-card bg-gradiente p-4">
+                <h4>{{ total_usuarios }}</h4>
+                <p>Usuários</p>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card dashboard-card bg-verde p-4">
+                <h4>{{ total_unidades }}</h4>
+                <p>Unidades</p>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card dashboard-card bg-roxo p-4">
+                <h4>{{ total_profissionais }}</h4>
+                <p>Profissionais</p>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card dashboard-card bg-laranja p-4">
+                <h4>{{ total_exames }}</h4>
+                <p>Exames filtrados</p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card card-examesus p-4 mb-4">
+        <h4 class="fw-bold mb-3">Filtros</h4>
+
+        <form method="get" class="row g-3">
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">Todos</option>
+                    {% for valor, texto in status_choices %}
+                        <option value="{{ valor }}" {% if status_selecionado == valor %}selected{% endif %}>
+                            {{ texto }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Unidade de Saúde</label>
+                <select name="unidade" class="form-select">
+                    <option value="">Todas</option>
+                    {% for unidade in unidades %}
+                        <option value="{{ unidade.id }}" {% if unidade_selecionada == unidade.id|stringformat:"s" %}selected{% endif %}>
+                            {{ unidade.nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Tipo de Exame</label>
+                <select name="tipo" class="form-select">
+                    <option value="">Todos</option>
+                    {% for tipo in tipos %}
+                        <option value="{{ tipo.id }}" {% if tipo_selecionado == tipo.id|stringformat:"s" %}selected{% endif %}>
+                            {{ tipo.nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end gap-2">
+                <a href="{% url 'core:relatorios' %}" class="btn btn-outline-secondary">
+                    Limpar
+                </a>
+
+                <button type="submit" class="btn btn-examesus">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <div class="card card-examesus">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Usuário</th>
+                        <th>Unidade</th>
+                        <th>Profissional</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for exame in exames %}
+                    <tr>
+                        <td>{{ exame.tipo }}</td>
+                        <td>{{ exame.usuario.nome }}</td>
+                        <td>{{ exame.unidade.nome }}</td>
+                        <td>{{ exame.profissional.nome|default:"-" }}</td>
+                        <td>{{ exame.data|date:"d/m/Y" }}</td>
+                        <td>
+                            <span class="badge text-bg-primary">
+                                {{ exame.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            Nenhum exame encontrado com os filtros selecionados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</section>
+{% endblock %}

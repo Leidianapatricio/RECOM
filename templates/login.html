@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card card-examesus p-4">
+                <div class="card-body">
+
+                    <div class="icon-circle mb-4">
+                        <i class="bi bi-person"></i>
+                    </div>
+
+                    <h2 class="text-center fw-bold">Bem-vindo ao ExameSUS</h2>
+                    <p class="text-center text-muted">
+                        Acesse sua área conforme seu perfil
+                    </p>
+
+                    <ul class="nav nav-pills nav-fill bg-light rounded-3 p-1 my-4">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#cidadao">
+                                Cidadão
+                            </button>
+                        </li>
+
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#profissional">
+                                Profissional/Admin
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+
+                        <div class="tab-pane fade show active" id="cidadao">
+                            <form method="post">
+                                {% csrf_token %}
+
+                                <input type="hidden" name="perfil_login" value="CIDADAO">
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">CPF</label>
+                                    <input type="text" name="cpf" class="form-control form-control-lg"
+                                           placeholder="000.000.000-00" required>
+                                </div>
+
+                                <button class="btn btn-examesus btn-lg w-100">
+                                    Entrar como Cidadão
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane fade" id="profissional">
+                            <form method="post">
+                                {% csrf_token %}
+
+                                <input type="hidden" name="perfil_login" value="PROFISSIONAL_ADMIN">
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Usuário ou CPF</label>
+                                    <input
+                                        type="text"
+                                        name="identificador"
+                                        class="form-control form-control-lg"
+                                        placeholder="Digite seu usuário ou CPF"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Senha</label>
+                                    <input type="password" name="senha" class="form-control form-control-lg"
+                                           placeholder="Digite sua senha" required>
+                                </div>
+
+                                <button class="btn btn-examesus btn-lg w-100">
+                                    Entrar
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}

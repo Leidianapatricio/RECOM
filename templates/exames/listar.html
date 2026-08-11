@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="container py-4">
+
+    <div class="card card-examesus p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1">Tipos de Exames</h2>
+                <p class="text-muted mb-0">Gerencie os tipos de exames disponíveis no sistema.</p>
+            </div>
+
+            <a href="{% url 'exames:criar_tipo' %}" class="btn btn-examesus">
+                <i class="bi bi-plus-circle"></i> Novo Tipo
+            </a>
+        </div>
+    </div>
+
+    <div class="card card-examesus p-4">
+        <form method="get" class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control"
+                           placeholder="Pesquisar tipo de exame..."
+                           value="{{ pesquisa }}">
+                    <button class="btn btn-outline-success">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th width="160">Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for tipo in tipos %}
+                    <tr>
+                        <td>{{ tipo.nome }}</td>
+                        <td>{{ tipo.descricao|default:"-" }}</td>
+                        <td>
+                            <a href="{% url 'exames:editar_tipo' tipo.id %}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <button class="btn btn-danger btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalExcluir{{ tipo.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <div class="modal fade" id="modalExcluir{{ tipo.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content rounded-4">
+                                <div class="modal-header">
+                                    <h5 class="modal-title fw-bold">Confirmar exclusão</h5>
+                                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    Deseja realmente excluir o tipo de exame
+                                    <strong>{{ tipo.nome }}</strong>?
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                        Cancelar
+                                    </button>
+
+                                    <form method="post" action="{% url 'exames:excluir_tipo' tipo.id %}">
+                                        {% csrf_token %}
+                                        <button class="btn btn-danger">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">
+                            Nenhum tipo de exame cadastrado.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if tipos.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ tipos.previous_page_number }}&q={{ pesquisa }}">
+                            Anterior
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">{{ tipos.number }}</span>
+                </li>
+
+                {% if tipos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ tipos.next_page_number }}&q={{ pesquisa }}">
+                            Próxima
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+</section>
+{% endblock %}

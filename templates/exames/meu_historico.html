@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="container py-4">
+
+<div class="card card-examesus p-4">
+
+<h2 class="fw-bold mb-4">
+
+Histórico de Exames
+
+</h2>
+
+<table class="table table-hover">
+
+<thead>
+
+<tr>
+
+<th>Exame</th>
+<th>Data</th>
+<th>Status</th>
+<th>Resultado</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for exame in exames %}
+
+<tr>
+
+<td>{{ exame.tipo }}</td>
+
+<td>{{ exame.data }}</td>
+
+<td>{{ exame.status }}</td>
+
+<td>{{ exame.resultado|default:"-" }}</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="4"
+class="text-center text-muted">
+
+Nenhum exame encontrado.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+{% endblock %}

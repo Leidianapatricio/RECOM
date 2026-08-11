@@ -1,0 +1,98 @@
+:root {
+    --azul: #2563eb;
+    --verde: #16a34a;
+    --roxo: #7c3aed;
+    --laranja: #f97316;
+    --fundo: #eef8ff;
+    --texto: #0f172a;
+}
+
+body {
+    background: var(--fundo);
+    color: var(--texto);
+    min-height: 100vh;
+}
+
+.navbar-examesus {
+    border-bottom: 4px solid #22c55e;
+}
+
+.logo-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--azul), var(--verde));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.footer-examesus {
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    padding: 20px 0;
+    margin-top: 50px;
+    color: #64748b;
+}
+
+.btn-examesus {
+    background: linear-gradient(135deg, var(--azul), var(--verde));
+    color: white;
+    border: none;
+    font-weight: 600;
+}
+
+.btn-examesus:hover {
+    color: white;
+    opacity: 0.9;
+}
+
+.card-examesus {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--azul), var(--verde));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto;
+}
+
+.dashboard-card {
+    border: none;
+    border-radius: 16px;
+    color: white;
+    min-height: 130px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+    transition: 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+}
+
+.bg-gradiente {
+    background: linear-gradient(135deg, var(--azul), var(--verde));
+}
+
+.bg-verde {
+    background: var(--verde);
+}
+
+.bg-roxo {
+    background: var(--roxo);
+}
+
+.bg-laranja {
+    background: var(--laranja);
+}
