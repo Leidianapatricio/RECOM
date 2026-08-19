@@ -6,7 +6,7 @@
     <div class="card card-examesus p-4 mb-4">
         <h2 class="fw-bold mb-1">Novo Usuário</h2>
         <p class="text-muted mb-0">
-            Cadastre um novo cidadão no ExameSUS.
+            Cadastre um novo usuário no Sistema RECOM.
         </p>
     </div>
 
@@ -45,14 +45,36 @@
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-semibold">
-                        Cartão SUS
+                        Matrícula
                     </label>
 
                     <input
                         type="text"
-                        name="cartao_sus"
+                        name="matricula"
                         class="form-control"
-                        placeholder="Número do Cartão SUS">
+                        placeholder="Digite a matrícula"
+                        required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">
+                        Perfil
+                    </label>
+
+                    <select
+                        name="perfil"
+                        class="form-select"
+                        required>
+
+                        <option value="">Selecione...</option>
+
+                        {% for valor, nome in perfis %}
+                            <option value="{{ valor }}">
+                                {{ nome }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
                 </div>
 
                 <div class="col-md-6 mb-3">
@@ -62,13 +84,15 @@
 
                     <select
                         name="sexo"
-                        class="form-select"
-                        required>
+                        class="form-select">
 
                         <option value="">Selecione...</option>
-                        <option value="F">Feminino</option>
-                        <option value="M">Masculino</option>
-                        <option value="O">Outro</option>
+
+                        {% for valor, nome in sexos %}
+                            <option value="{{ valor }}">
+                                {{ nome }}
+                            </option>
+                        {% endfor %}
 
                     </select>
                 </div>

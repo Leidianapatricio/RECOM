@@ -8,9 +8,33 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
 
-    path("dashboard/admin/", views.dashboard_admin, name="dashboard_admin"),
-    path("dashboard/cidadao/", views.dashboard_cidadao, name="dashboard_cidadao"),
-    path("dashboard/profissional/", views.dashboard_profissional, name="dashboard_profissional"),
+    path(
+        "dashboard/admin/",
+        views.dashboard_admin,
+        name="dashboard_admin"
+    ),
 
-    path("relatorios/", views.relatorios, name="relatorios"),
+    path(
+        "dashboard/coordenador/",
+        views.dashboard_coordenador,
+        name="dashboard_coordenador"
+    ),
+
+    path(
+        "dashboard/gcm/",
+        views.dashboard_gcm,
+        name="dashboard_gcm"
+    ),
+
+    path(
+        "dashboard/mediador/",
+        views.dashboard_mediador,
+        name="dashboard_mediador"
+    ),
+
+    path(
+        "relatorios/",
+        views.relatorios,
+        name="relatorios"
+    ),
 ]

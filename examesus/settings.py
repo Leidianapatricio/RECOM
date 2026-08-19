@@ -39,8 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'usuarios',
-    'exames',
-    'unidades',
+    'escolas',
+    'cartao_programa',
+    'visitas',
+    'mediacao',
+    
    
 ]
 
@@ -116,7 +119,7 @@ LANGUAGES = [
     ('en', 'English'),
 ]
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Fortaleza'
 
 USE_I18N = True
 

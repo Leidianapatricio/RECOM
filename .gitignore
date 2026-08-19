@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Django / Banco local
+db.sqlite3
+*.sqlite3
+
+# Ambiente virtual
+venv/
+.venv/
+env/
+
+# Variáveis de ambiente e segredos
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# Logs
+*.log

@@ -2,15 +2,19 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect, render
 
-from exames.models import Exame, TipoExame
-from unidades.models import Profissional, UnidadeSaude
+from escolas.models import Escola
 from usuarios.models import Usuario
 
 
 def limpar_cpf(cpf):
     if not cpf:
         return ""
-    return cpf.replace(".", "").replace("-", "").strip()
+
+    return (
+        cpf.replace(".", "")
+        .replace("-", "")
+        .strip()
+    )
 
 
 def home(request):
@@ -19,125 +23,172 @@ def home(request):
 
 def login_view(request):
     if request.method == "POST":
-        perfil_login = request.POST.get("perfil_login")
-        cpf = request.POST.get("cpf")
         identificador = request.POST.get("identificador")
         senha = request.POST.get("senha")
 
-        if perfil_login == "CIDADAO":
-            try:
-                usuario = Usuario.objects.get(cpf=cpf, perfil="CIDADAO")
-                login(request, usuario.user)
-                request.session["perfil"] = "CIDADAO"
-                return redirect("core:dashboard_cidadao")
-            except Usuario.DoesNotExist:
-                messages.error(request, "Cidadão não encontrado.")
-                return redirect("core:login")
+        cpf_limpo = limpar_cpf(identificador)
 
-        if perfil_login == "PROFISSIONAL_ADMIN":
-            # Primeiro tenta login como admin usando username + senha
-            user = authenticate(
+        user = authenticate(
+            request,
+            username=cpf_limpo,
+            password=senha
+        )
+
+        # Permite acesso ao superusuário do Django
+        if user is not None and user.is_superuser:
+            login(request, user)
+            request.session["perfil"] = "ADMIN"
+
+            return redirect("core:dashboard_admin")
+
+        if user is None:
+            messages.error(
                 request,
-                username=identificador,
-                password=senha
+                "CPF ou senha inválidos."
             )
-
-            if user is not None and user.is_superuser:
-                login(request, user)
-                request.session["perfil"] = "ADMIN"
-                return redirect("core:dashboard_admin")
-
-            # Depois tenta login como profissional usando CPF limpo + senha
-            cpf_limpo = limpar_cpf(identificador)
-
-            user = authenticate(
-                request,
-                username=cpf_limpo,
-                password=senha
-            )
-
-            if user is not None:
-                try:
-                    profissional = Profissional.objects.get(cpf=identificador)
-                except Profissional.DoesNotExist:
-                    try:
-                        profissional = Profissional.objects.get(cpf=cpf_limpo)
-                    except Profissional.DoesNotExist:
-                        messages.error(request, "Profissional não encontrado.")
-                        return redirect("core:login")
-
-                login(request, user)
-                request.session["perfil"] = "PROFISSIONAL"
-                return redirect("core:dashboard_profissional")
-
-            messages.error(request, "Usuário/CPF ou senha inválidos.")
             return redirect("core:login")
 
+        try:
+            usuario = Usuario.objects.get(user=user)
+
+        except Usuario.DoesNotExist:
+            messages.error(
+                request,
+                "Usuário não cadastrado no Sistema RECOM."
+            )
+            return redirect("core:login")
+
+        if not usuario.ativo:
+            messages.error(
+                request,
+                "Este usuário está inativo."
+            )
+            return redirect("core:login")
+
+        login(request, user)
+
+        request.session["perfil"] = usuario.perfil
+
+        if usuario.perfil == "ADMIN":
+            return redirect("core:dashboard_admin")
+
+        if usuario.perfil == "COORDENADOR":
+            return redirect("core:dashboard_coordenador")
+
+        if usuario.perfil == "GCM":
+            return redirect("core:dashboard_gcm")
+
+        if usuario.perfil == "MEDIADOR":
+            return redirect("core:dashboard_mediador")
+
+        messages.error(
+            request,
+            "Perfil de usuário inválido."
+        )
+
+        return redirect("core:login")
+
     return render(request, "login.html")
+
 
 def logout_view(request):
     request.session.flush()
     logout(request)
-    messages.success(request, "Você saiu do sistema.")
+
+    messages.success(
+        request,
+        "Você saiu do sistema."
+    )
+
     return redirect("core:login")
 
 
 def dashboard_admin(request):
     contexto = {
         "total_usuarios": Usuario.objects.count(),
-        "total_unidades": UnidadeSaude.objects.count(),
-        "total_profissionais": Profissional.objects.count(),
-        "total_tipos_exames": TipoExame.objects.count(),
+        "total_escolas": Escola.objects.filter(ativa=True).count(),
+        "total_gcms": Usuario.objects.filter(
+            perfil="GCM",
+            ativo=True
+        ).count(),
+        "total_mediadores": Usuario.objects.filter(
+            perfil="MEDIADOR",
+            ativo=True
+        ).count(),
     }
 
-    return render(request, "dashboard/admin.html", contexto)
-
-
-def dashboard_cidadao(request):
-    usuario = Usuario.objects.filter(user=request.user).first()
-
-    return render(request, "dashboard/cidadao.html", {
-        "usuario": usuario
-    })
-
-def dashboard_profissional(request):
     return render(
         request,
-        "dashboard/profissional.html",
+        "dashboard/admin.html",
+        contexto
+    )
+
+
+def dashboard_coordenador(request):
+    contexto = {
+        "total_escolas": Escola.objects.filter(ativa=True).count(),
+        "total_gcms": Usuario.objects.filter(
+            perfil="GCM",
+            ativo=True
+        ).count(),
+    }
+
+    return render(
+        request,
+        "dashboard/coordenador.html",
+        contexto
+    )
+
+
+def dashboard_gcm(request):
+    usuario = Usuario.objects.filter(
+        user=request.user
+    ).first()
+
+    return render(
+        request,
+        "dashboard/gcm.html",
         {
-            "perfil": "PROFISSIONAL"
+            "usuario": usuario
+        }
+    )
+
+
+def dashboard_mediador(request):
+    usuario = Usuario.objects.filter(
+        user=request.user
+    ).first()
+
+    return render(
+        request,
+        "dashboard/mediador.html",
+        {
+            "usuario": usuario
         }
     )
 
 
 def relatorios(request):
-    status = request.GET.get("status")
-    unidade_id = request.GET.get("unidade")
-    tipo_id = request.GET.get("tipo")
-
-    exames = Exame.objects.all()
-
-    if status:
-        exames = exames.filter(status=status)
-
-    if unidade_id:
-        exames = exames.filter(unidade_id=unidade_id)
-
-    if tipo_id:
-        exames = exames.filter(tipo_id=tipo_id)
-
     contexto = {
         "total_usuarios": Usuario.objects.count(),
-        "total_unidades": UnidadeSaude.objects.count(),
-        "total_profissionais": Profissional.objects.count(),
-        "total_exames": exames.count(),
-        "exames": exames,
-        "unidades": UnidadeSaude.objects.all(),
-        "tipos": TipoExame.objects.all(),
-        "status_choices": Exame.STATUS_CHOICES,
-        "status_selecionado": status,
-        "unidade_selecionada": unidade_id,
-        "tipo_selecionado": tipo_id,
+
+        "total_escolas": Escola.objects.filter(
+            ativa=True
+        ).count(),
+
+        "total_gcms": Usuario.objects.filter(
+            perfil="GCM",
+            ativo=True
+        ).count(),
+
+        "total_mediadores": Usuario.objects.filter(
+            perfil="MEDIADOR",
+            ativo=True
+        ).count(),
     }
 
-    return render(request, "relatorio/relatorios.html", contexto)
+    return render(
+        request,
+        "relatorio/relatorios.html",
+        contexto
+    )
