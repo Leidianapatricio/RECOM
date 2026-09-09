@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}
+Cadastro de Escola
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4 mb-5">
+
+    <div class="mb-4">
+        <h2>Cadastro de Escola</h2>
+
+        <p class="text-muted">
+            Informe os dados da unidade escolar atendida pela RECOM.
+        </p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">
+                            {{ form.nome.label }}
+                        </label>
+
+                        {{ form.nome }}
+
+                        {% for error in form.nome.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">
+                            {{ form.polo.label }}
+                        </label>
+
+                        {{ form.polo }}
+
+                        {% for error in form.polo.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">
+                            {{ form.endereco.label }}
+                        </label>
+
+                        {{ form.endereco }}
+
+                        {% for error in form.endereco.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">
+                            {{ form.gestor.label }}
+                        </label>
+
+                        {{ form.gestor }}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">
+                            {{ form.telefone.label }}
+                        </label>
+
+                        {{ form.telefone }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            {{ form.monitoramento.label }}
+                        </label>
+
+                        {{ form.monitoramento }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            {{ form.botao_panico.label }}
+                        </label>
+
+                        {{ form.botao_panico }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            {{ form.quantidade_alunos.label }}
+                        </label>
+
+                        {{ form.quantidade_alunos }}
+
+                        {% for error in form.quantidade_alunos.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            {{ form.quantidade_alunos_pcd.label }}
+                        </label>
+
+                        {{ form.quantidade_alunos_pcd }}
+
+                        {% for error in form.quantidade_alunos_pcd.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">
+                            {{ form.modalidade.label }}
+                        </label>
+
+                        {{ form.modalidade }}
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">
+                            {{ form.observacoes.label }}
+                        </label>
+
+                        {{ form.observacoes }}
+                    </div>
+
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+
+                    <a href="{% url 'escolas:listar_escolas' %}"
+                       class="btn btn-secondary">
+                        Cancelar
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Salvar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

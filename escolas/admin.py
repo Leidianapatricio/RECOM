@@ -1,11 +1,6 @@
 from django.contrib import admin
 
-from .models import Escola, GestorEscolar
-
-
-class GestorEscolarInline(admin.TabularInline):
-    model = GestorEscolar
-    extra = 1
+from .models import Escola
 
 
 @admin.register(Escola)
@@ -13,6 +8,8 @@ class EscolaAdmin(admin.ModelAdmin):
     list_display = (
         "nome",
         "polo",
+        "gestor",
+        "telefone",
         "monitoramento",
         "botao_panico",
         "quantidade_alunos",
@@ -29,43 +26,12 @@ class EscolaAdmin(admin.ModelAdmin):
 
     search_fields = (
         "nome",
+        "gestor",
         "endereco",
+        "telefone",
     )
 
     ordering = (
         "polo",
         "nome",
     )
-
-    inlines = [
-        GestorEscolarInline,
-    ]
-
-
-@admin.register(GestorEscolar)
-class GestorEscolarAdmin(admin.ModelAdmin):
-    list_display = (
-        "nome",
-        "escola",
-        "funcao",
-        "telefone",
-        "ativo",
-    )
-
-    list_filter = (
-        "ativo",
-        "escola__polo",
-    )
-
-    search_fields = (
-        "nome",
-        "escola__nome",
-        "telefone",
-    )
-
-    ordering = (
-        "escola__nome",
-        "nome",
-    )
-
-

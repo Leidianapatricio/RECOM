@@ -23,8 +23,8 @@ msgid "Sistema de Saúde Pública"
 msgstr "Public Health System"
 
 #: templates/home.html:18
-msgid "ExameSUS:"
-msgstr "ExameSUS:"
+msgid "RECom:"
+msgstr "RECom:"
 
 #: templates/home.html:20
 msgid "acompanhamento de exames de forma simples e segura"
@@ -45,8 +45,8 @@ msgid "Entrar no Sistema"
 msgstr "Login"
 
 #: templates/home.html:42
-msgid "O que o ExameSUS oferece?"
-msgstr "What does ExameSUS offer?"
+msgid "O que o RECom oferece?"
+msgstr "What does RECom offer?"
 
 #: templates/home.html:52
 msgid "Agendamentos"

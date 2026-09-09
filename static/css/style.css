@@ -1,11 +1,30 @@
+/* =========================================================
+   RECOM - Ronda Escolar Comunitária
+   Identidade visual do sistema
+   ========================================================= */
+
 :root {
-    --azul: #2563eb;
-    --verde: #16a34a;
-    --roxo: #7c3aed;
-    --laranja: #f97316;
-    --fundo: #eef8ff;
-    --texto: #0f172a;
+    --azul-marinho: #062846;
+    --azul-escuro: #0b3558;
+    --azul: #3f7fba;
+    --azul-claro: #eaf3fb;
+
+    --amarelo: #f4d425;
+    --amarelo-hover: #d9bb16;
+
+    --branco: #ffffff;
+    --fundo: #f4f7fa;
+
+    --texto: #102235;
+    --texto-secundario: #64748b;
+
+    --borda: #dbe3ea;
 }
+
+
+/* =========================================================
+   ESTRUTURA GERAL
+   ========================================================= */
 
 body {
     background: var(--fundo);
@@ -13,86 +32,231 @@ body {
     min-height: 100vh;
 }
 
-.navbar-examesus {
-    border-bottom: 4px solid #22c55e;
+
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+
+.navbar {
+    background: var(--branco) !important;
+    border-bottom: 4px solid var(--azul-marinho);
 }
 
-.logo-box {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--azul), var(--verde));
-    color: white;
+.logo-recom {
+    width: 65px !important;
+    height: 65px !important;
+    max-width: 65px !important;
+    max-height: 65px !important;
+    object-fit: contain;
+    display: block;
+}
+
+.navbar-brand {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 24px;
+    padding: 4px 0;
+    margin: 0;
 }
 
-.footer-examesus {
-    background: white;
-    border-top: 1px solid #e5e7eb;
-    padding: 20px 0;
-    margin-top: 50px;
-    color: #64748b;
+.navbar .nav-link {
+    color: var(--azul-marinho);
+    transition: 0.2s;
 }
 
-.btn-examesus {
-    background: linear-gradient(135deg, var(--azul), var(--verde));
-    color: white;
-    border: none;
+.navbar .nav-link:hover {
+    color: var(--azul);
+}
+
+.navbar .nav-link.disabled {
+    color: #9ca3af;
+}
+
+
+/* =========================================================
+   TÍTULOS
+   ========================================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: var(--azul-marinho);
     font-weight: 600;
 }
 
-.btn-examesus:hover {
-    color: white;
-    opacity: 0.9;
+
+/* =========================================================
+   BOTÕES RECOM
+   ========================================================= */
+
+.btn-primary,
+.btn-recom {
+    background: var(--azul-marinho);
+    border-color: var(--azul-marinho);
+    color: var(--branco);
+    font-weight: 500;
 }
 
-.card-examesus {
+.btn-primary:hover,
+.btn-recom:hover {
+    background: var(--azul-escuro);
+    border-color: var(--azul-escuro);
+    color: var(--branco);
+}
+
+.btn-outline-primary {
+    color: var(--azul-marinho);
+    border-color: var(--azul-marinho);
+}
+
+.btn-outline-primary:hover {
+    background: var(--azul-marinho);
+    border-color: var(--azul-marinho);
+    color: var(--branco);
+}
+
+
+/* Botão de destaque institucional */
+
+.btn-destaque {
+    background: var(--amarelo);
+    border-color: var(--amarelo);
+    color: var(--azul-marinho);
+    font-weight: 600;
+}
+
+.btn-destaque:hover {
+    background: var(--amarelo-hover);
+    border-color: var(--amarelo-hover);
+    color: var(--azul-marinho);
+}
+
+
+/* =========================================================
+   CARDS
+   ========================================================= */
+
+.card {
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+}
+
+.card-recom {
     border: none;
     border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    background: var(--branco);
+    box-shadow: 0 8px 24px rgba(6, 40, 70, 0.10);
 }
 
-.icon-circle {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--azul), var(--verde));
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    margin: 0 auto;
+
+/* =========================================================
+   FORMULÁRIOS
+   ========================================================= */
+
+.form-control,
+.form-select {
+    border-color: var(--borda);
 }
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--azul);
+    box-shadow: 0 0 0 0.2rem rgba(63, 127, 186, 0.20);
+}
+
+
+/* =========================================================
+   TABELAS
+   ========================================================= */
+
+.table thead th {
+    background: var(--azul-marinho);
+    color: var(--branco);
+    border-color: var(--azul-marinho);
+}
+
+.table-hover tbody tr:hover {
+    background: var(--azul-claro);
+}
+
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
 
 .dashboard-card {
     border: none;
     border-radius: 16px;
-    color: white;
+    color: var(--branco);
     min-height: 130px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
-    transition: 0.2s;
+    box-shadow: 0 8px 24px rgba(6, 40, 70, 0.16);
+    transition: transform 0.2s ease;
 }
 
 .dashboard-card:hover {
     transform: translateY(-4px);
 }
 
-.bg-gradiente {
-    background: linear-gradient(135deg, var(--azul), var(--verde));
+.bg-recom {
+    background: var(--azul-marinho);
 }
 
-.bg-verde {
-    background: var(--verde);
+.bg-azul {
+    background: var(--azul);
 }
 
-.bg-roxo {
-    background: var(--roxo);
+.bg-amarelo {
+    background: var(--amarelo);
+    color: var(--azul-marinho);
 }
 
-.bg-laranja {
-    background: var(--laranja);
+
+/* =========================================================
+   ÍCONES
+   ========================================================= */
+
+.icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--azul-marinho);
+    color: var(--branco);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 32px;
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   RODAPÉ
+   ========================================================= */
+
+.footer-recom {
+    background: var(--branco);
+    border-top: 3px solid var(--azul-marinho);
+
+    padding: 20px 0;
+    margin-top: 50px;
+
+    color: var(--texto-secundario);
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .logo-recom {
+        width: 40px !important;
+        height: 40px !important;
+        max-width: 40px !important;
+        max-height: 40px !important;
+    }
 }

@@ -1,79 +1,153 @@
+{% load static %}
 {% load i18n %}
 
-<nav class="navbar navbar-expand-lg bg-white shadow-sm navbar-examesus">
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
     <div class="container">
 
-        <a class="navbar-brand d-flex align-items-center gap-3" href="{% url 'core:home' %}">
-            <div class="logo-box">
-                <i class="bi bi-clipboard2-pulse"></i>
-            </div>
-
-            <div>
-                <strong class="fs-4 text-dark">ExameSUS</strong>
-                <div class="small text-muted">Sistema de Acompanhamento de Exames</div>
-            </div>
+        <a
+            class="navbar-brand"
+            href="{% url 'core:home' %}"
+        >
+           <img
+                src="{% static 'img/logo_recom.png' %}"
+                alt="Logo da RECOM"
+                class="logo-recom"
+                width="65"
+                height="65"
+            >
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNavbar">
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#menuNavbar"
+            aria-controls="menuNavbar"
+            aria-expanded="false"
+            aria-label="Abrir menu"
+        >
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="menuNavbar">
+        <div
+            class="collapse navbar-collapse"
+            id="menuNavbar"
+        >
+
             <ul class="navbar-nav ms-auto fw-semibold align-items-lg-center">
 
+                <!-- Início -->
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'core:home' %}">Início</a>
+                    <a
+                        class="nav-link"
+                        href="{% url 'core:home' %}"
+                    >
+                        <i class="bi bi-house-door me-1"></i>
+                        Início
+                    </a>
                 </li>
 
-                <li class="nav-item ms-lg-3">
-                    <form action="{% url 'set_language' %}" method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{% url 'core:home' %}">
+                <!-- Escolas -->
+                <li class="nav-item">
+                    <a
+                        class="nav-link"
+                        href="{% url 'escolas:listar_escolas' %}"
+                    >
+                        <i class="bi bi-building me-1"></i>
+                        Escolas
+                    </a>
+                </li>
 
-                        <select name="language"
-                                class="form-select form-select-sm"
-                                onchange="this.form.submit()">
-                            <option value="pt-br" {% if LANGUAGE_CODE == "pt-br" %}selected{% endif %}>
+                <!-- Visitas -->
+                <li class="nav-item">
+                    <a
+                        class="nav-link disabled"
+                        href="#"
+                        tabindex="-1"
+                        aria-disabled="true"
+                        title="Funcionalidade em desenvolvimento"
+                    >
+                        <i class="bi bi-clipboard-check me-1"></i>
+                        Visitas
+                    </a>
+                </li>
+
+                <!-- Ocorrências -->
+                <li class="nav-item">
+                    <a
+                        class="nav-link disabled"
+                        href="#"
+                        tabindex="-1"
+                        aria-disabled="true"
+                        title="Funcionalidade em desenvolvimento"
+                    >
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Ocorrências
+                    </a>
+                </li>
+
+                <!-- Ações -->
+                <li class="nav-item">
+                    <a
+                        class="nav-link disabled"
+                        href="#"
+                        tabindex="-1"
+                        aria-disabled="true"
+                        title="Funcionalidade em desenvolvimento"
+                    >
+                        <i class="bi bi-people me-1"></i>
+                        Ações
+                    </a>
+                </li>
+
+                <!-- Idioma -->
+                <li class="nav-item ms-lg-3">
+
+                    <form
+                        action="{% url 'set_language' %}"
+                        method="post"
+                    >
+                        {% csrf_token %}
+
+                        <input
+                            type="hidden"
+                            name="next"
+                            value="{{ request.path }}"
+                        >
+
+                        <select
+                            name="language"
+                            class="form-select form-select-sm"
+                            onchange="this.form.submit()"
+                            aria-label="Selecionar idioma"
+                        >
+
+                            <option
+                                value="pt-br"
+                                {% if LANGUAGE_CODE == "pt-br" %}
+                                    selected
+                                {% endif %}
+                            >
                                 PT
                             </option>
-                            <option value="en" {% if LANGUAGE_CODE == "en" %}selected{% endif %}>
+
+                            <option
+                                value="en"
+                                {% if LANGUAGE_CODE == "en" %}
+                                    selected
+                                {% endif %}
+                            >
                                 EN
                             </option>
+
                         </select>
+
                     </form>
+
                 </li>
 
-                {% if user.is_authenticated %}
-
-                    {% if request.session.perfil == "ADMIN" %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'core:dashboard_admin' %}">Admin</a>
-                        </li>
-                    {% elif request.session.perfil == "PROFISSIONAL" %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'core:dashboard_profissional' %}">Profissional</a>
-                        </li>
-                    {% elif request.session.perfil == "CIDADAO" %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'core:dashboard_cidadao' %}">Cidadão</a>
-                        </li>
-                    {% endif %}
-
-                    <li class="nav-item ms-lg-3">
-                        <a class="btn btn-outline-danger btn-sm" href="{% url 'core:logout' %}">
-                            <i class="bi bi-box-arrow-right"></i> Sair
-                        </a>
-                    </li>
-
-                {% else %}
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:login' %}">Login</a>
-                    </li>
-
-                {% endif %}
-
             </ul>
+
         </div>
 
     </div>

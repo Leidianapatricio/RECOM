@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}
+Detalhes da Escola
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2>{{ escola.nome }}</h2>
+
+            <p class="text-muted mb-0">
+                {{ escola.get_polo_display }}
+            </p>
+        </div>
+
+        <a href="{% url 'escolas:listar_escolas' %}"
+           class="btn btn-outline-secondary">
+            Voltar
+        </a>
+
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-8 mb-3">
+                    <strong>Endereço</strong>
+                    <div>
+                        {{ escola.endereco }}
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <strong>Polo</strong>
+                    <div>
+                        {{ escola.get_polo_display }}
+                    </div>
+                </div>
+
+                <div class="col-md-8 mb-3">
+                    <strong>Gestor</strong>
+                    <div>
+                        {{ escola.gestor|default:"Não informado" }}
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <strong>Telefone</strong>
+                    <div>
+                        {{ escola.telefone|default:"Não informado" }}
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Monitoramento</strong>
+                    <div>
+                        {% if escola.monitoramento %}
+                            Sim
+                        {% else %}
+                            Não
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Botão do Pânico</strong>
+                    <div>
+                        {% if escola.botao_panico %}
+                            Sim
+                        {% else %}
+                            Não
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Quantidade de alunos</strong>
+                    <div>
+                        {{ escola.quantidade_alunos }}
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <strong>Alunos PCD</strong>
+                    <div>
+                        {{ escola.quantidade_alunos_pcd }}
+                    </div>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <strong>Modalidade</strong>
+                    <div>
+                        {{ escola.modalidade|default:"Não informada" }}
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <strong>Observações</strong>
+                    <div>
+                        {{ escola.observacoes|default:"Nenhuma observação." }}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
