@@ -31,11 +31,9 @@ Escolas
 
     {% if messages %}
         {% for message in messages %}
-
             <div class="alert alert-{{ message.tags }}">
                 {{ message }}
             </div>
-
         {% endfor %}
     {% endif %}
 
@@ -47,6 +45,7 @@ Escolas
 
             <form method="get" class="row g-3">
 
+                <!-- PESQUISA -->
                 <div class="col-lg-4 col-md-6">
 
                     <label
@@ -68,6 +67,7 @@ Escolas
                 </div>
 
 
+                <!-- POLO -->
                 <div class="col-lg-2 col-md-3">
 
                     <label
@@ -105,7 +105,8 @@ Escolas
                 </div>
 
 
-                <div class="col-lg-3 col-md-3">
+                <!-- BAIRRO -->
+                <div class="col-lg-2 col-md-3">
 
                     <label
                         for="bairro"
@@ -142,7 +143,56 @@ Escolas
                 </div>
 
 
-                <div class="col-lg-3 d-flex align-items-end gap-2">
+                <!-- SITUAÇÃO -->
+                <div class="col-lg-2 col-md-3">
+
+                    <label
+                        for="situacao"
+                        class="form-label"
+                    >
+                        Situação
+                    </label>
+
+                    <select
+                        name="situacao"
+                        id="situacao"
+                        class="form-select"
+                    >
+
+                        <option
+                            value="ativas"
+                            {% if situacao_selecionada == "ativas" %}
+                                selected
+                            {% endif %}
+                        >
+                            Ativas
+                        </option>
+
+                        <option
+                            value="inativas"
+                            {% if situacao_selecionada == "inativas" %}
+                                selected
+                            {% endif %}
+                        >
+                            Inativas
+                        </option>
+
+                        <option
+                            value="todas"
+                            {% if situacao_selecionada == "todas" %}
+                                selected
+                            {% endif %}
+                        >
+                            Todas
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- BOTÕES -->
+                <div class="col-lg-2 col-md-3 d-flex align-items-end gap-2">
 
                     <button
                         type="submit"
@@ -182,6 +232,7 @@ Escolas
                         <thead>
 
                             <tr>
+
                                 <th>Nome</th>
                                 <th>Polo</th>
                                 <th>Bairro</th>
@@ -189,13 +240,15 @@ Escolas
                                 <th>Monitoramento</th>
                                 <th>Botão do Pânico</th>
                                 <th>Alunos</th>
+                                <th>Situação</th>
+
                                 <th class="text-center">
                                     Ações
                                 </th>
+
                             </tr>
 
                         </thead>
-
 
                         <tbody>
 
@@ -237,7 +290,6 @@ Escolas
 
                                     </td>
 
-
                                     <td>
 
                                         {% if escola.botao_panico %}
@@ -256,9 +308,28 @@ Escolas
 
                                     </td>
 
-
                                     <td>
                                         {{ escola.quantidade_alunos }}
+                                    </td>
+
+
+                                    <!-- SITUAÇÃO DA ESCOLA -->
+                                    <td>
+
+                                        {% if escola.ativa %}
+
+                                            <span class="badge bg-success">
+                                                Ativa
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-danger">
+                                                Inativa
+                                            </span>
+
+                                        {% endif %}
+
                                     </td>
 
 
@@ -301,7 +372,7 @@ Escolas
 
                                     <a
                                         class="page-link"
-                                        href="?page={{ page_obj.previous_page_number }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}"
+                                        href="?page={{ page_obj.previous_page_number }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}&situacao={{ situacao_selecionada }}"
                                     >
                                         Anterior
                                     </a>
@@ -329,7 +400,7 @@ Escolas
 
                                         <a
                                             class="page-link"
-                                            href="?page={{ numero }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}"
+                                            href="?page={{ numero }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}&situacao={{ situacao_selecionada }}"
                                         >
                                             {{ numero }}
                                         </a>
@@ -347,7 +418,7 @@ Escolas
 
                                     <a
                                         class="page-link"
-                                        href="?page={{ page_obj.next_page_number }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}"
+                                        href="?page={{ page_obj.next_page_number }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}&situacao={{ situacao_selecionada }}"
                                     >
                                         Próxima
                                     </a>
@@ -367,33 +438,16 @@ Escolas
 
                 <div class="text-center py-4">
 
-                    {% if busca or polo_selecionado or bairro_selecionado %}
+                    <p class="text-muted">
+                        Nenhuma escola encontrada.
+                    </p>
 
-                        <p class="text-muted">
-                            Nenhuma escola encontrada com os filtros informados.
-                        </p>
-
-                        <a
-                            href="{% url 'escolas:listar_escolas' %}"
-                            class="btn btn-outline-primary"
-                        >
-                            Limpar pesquisa
-                        </a>
-
-                    {% else %}
-
-                        <p class="text-muted">
-                            Nenhuma escola cadastrada.
-                        </p>
-
-                        <a
-                            href="{% url 'escolas:cadastrar_escola' %}"
-                            class="btn btn-primary"
-                        >
-                            Cadastrar primeira escola
-                        </a>
-
-                    {% endif %}
+                    <a
+                        href="{% url 'escolas:listar_escolas' %}"
+                        class="btn btn-outline-primary"
+                    >
+                        Limpar filtros
+                    </a>
 
                 </div>
 

@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 
 {% block title %}
+{% if modo_edicao %}
+Editar Problemática
+{% else %}
 Registrar Problemática
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -14,7 +18,11 @@ Registrar Problemática
 
             <div class="mb-4">
 
-                <h2>Registrar Problemática</h2>
+                {% if modo_edicao %}
+                    <h2>Editar Problemática</h2>
+                {% else %}
+                    <h2>Registrar Problemática</h2>
+                {% endif %}
 
                 <p class="text-muted mb-0">
                     Escola:
@@ -103,13 +111,27 @@ Registrar Problemática
                                 Cancelar
                             </a>
 
-                            <button
-                                type="submit"
-                                class="btn btn-primary"
-                            >
-                                <i class="bi bi-check-circle me-1"></i>
-                                Registrar Problemática
-                            </button>
+                            {% if modo_edicao %}
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Salvar alterações
+                                </button>
+
+                            {% else %}
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Registrar Problemática
+                                </button>
+
+                            {% endif %}
 
                         </div>
 

@@ -124,6 +124,7 @@ Detalhes da Escola
 
                 <div class="col-md-4 mb-3">
                     <strong>Situação</strong>
+
                     <div>
 
                         {% if escola.ativa %}
@@ -141,6 +142,7 @@ Detalhes da Escola
                         {% endif %}
 
                     </div>
+
                 </div>
 
                 <div class="col-md-8 mb-3">
@@ -159,6 +161,7 @@ Detalhes da Escola
 
                 <div class="col-md-6 mb-3">
                     <strong>Monitoramento</strong>
+
                     <div>
 
                         {% if escola.monitoramento %}
@@ -176,10 +179,12 @@ Detalhes da Escola
                         {% endif %}
 
                     </div>
+
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <strong>Botão do Pânico</strong>
+
                     <div>
 
                         {% if escola.botao_panico %}
@@ -197,6 +202,7 @@ Detalhes da Escola
                         {% endif %}
 
                     </div>
+
                 </div>
 
                 <div class="col-md-6 mb-3">
@@ -266,12 +272,18 @@ Detalhes da Escola
                     <table class="table table-hover align-middle mb-0">
 
                         <thead>
+
                             <tr>
                                 <th>Problemática</th>
                                 <th>Situação</th>
                                 <th>Data do Registro</th>
                                 <th>Observações</th>
+
+                                <th class="text-center">
+                                    Ações
+                                </th>
                             </tr>
+
                         </thead>
 
                         <tbody>
@@ -320,6 +332,20 @@ Detalhes da Escola
 
                                     <td>
                                         {{ problematica.observacoes|default:"-" }}
+                                    </td>
+
+
+                                    <!-- AÇÕES DA PROBLEMÁTICA -->
+                                    <td class="text-center">
+
+                                        <a
+                                            href="{% url 'escolas:editar_problematica' escola.pk problematica.pk %}"
+                                            class="btn btn-sm btn-outline-primary"
+                                        >
+                                            <i class="bi bi-pencil-square me-1"></i>
+                                            Editar
+                                        </a>
+
                                     </td>
 
                                 </tr>

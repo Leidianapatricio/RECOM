@@ -1,5 +1,5 @@
 """
-WSGI config for examesus project.
+WSGI config for recom project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

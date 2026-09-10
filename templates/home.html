@@ -8,102 +8,125 @@
 
     <div class="row align-items-center g-5">
 
+        <!-- APRESENTAÇÃO -->
         <div class="col-lg-6">
 
-            <span class="badge bg-success mb-3">
-                {% trans "Sistema de Saúde Pública" %}
+            <span class="badge bg-primary mb-3">
+                {% trans "Ronda Escolar Comunitária" %}
             </span>
 
             <h1 class="display-4 fw-bold lh-sm">
-                {% trans "ExameSUS:" %}
+                {% trans "RECOM:" %}
                 <br>
-                {% trans "acompanhamento de exames de forma simples e segura" %}
+                {% trans "gestão e acompanhamento da segurança escolar" %}
             </h1>
 
             <p class="lead text-muted mt-4">
-                {% trans "Plataforma digital para facilitar o acesso aos agendamentos, resultados, histórico de exames e notificações de acompanhamento no Sistema Único de Saúde." %}
+                {% trans "Sistema desenvolvido para apoiar o acompanhamento das escolas, o registro de problemáticas, visitas, ocorrências e ações realizadas pela Ronda Escolar Comunitária." %}
             </p>
 
-            <div class="mt-4">
-                <a href="{% url 'core:login' %}"
-                   class="btn btn-examesus btn-lg px-5">
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    {% trans "Entrar no Sistema" %}
-                </a>
-            </div>
+            <p class="text-muted">
+                {% trans "A plataforma centraliza informações importantes das unidades escolares e facilita o acompanhamento das atividades desenvolvidas pela equipe da RECOM." %}
+            </p>
 
         </div>
 
+
+        <!-- FUNCIONALIDADES -->
         <div class="col-lg-6">
 
-            <div class="card card-examesus shadow-sm p-4">
+            <div class="card shadow-sm p-4">
 
                 <h2 class="fw-bold mb-4">
-                    {% trans "O que o ExameSUS oferece?" %}
+                    {% trans "O que o RECOM oferece?" %}
                 </h2>
 
+
+                <!-- ESCOLAS -->
                 <div class="d-flex gap-3 mb-4">
+
                     <div class="logo-box flex-shrink-0">
-                        <i class="bi bi-calendar-check"></i>
+                        <i class="bi bi-building"></i>
                     </div>
 
                     <div>
+
                         <h5 class="fw-bold">
-                            {% trans "Agendamentos" %}
+                            {% trans "Gestão de Escolas" %}
                         </h5>
 
                         <p class="text-muted mb-0">
-                            {% trans "Consulte exames agendados, datas, locais e situação do atendimento." %}
+                            {% trans "Cadastro, consulta e acompanhamento das unidades escolares atendidas pela Ronda Escolar Comunitária." %}
                         </p>
+
                     </div>
+
                 </div>
 
+
+                <!-- PROBLEMÁTICAS -->
                 <div class="d-flex gap-3 mb-4">
+
                     <div class="logo-box flex-shrink-0">
-                        <i class="bi bi-clipboard2-pulse"></i>
+                        <i class="bi bi-exclamation-triangle"></i>
                     </div>
 
                     <div>
+
                         <h5 class="fw-bold">
-                            {% trans "Resultados e Histórico" %}
+                            {% trans "Acompanhamento de Problemáticas" %}
                         </h5>
 
                         <p class="text-muted mb-0">
-                            {% trans "Consulte resultados e acompanhe todo o histórico de exames realizados." %}
+                            {% trans "Registro e acompanhamento das principais problemáticas identificadas nas escolas." %}
                         </p>
+
                     </div>
+
                 </div>
 
+
+                <!-- VISITAS -->
                 <div class="d-flex gap-3 mb-4">
+
                     <div class="logo-box flex-shrink-0">
-                        <i class="bi bi-bell"></i>
+                        <i class="bi bi-clipboard-check"></i>
                     </div>
 
                     <div>
+
                         <h5 class="fw-bold">
-                            {% trans "Notificações" %}
+                            {% trans "Registro de Visitas" %}
                         </h5>
 
                         <p class="text-muted mb-0">
-                            {% trans "Receba lembretes sobre exames agendados e novos resultados." %}
+                            {% trans "Registro das visitas e rondas realizadas nas unidades escolares." %}
                         </p>
+
                     </div>
+
                 </div>
 
+
+                <!-- HISTÓRICO -->
                 <div class="d-flex gap-3">
+
                     <div class="logo-box flex-shrink-0">
-                        <i class="bi bi-shield-check"></i>
+                        <i class="bi bi-clock-history"></i>
                     </div>
 
                     <div>
+
                         <h5 class="fw-bold">
-                            {% trans "Acesso Seguro" %}
+                            {% trans "Histórico de Acompanhamento" %}
                         </h5>
 
                         <p class="text-muted mb-0">
-                            {% trans "Ambiente seguro para cidadãos, profissionais de saúde e administradores." %}
+                            {% trans "Consulta ao histórico de visitas, registros e ações relacionadas às escolas acompanhadas." %}
                         </p>
+
                     </div>
+
                 </div>
 
             </div>
