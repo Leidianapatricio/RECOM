@@ -59,7 +59,8 @@ Cadastro de Escola
                         {% endfor %}
                     </div>
 
-                    <div class="col-md-12 mb-3">
+
+                    <div class="col-md-8 mb-3">
                         <label class="form-label">
                             {{ form.endereco.label }}
                         </label>
@@ -73,12 +74,33 @@ Cadastro de Escola
                         {% endfor %}
                     </div>
 
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">
+                            {{ form.bairro.label }}
+                        </label>
+
+                        {{ form.bairro }}
+
+                        {% for error in form.bairro.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+
                     <div class="col-md-8 mb-3">
                         <label class="form-label">
                             {{ form.gestor.label }}
                         </label>
 
                         {{ form.gestor }}
+
+                        {% for error in form.gestor.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
                     </div>
 
                     <div class="col-md-4 mb-3">
@@ -87,7 +109,14 @@ Cadastro de Escola
                         </label>
 
                         {{ form.telefone }}
+
+                        {% for error in form.telefone.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
                     </div>
+
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">
@@ -95,6 +124,12 @@ Cadastro de Escola
                         </label>
 
                         {{ form.monitoramento }}
+
+                        {% for error in form.monitoramento.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -103,7 +138,14 @@ Cadastro de Escola
                         </label>
 
                         {{ form.botao_panico }}
+
+                        {% for error in form.botao_panico.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
                     </div>
+
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">
@@ -133,13 +175,21 @@ Cadastro de Escola
                         {% endfor %}
                     </div>
 
+
                     <div class="col-md-12 mb-3">
                         <label class="form-label">
                             {{ form.modalidade.label }}
                         </label>
 
                         {{ form.modalidade }}
+
+                        {% for error in form.modalidade.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
                     </div>
+
 
                     <div class="col-md-12 mb-3">
                         <label class="form-label">
@@ -147,21 +197,48 @@ Cadastro de Escola
                         </label>
 
                         {{ form.observacoes }}
+
+                        {% for error in form.observacoes.errors %}
+                            <div class="text-danger small">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
                     </div>
 
                 </div>
 
-                <div class="d-flex justify-content-end gap-2">
 
-                    <a href="{% url 'escolas:listar_escolas' %}"
-                       class="btn btn-secondary">
+                <div class="d-flex justify-content-between align-items-center mt-4">
+
+                    <a
+                        href="{% url 'escolas:listar_escolas' %}"
+                        class="btn btn-outline-secondary"
+                    >
                         Cancelar
                     </a>
 
-                    <button type="submit"
-                            class="btn btn-primary">
-                        Salvar
-                    </button>
+
+                    <div class="d-flex gap-2">
+
+                        <button
+                            type="submit"
+                            name="salvar"
+                            class="btn btn-outline-primary"
+                        >
+                            <i class="bi bi-check-circle me-1"></i>
+                            Salvar
+                        </button>
+
+                        <button
+                            type="submit"
+                            name="salvar_problematica"
+                            class="btn btn-primary"
+                        >
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Salvar e registrar problemática
+                        </button>
+
+                    </div>
 
                 </div>
 

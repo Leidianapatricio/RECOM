@@ -28,6 +28,11 @@ class Escola(models.Model):
     endereco = models.CharField(
         max_length=300
     )
+    
+    bairro = models.CharField(
+    max_length=120,
+    blank=True
+    )
 
     gestor = models.CharField(
         max_length=150,
@@ -91,3 +96,93 @@ class Escola(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+class TipoProblematica(models.Model):
+
+    nome = models.CharField(
+        max_length=150,
+        unique=True
+    )
+
+    descricao = models.TextField(
+        blank=True
+    )
+
+    ativa = models.BooleanField(
+        default=True
+    )
+
+    criado_em = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    atualizado_em = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = ["nome"]
+        verbose_name = "Tipo de problemática"
+        verbose_name_plural = "Tipos de problemáticas"
+
+    def __str__(self):
+        return self.nome
+
+
+class EscolaProblematica(models.Model):
+
+    SITUACAO_CHOICES = [
+        ("ATIVA", "Ativa"),
+        ("EM_ACOMPANHAMENTO", "Em acompanhamento"),
+        ("RESOLVIDA", "Resolvida"),
+    ]
+
+    escola = models.ForeignKey(
+        Escola,
+        on_delete=models.CASCADE,
+        related_name="problematicas"
+    )
+
+    tipo_problematica = models.ForeignKey(
+        TipoProblematica,
+        on_delete=models.PROTECT,
+        related_name="escolas"
+    )
+
+    data_registro = models.DateField(
+        auto_now_add=True
+    )
+
+    situacao = models.CharField(
+        max_length=20,
+        choices=SITUACAO_CHOICES,
+        default="ATIVA"
+    )
+
+    observacoes = models.TextField(
+        blank=True
+    )
+
+    criado_em = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    atualizado_em = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = ["escola", "tipo_problematica"]
+        verbose_name = "Problemática da escola"
+        verbose_name_plural = "Problemáticas das escolas"
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["escola", "tipo_problematica"],
+                name="unique_escola_tipo_problematica"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.escola.nome} - {self.tipo_problematica.nome}"

@@ -20,4 +20,28 @@ urlpatterns = [
         views.detalhe_escola,
         name="detalhe_escola",
     ),
+    
+    path(
+    "<int:pk>/problematicas/nova/",
+    views.cadastrar_problematica,
+    name="cadastrar_problematica"
+    ),
+    
+    path(
+    "<int:pk>/editar/",
+    views.editar_escola,
+    name="editar_escola"
+    ),
+
+    path(
+    "<int:pk>/desativar/",
+    views.desativar_escola,
+    name="desativar_escola"
+    ),
+
+    path(
+    "<int:pk>/ativar/",
+    views.ativar_escola,
+    name="ativar_escola"
+    ),
 ]

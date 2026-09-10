@@ -9,51 +9,200 @@ Escolas
 <div class="container mt-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
+
         <div>
             <h2>Escolas</h2>
+
             <p class="text-muted mb-0">
                 Unidades escolares cadastradas no sistema RECOM.
             </p>
         </div>
 
-        <a href="{% url 'escolas:cadastrar_escola' %}"
-           class="btn btn-primary">
+        <a
+            href="{% url 'escolas:cadastrar_escola' %}"
+            class="btn btn-primary"
+        >
+            <i class="bi bi-plus-circle me-1"></i>
             Nova Escola
         </a>
+
     </div>
+
 
     {% if messages %}
         {% for message in messages %}
+
             <div class="alert alert-{{ message.tags }}">
                 {{ message }}
             </div>
+
         {% endfor %}
     {% endif %}
 
-    <div class="card shadow-sm">
+
+    <!-- FILTROS -->
+    <div class="card shadow-sm mb-4">
+
         <div class="card-body">
 
-            {% if escolas %}
+            <form method="get" class="row g-3">
+
+                <div class="col-lg-4 col-md-6">
+
+                    <label
+                        for="busca"
+                        class="form-label"
+                    >
+                        Pesquisar escola
+                    </label>
+
+                    <input
+                        type="text"
+                        name="busca"
+                        id="busca"
+                        class="form-control"
+                        placeholder="Nome, bairro, endereço ou gestor"
+                        value="{{ busca }}"
+                    >
+
+                </div>
+
+
+                <div class="col-lg-2 col-md-3">
+
+                    <label
+                        for="polo"
+                        class="form-label"
+                    >
+                        Polo
+                    </label>
+
+                    <select
+                        name="polo"
+                        id="polo"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            Todos os polos
+                        </option>
+
+                        {% for valor, nome in polos %}
+
+                            <option
+                                value="{{ valor }}"
+                                {% if polo_selecionado == valor|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ nome }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-lg-3 col-md-3">
+
+                    <label
+                        for="bairro"
+                        class="form-label"
+                    >
+                        Bairro
+                    </label>
+
+                    <select
+                        name="bairro"
+                        id="bairro"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            Todos os bairros
+                        </option>
+
+                        {% for nome_bairro in bairros %}
+
+                            <option
+                                value="{{ nome_bairro }}"
+                                {% if bairro_selecionado == nome_bairro %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ nome_bairro }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-lg-3 d-flex align-items-end gap-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        <i class="bi bi-search me-1"></i>
+                        Pesquisar
+                    </button>
+
+                    <a
+                        href="{% url 'escolas:listar_escolas' %}"
+                        class="btn btn-outline-secondary"
+                    >
+                        Limpar
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- LISTAGEM -->
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            {% if page_obj %}
 
                 <div class="table-responsive">
+
                     <table class="table table-hover align-middle">
 
                         <thead>
+
                             <tr>
                                 <th>Nome</th>
                                 <th>Polo</th>
+                                <th>Bairro</th>
                                 <th>Gestor</th>
                                 <th>Monitoramento</th>
                                 <th>Botão do Pânico</th>
                                 <th>Alunos</th>
-                                <th class="text-center">Ações</th>
+                                <th class="text-center">
+                                    Ações
+                                </th>
                             </tr>
+
                         </thead>
+
 
                         <tbody>
 
-                            {% for escola in escolas %}
+                            {% for escola in page_obj %}
+
                                 <tr>
+
                                     <td>
                                         {{ escola.nome }}
                                     </td>
@@ -63,58 +212,195 @@ Escolas
                                     </td>
 
                                     <td>
+                                        {{ escola.bairro|default:"-" }}
+                                    </td>
+
+                                    <td>
                                         {{ escola.gestor|default:"-" }}
                                     </td>
 
                                     <td>
+
                                         {% if escola.monitoramento %}
-                                            Sim
+
+                                            <span class="badge bg-success">
+                                                Sim
+                                            </span>
+
                                         {% else %}
-                                            Não
+
+                                            <span class="badge bg-secondary">
+                                                Não
+                                            </span>
+
                                         {% endif %}
+
                                     </td>
 
+
                                     <td>
+
                                         {% if escola.botao_panico %}
-                                            Sim
+
+                                            <span class="badge bg-success">
+                                                Sim
+                                            </span>
+
                                         {% else %}
-                                            Não
+
+                                            <span class="badge bg-secondary">
+                                                Não
+                                            </span>
+
                                         {% endif %}
+
                                     </td>
+
 
                                     <td>
                                         {{ escola.quantidade_alunos }}
                                     </td>
 
+
                                     <td class="text-center">
-                                        <a href="{% url 'escolas:detalhe_escola' escola.pk %}"
-                                           class="btn btn-sm btn-outline-primary">
+
+                                        <a
+                                            href="{% url 'escolas:detalhe_escola' escola.pk %}"
+                                            class="btn btn-sm btn-outline-primary"
+                                        >
+                                            <i class="bi bi-eye me-1"></i>
                                             Visualizar
                                         </a>
+
                                     </td>
+
                                 </tr>
+
                             {% endfor %}
 
                         </tbody>
+
                     </table>
+
                 </div>
+
+
+                <!-- PAGINAÇÃO -->
+                {% if page_obj.paginator.num_pages > 1 %}
+
+                    <nav
+                        aria-label="Paginação das escolas"
+                        class="mt-4"
+                    >
+
+                        <ul class="pagination justify-content-center">
+
+                            {% if page_obj.has_previous %}
+
+                                <li class="page-item">
+
+                                    <a
+                                        class="page-link"
+                                        href="?page={{ page_obj.previous_page_number }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}"
+                                    >
+                                        Anterior
+                                    </a>
+
+                                </li>
+
+                            {% endif %}
+
+
+                            {% for numero in page_obj.paginator.page_range %}
+
+                                {% if numero == page_obj.number %}
+
+                                    <li class="page-item active">
+
+                                        <span class="page-link">
+                                            {{ numero }}
+                                        </span>
+
+                                    </li>
+
+                                {% else %}
+
+                                    <li class="page-item">
+
+                                        <a
+                                            class="page-link"
+                                            href="?page={{ numero }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}"
+                                        >
+                                            {{ numero }}
+                                        </a>
+
+                                    </li>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+
+                            {% if page_obj.has_next %}
+
+                                <li class="page-item">
+
+                                    <a
+                                        class="page-link"
+                                        href="?page={{ page_obj.next_page_number }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}"
+                                    >
+                                        Próxima
+                                    </a>
+
+                                </li>
+
+                            {% endif %}
+
+                        </ul>
+
+                    </nav>
+
+                {% endif %}
+
 
             {% else %}
 
                 <div class="text-center py-4">
-                    <p class="text-muted">
-                        Nenhuma escola cadastrada.
-                    </p>
 
-                    <a href="{% url 'escolas:cadastrar_escola' %}"
-                       class="btn btn-primary">
-                        Cadastrar primeira escola
-                    </a>
+                    {% if busca or polo_selecionado or bairro_selecionado %}
+
+                        <p class="text-muted">
+                            Nenhuma escola encontrada com os filtros informados.
+                        </p>
+
+                        <a
+                            href="{% url 'escolas:listar_escolas' %}"
+                            class="btn btn-outline-primary"
+                        >
+                            Limpar pesquisa
+                        </a>
+
+                    {% else %}
+
+                        <p class="text-muted">
+                            Nenhuma escola cadastrada.
+                        </p>
+
+                        <a
+                            href="{% url 'escolas:cadastrar_escola' %}"
+                            class="btn btn-primary"
+                        >
+                            Cadastrar primeira escola
+                        </a>
+
+                    {% endif %}
+
                 </div>
 
             {% endif %}
 
         </div>
+
     </div>
 
 </div>

@@ -18,14 +18,85 @@ Detalhes da Escola
             </p>
         </div>
 
-        <a href="{% url 'escolas:listar_escolas' %}"
-           class="btn btn-outline-secondary">
-            Voltar
-        </a>
+        <div class="d-flex gap-2 flex-wrap">
+
+            <a
+                href="{% url 'escolas:editar_escola' escola.pk %}"
+                class="btn btn-outline-primary"
+            >
+                <i class="bi bi-pencil-square me-1"></i>
+                Editar
+            </a>
+
+            {% if escola.ativa %}
+
+                <form
+                    method="post"
+                    action="{% url 'escolas:desativar_escola' escola.pk %}"
+                    class="d-inline"
+                >
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-outline-danger"
+                        onclick="return confirm('Deseja realmente desativar esta escola?');"
+                    >
+                        <i class="bi bi-x-circle me-1"></i>
+                        Desativar
+                    </button>
+
+                </form>
+
+            {% else %}
+
+                <form
+                    method="post"
+                    action="{% url 'escolas:ativar_escola' escola.pk %}"
+                    class="d-inline"
+                >
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-outline-success"
+                        onclick="return confirm('Deseja reativar esta escola?');"
+                    >
+                        <i class="bi bi-check-circle me-1"></i>
+                        Ativar
+                    </button>
+
+                </form>
+
+            {% endif %}
+
+            {% if escola.ativa %}
+
+                <a
+                    href="{% url 'escolas:cadastrar_problematica' escola.pk %}"
+                    class="btn btn-primary"
+                >
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Registrar Problemática
+                </a>
+
+            {% endif %}
+
+            <a
+                href="{% url 'escolas:listar_escolas' %}"
+                class="btn btn-outline-secondary"
+            >
+                Voltar
+            </a>
+
+        </div>
 
     </div>
 
+
+    <!-- DADOS DA ESCOLA -->
     <div class="card shadow-sm">
+
         <div class="card-body">
 
             <div class="row">
@@ -38,9 +109,37 @@ Detalhes da Escola
                 </div>
 
                 <div class="col-md-4 mb-3">
+                    <strong>Bairro</strong>
+                    <div>
+                        {{ escola.bairro|default:"Não informado" }}
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
                     <strong>Polo</strong>
                     <div>
                         {{ escola.get_polo_display }}
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <strong>Situação</strong>
+                    <div>
+
+                        {% if escola.ativa %}
+
+                            <span class="badge bg-success">
+                                Ativa
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-danger">
+                                Inativa
+                            </span>
+
+                        {% endif %}
+
                     </div>
                 </div>
 
@@ -61,22 +160,42 @@ Detalhes da Escola
                 <div class="col-md-6 mb-3">
                     <strong>Monitoramento</strong>
                     <div>
+
                         {% if escola.monitoramento %}
-                            Sim
+
+                            <span class="badge bg-success">
+                                Sim
+                            </span>
+
                         {% else %}
-                            Não
+
+                            <span class="badge bg-secondary">
+                                Não
+                            </span>
+
                         {% endif %}
+
                     </div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <strong>Botão do Pânico</strong>
                     <div>
+
                         {% if escola.botao_panico %}
-                            Sim
+
+                            <span class="badge bg-success">
+                                Sim
+                            </span>
+
                         {% else %}
-                            Não
+
+                            <span class="badge bg-secondary">
+                                Não
+                            </span>
+
                         {% endif %}
+
                     </div>
                 </div>
 
@@ -111,6 +230,134 @@ Detalhes da Escola
             </div>
 
         </div>
+
+    </div>
+
+
+    <!-- PROBLEMÁTICAS DA ESCOLA -->
+    <div class="card shadow-sm mt-4">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+            <strong>
+                Problemáticas da Escola
+            </strong>
+
+            {% if escola.ativa %}
+
+                <a
+                    href="{% url 'escolas:cadastrar_problematica' escola.pk %}"
+                    class="btn btn-sm btn-primary"
+                >
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Registrar Problemática
+                </a>
+
+            {% endif %}
+
+        </div>
+
+        <div class="card-body">
+
+            {% if escola.problematicas.all %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>Problemática</th>
+                                <th>Situação</th>
+                                <th>Data do Registro</th>
+                                <th>Observações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for problematica in escola.problematicas.all %}
+
+                                <tr>
+
+                                    <td>
+                                        <strong>
+                                            {{ problematica.tipo_problematica.nome }}
+                                        </strong>
+                                    </td>
+
+                                    <td>
+
+                                        {% if problematica.situacao == "ATIVA" %}
+
+                                            <span class="badge bg-danger">
+                                                Ativa
+                                            </span>
+
+                                        {% elif problematica.situacao == "EM_ACOMPANHAMENTO" %}
+
+                                            <span class="badge bg-warning text-dark">
+                                                Em acompanhamento
+                                            </span>
+
+                                        {% elif problematica.situacao == "RESOLVIDA" %}
+
+                                            <span class="badge bg-success">
+                                                Resolvida
+                                            </span>
+
+                                        {% else %}
+
+                                            {{ problematica.get_situacao_display }}
+
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td>
+                                        {{ problematica.data_registro|date:"d/m/Y" }}
+                                    </td>
+
+                                    <td>
+                                        {{ problematica.observacoes|default:"-" }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-3">
+
+                    <p class="text-muted mb-3">
+                        Nenhuma problemática registrada para esta escola.
+                    </p>
+
+                    {% if escola.ativa %}
+
+                        <a
+                            href="{% url 'escolas:cadastrar_problematica' escola.pk %}"
+                            class="btn btn-outline-primary"
+                        >
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Registrar primeira problemática
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
     </div>
 
 </div>

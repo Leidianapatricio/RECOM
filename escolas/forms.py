@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Escola
+from .models import Escola, EscolaProblematica, TipoProblematica
 
 
 class EscolaForm(forms.ModelForm):
@@ -39,6 +39,7 @@ class EscolaForm(forms.ModelForm):
             "nome",
             "polo",
             "endereco",
+            "bairro",
             "gestor",
             "telefone",
             "monitoramento",
@@ -67,6 +68,13 @@ class EscolaForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "placeholder": "Endereço da escola",
+                }
+            ),
+            
+            "bairro": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Bairro",
                 }
             ),
 
@@ -118,6 +126,7 @@ class EscolaForm(forms.ModelForm):
             "nome": "Nome da escola",
             "polo": "Polo",
             "endereco": "Endereço",
+            "bairro": "Bairro",
             "gestor": "Gestor",
             "telefone": "Telefone",
             "monitoramento": "Possui monitoramento",
@@ -177,3 +186,50 @@ class EscolaForm(forms.ModelForm):
             )
 
         return cleaned_data
+
+
+class EscolaProblematicaForm(forms.ModelForm):
+
+    tipo_problematica = forms.ModelChoiceField(
+        queryset=TipoProblematica.objects.filter(ativa=True),
+        label="Problemática",
+        empty_label="Selecione uma problemática",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select"
+            }
+        )
+    )
+
+    class Meta:
+        model = EscolaProblematica
+
+        fields = [
+            "tipo_problematica",
+            "situacao",
+            "observacoes",
+        ]
+
+        labels = {
+            "situacao": "Situação",
+            "observacoes": "Observações",
+        }
+
+        widgets = {
+            "situacao": forms.Select(
+                attrs={
+                    "class": "form-select"
+                }
+            ),
+
+            "observacoes": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": (
+                        "Informe detalhes sobre a problemática, "
+                        "caso necessário."
+                    ),
+                }
+            ),
+        }
