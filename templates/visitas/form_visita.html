@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}
+Registrar Visita
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4 mb-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-9">
+
+            <!-- TÍTULO -->
+            <div class="mb-4">
+
+                <h2 class="fw-bold">
+                    Registrar Visita Escolar
+                </h2>
+
+                <p class="text-muted mb-0">
+                    Preencha os dados da visita realizada pela equipe da RECOM.
+                </p>
+
+            </div>
+
+
+            <!-- CARD DO FORMULÁRIO -->
+            <div class="card shadow-sm">
+
+                <div class="card-body p-4">
+
+                    <form method="post">
+
+                        {% csrf_token %}
+
+
+                        <!-- ERROS GERAIS -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+
+                        <!-- ESCOLA -->
+                        <div class="mb-3">
+
+                            <label
+                                for="{{ form.escola.id_for_label }}"
+                                class="form-label fw-semibold"
+                            >
+                                Escola
+                            </label>
+
+                            {{ form.escola }}
+
+                            {% for error in form.escola.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- EQUIPE RESPONSÁVEL -->
+                        <div class="mb-3">
+
+                            <label
+                                for="{{ form.equipe.id_for_label }}"
+                                class="form-label fw-semibold"
+                            >
+                                Equipe responsável
+                            </label>
+
+                            {{ form.equipe }}
+
+                            {% for error in form.equipe.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- DATA E HORÁRIO -->
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label
+                                    for="{{ form.data_visita.id_for_label }}"
+                                    class="form-label fw-semibold"
+                                >
+                                    Data da visita
+                                </label>
+
+                                {{ form.data_visita }}
+
+                                {% for error in form.data_visita.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+
+                            <div class="col-md-6 mb-3">
+
+                                <label
+                                    for="{{ form.horario.id_for_label }}"
+                                    class="form-label fw-semibold"
+                                >
+                                    Horário
+                                </label>
+
+                                {{ form.horario }}
+
+                                {% for error in form.horario.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- TIPO E SITUAÇÃO -->
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label
+                                    for="{{ form.tipo_visita.id_for_label }}"
+                                    class="form-label fw-semibold"
+                                >
+                                    Tipo de visita
+                                </label>
+
+                                {{ form.tipo_visita }}
+
+                                {% for error in form.tipo_visita.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+
+                            <div class="col-md-6 mb-3">
+
+                                <label
+                                    for="{{ form.situacao.id_for_label }}"
+                                    class="form-label fw-semibold"
+                                >
+                                    Situação encontrada
+                                </label>
+
+                                {{ form.situacao }}
+
+                                {% for error in form.situacao.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- RELATO -->
+                        <div class="mb-3">
+
+                            <label
+                                for="{{ form.relato.id_for_label }}"
+                                class="form-label fw-semibold"
+                            >
+                                Relato da visita
+                            </label>
+
+                            {{ form.relato }}
+
+                            {% for error in form.relato.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- ORIENTAÇÕES -->
+                        <div class="mb-4">
+
+                            <label
+                                for="{{ form.orientacoes.id_for_label }}"
+                                class="form-label fw-semibold"
+                            >
+                                Orientações / Providências
+                            </label>
+
+                            {{ form.orientacoes }}
+
+                            {% for error in form.orientacoes.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- BOTÕES -->
+                        <div class="d-flex justify-content-between">
+
+                            <a
+                                href="{% url 'escolas:listar_escolas' %}"
+                                class="btn btn-outline-secondary"
+                            >
+                                <i class="bi bi-arrow-left me-1"></i>
+                                Cancelar
+                            </a>
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                <i class="bi bi-check-circle me-1"></i>
+                                Registrar Visita
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

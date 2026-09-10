@@ -24,6 +24,11 @@ urlpatterns = [
     ),
 
     path(
+        "visitas/",
+        include("visitas.urls"),
+    ),
+
+    path(
         "admin/",
         admin.site.urls,
     ),
