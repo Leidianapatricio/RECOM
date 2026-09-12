@@ -1,7 +1,9 @@
 from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .forms import RondaVisitaForm
+from .models import RondaVisita
 
 
 def cadastrar_visita(request):
@@ -44,4 +46,27 @@ def cadastrar_visita(request):
         {
             "form": form,
         }
+    )
+
+
+@require_POST
+def excluir_visita(request, pk):
+
+    visita = get_object_or_404(
+        RondaVisita,
+        pk=pk
+    )
+
+    escola_id = visita.escola.pk
+
+    visita.delete()
+
+    messages.success(
+        request,
+        "Visita excluída com sucesso."
+    )
+
+    return redirect(
+        "escolas:detalhe_escola",
+        pk=escola_id
     )

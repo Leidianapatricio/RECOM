@@ -7,9 +7,17 @@ app_name = "visitas"
 
 
 urlpatterns = [
+
     path(
         "nova/",
         views.cadastrar_visita,
         name="cadastrar_visita",
     ),
+
+    path(
+        "<int:pk>/excluir/",
+        views.excluir_visita,
+        name="excluir_visita",
+    ),
+
 ]

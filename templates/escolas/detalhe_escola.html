@@ -450,6 +450,9 @@ Detalhes da Escola
                                 <th>Situação</th>
                                 <th>Relato</th>
                                 <th>Providências</th>
+                                <th class="text-center">
+                                    Ações
+                                </th>
                             </tr>
                         </thead>
 
@@ -505,6 +508,28 @@ Detalhes da Escola
 
                                     <td>
                                         {{ visita.orientacoes|default:"-" }}
+                                    </td>
+
+                                    <td class="text-center text-nowrap">
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'visitas:excluir_visita' visita.pk %}"
+                                            class="d-inline"
+                                        >
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Deseja realmente excluir esta visita? Esta ação não poderá ser desfeita.');"
+                                            >
+                                                <i class="bi bi-trash me-1"></i>
+                                                Excluir
+                                            </button>
+
+                                        </form>
+
                                     </td>
 
                                 </tr>
