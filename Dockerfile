@@ -4,8 +4,12 @@ WORKDIR /code
 
 COPY requirements.txt .
 
-RUN apt-get update && apt-get install -y gettext
+RUN apt-get update \
+    && apt-get install -y gettext \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+
+EXPOSE 8000
