@@ -14,7 +14,7 @@ Detalhes da Escola
             <h2>{{ escola.nome }}</h2>
 
             <p class="text-muted mb-0">
-                {{ escola.get_polo_display }}
+                Polo {{ escola.polo }}
             </p>
         </div>
 
@@ -45,7 +45,6 @@ Detalhes da Escola
                         <i class="bi bi-x-circle me-1"></i>
                         Desativar
                     </button>
-
                 </form>
 
             {% else %}
@@ -65,12 +64,19 @@ Detalhes da Escola
                         <i class="bi bi-check-circle me-1"></i>
                         Ativar
                     </button>
-
                 </form>
 
             {% endif %}
 
             {% if escola.ativa %}
+
+                <a
+                    href="{% url 'visitas:cadastrar_visita' %}?escola={{ escola.pk }}"
+                    class="btn btn-success"
+                >
+                    <i class="bi bi-clipboard-check me-1"></i>
+                    Registrar Visita
+                </a>
 
                 <a
                     href="{% url 'escolas:cadastrar_problematica' escola.pk %}"
@@ -118,7 +124,7 @@ Detalhes da Escola
                 <div class="col-md-4 mb-3">
                     <strong>Polo</strong>
                     <div>
-                        {{ escola.get_polo_display }}
+                        {{ escola.polo }}
                     </div>
                 </div>
 
@@ -126,7 +132,6 @@ Detalhes da Escola
                     <strong>Situação</strong>
 
                     <div>
-
                         {% if escola.ativa %}
 
                             <span class="badge bg-success">
@@ -140,7 +145,6 @@ Detalhes da Escola
                             </span>
 
                         {% endif %}
-
                     </div>
 
                 </div>
@@ -163,7 +167,6 @@ Detalhes da Escola
                     <strong>Monitoramento</strong>
 
                     <div>
-
                         {% if escola.monitoramento %}
 
                             <span class="badge bg-success">
@@ -177,7 +180,6 @@ Detalhes da Escola
                             </span>
 
                         {% endif %}
-
                     </div>
 
                 </div>
@@ -186,7 +188,6 @@ Detalhes da Escola
                     <strong>Botão do Pânico</strong>
 
                     <div>
-
                         {% if escola.botao_panico %}
 
                             <span class="badge bg-success">
@@ -200,7 +201,6 @@ Detalhes da Escola
                             </span>
 
                         {% endif %}
-
                     </div>
 
                 </div>
@@ -272,18 +272,17 @@ Detalhes da Escola
                     <table class="table table-hover align-middle mb-0">
 
                         <thead>
-
                             <tr>
                                 <th>Problemática</th>
                                 <th>Situação</th>
-                                <th>Data do Registro</th>
+                                <th>Data de Início</th>
+                                <th>Última Atualização</th>
                                 <th>Observações</th>
 
                                 <th class="text-center">
                                     Ações
                                 </th>
                             </tr>
-
                         </thead>
 
                         <tbody>
@@ -326,25 +325,49 @@ Detalhes da Escola
 
                                     </td>
 
-                                    <td>
+                                    <td class="text-nowrap">
                                         {{ problematica.data_registro|date:"d/m/Y" }}
+                                    </td>
+
+                                    <td class="text-nowrap">
+                                        {{ problematica.atualizado_em|date:"d/m/Y H:i" }}
                                     </td>
 
                                     <td>
                                         {{ problematica.observacoes|default:"-" }}
                                     </td>
 
-
-                                    <!-- AÇÕES DA PROBLEMÁTICA -->
                                     <td class="text-center">
 
-                                        <a
-                                            href="{% url 'escolas:editar_problematica' escola.pk problematica.pk %}"
-                                            class="btn btn-sm btn-outline-primary"
-                                        >
-                                            <i class="bi bi-pencil-square me-1"></i>
-                                            Editar
-                                        </a>
+                                        <div class="d-flex justify-content-center gap-2">
+
+                                            <a
+                                                href="{% url 'escolas:editar_problematica' escola.pk problematica.pk %}"
+                                                class="btn btn-sm btn-outline-primary"
+                                            >
+                                                <i class="bi bi-pencil-square me-1"></i>
+                                                Editar
+                                            </a>
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'escolas:excluir_problematica' escola.pk problematica.pk %}"
+                                                class="d-inline"
+                                            >
+                                                {% csrf_token %}
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Deseja realmente remover esta problemática da escola?');"
+                                                >
+                                                    <i class="bi bi-trash me-1"></i>
+                                                    Remover
+                                                </button>
+
+                                            </form>
+
+                                        </div>
 
                                     </td>
 
@@ -374,6 +397,142 @@ Detalhes da Escola
                         >
                             <i class="bi bi-plus-circle me-1"></i>
                             Registrar primeira problemática
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- HISTÓRICO DE VISITAS -->
+    <div class="card shadow-sm mt-4">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+            <strong>
+                Histórico de Visitas
+            </strong>
+
+            {% if escola.ativa %}
+
+                <a
+                    href="{% url 'visitas:cadastrar_visita' %}?escola={{ escola.pk }}"
+                    class="btn btn-sm btn-success"
+                >
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Registrar Visita
+                </a>
+
+            {% endif %}
+
+        </div>
+
+        <div class="card-body">
+
+            {% if visitas %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Equipe</th>
+                                <th>Tipo</th>
+                                <th>Situação</th>
+                                <th>Relato</th>
+                                <th>Providências</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for visita in visitas %}
+
+                                <tr>
+
+                                    <td class="text-nowrap">
+                                        {{ visita.data_visita|date:"d/m/Y" }}
+                                    </td>
+
+                                    <td class="text-nowrap">
+                                        {{ visita.horario|time:"H:i" }}
+                                    </td>
+
+                                    <td class="text-nowrap">
+                                        <span class="badge bg-primary">
+                                            {{ visita.get_equipe_display }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        {{ visita.get_tipo_visita_display }}
+                                    </td>
+
+                                    <td>
+
+                                        {% if visita.situacao == "SEM_ALTERACAO" %}
+
+                                            <span class="badge bg-success">
+                                                Sem alteração
+                                            </span>
+
+                                        {% elif visita.situacao == "COM_ALTERACAO" %}
+
+                                            <span class="badge bg-warning text-dark">
+                                                Com alteração
+                                            </span>
+
+                                        {% else %}
+
+                                            {{ visita.get_situacao_display }}
+
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td>
+                                        {{ visita.relato|default:"-" }}
+                                    </td>
+
+                                    <td>
+                                        {{ visita.orientacoes|default:"-" }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-4">
+
+                    <p class="text-muted mb-3">
+                        Nenhuma visita registrada para esta escola.
+                    </p>
+
+                    {% if escola.ativa %}
+
+                        <a
+                            href="{% url 'visitas:cadastrar_visita' %}?escola={{ escola.pk }}"
+                            class="btn btn-outline-success"
+                        >
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Registrar primeira visita
                         </a>
 
                     {% endif %}

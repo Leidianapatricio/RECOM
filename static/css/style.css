@@ -249,14 +249,288 @@ h6 {
 
 
 /* =========================================================
+   CABEÇALHO EXCLUSIVO PARA PDF
+   ========================================================= */
+
+.cabecalho-pdf {
+    display: none;
+}
+
+
+/* =========================================================
+   IMPRESSÃO / PDF
+   ========================================================= */
+
+@media print {
+
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 10px !important;
+        min-height: auto !important;
+    }
+
+
+    /* Oculta elementos que não devem aparecer no PDF */
+
+    nav,
+    footer,
+    .navbar,
+    .footer-recom,
+    .no-print,
+    form,
+    button {
+        display: none !important;
+    }
+
+
+    /* =====================================================
+       CONTAINER
+       ===================================================== */
+
+    .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+
+    /* =====================================================
+       CABEÇALHO DO PDF
+       ===================================================== */
+
+    .cabecalho-pdf {
+        display: block !important;
+        text-align: center;
+        margin: 0 0 12px 0 !important;
+        padding: 0 !important;
+    }
+
+    .cabecalho-pdf h2 {
+        color: #062846 !important;
+        font-size: 22px !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .cabecalho-pdf h4 {
+        color: #062846 !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        margin: 4px 0 !important;
+        padding: 0 !important;
+    }
+
+    .cabecalho-pdf p {
+        color: #444444 !important;
+        font-size: 10px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+
+    /* =====================================================
+       CARDS
+       ===================================================== */
+
+    .card {
+        border: 1px solid #bfc7ce !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+        margin-bottom: 8px !important;
+
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .card-header {
+        background: #eef1f4 !important;
+        color: #000000 !important;
+        padding: 6px 8px !important;
+        border-bottom: 1px solid #bfc7ce !important;
+    }
+
+    .card-header strong {
+        color: #062846 !important;
+        font-size: 11px !important;
+    }
+
+    .card-body {
+        padding: 7px !important;
+    }
+
+
+    /* =====================================================
+       INDICADORES
+       ===================================================== */
+
+    .row.g-3 {
+        --bs-gutter-x: 6px !important;
+        --bs-gutter-y: 6px !important;
+    }
+
+    .row.g-3 .card-body {
+        padding: 6px !important;
+    }
+
+    .row.g-3 h3 {
+        font-size: 16px !important;
+        margin-bottom: 2px !important;
+    }
+
+    .row.g-3 p {
+        font-size: 8px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .row.g-3 i {
+        font-size: 16px !important;
+    }
+
+
+    /* =====================================================
+       TABELAS
+       ===================================================== */
+
+    .table-responsive {
+        overflow: visible !important;
+    }
+
+    table,
+    .table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        table-layout: auto !important;
+        font-size: 8px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .table thead th {
+        background: #062846 !important;
+        color: #ffffff !important;
+        border: 1px solid #6d7b88 !important;
+        font-size: 8px !important;
+        font-weight: 600 !important;
+        padding: 4px !important;
+        vertical-align: middle !important;
+    }
+
+    .table tbody td {
+        color: #000000 !important;
+        border: 1px solid #c7ced4 !important;
+        padding: 4px !important;
+        vertical-align: top !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tfoot {
+        display: table-footer-group;
+    }
+
+    tr {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+
+
+    /* =====================================================
+       BADGES
+       ===================================================== */
+
+    .badge {
+        color: #000000 !important;
+        background: #ffffff !important;
+        border: 1px solid #777777 !important;
+        font-size: 7px !important;
+        font-weight: 600 !important;
+        padding: 2px 4px !important;
+    }
+
+
+    /* =====================================================
+       LINKS
+       ===================================================== */
+
+    a {
+        color: #000000 !important;
+        text-decoration: none !important;
+    }
+
+    a[href]::after {
+        content: none !important;
+    }
+
+
+    /* =====================================================
+       REMOVE EFEITOS VISUAIS DESNECESSÁRIOS
+       ===================================================== */
+
+    .shadow,
+    .shadow-sm,
+    .shadow-lg {
+        box-shadow: none !important;
+    }
+
+    .text-muted {
+        color: #555555 !important;
+    }
+
+
+    /* =====================================================
+       IMPRESSÃO INDIVIDUAL DOS RELATÓRIOS
+       ===================================================== */
+
+    body.imprimir-problematicas #bloco-visitas {
+        display: none !important;
+    }
+
+    body.imprimir-visitas #bloco-problematicas {
+        display: none !important;
+    }
+
+
+    /* =====================================================
+       EVITA ESPAÇOS EXCESSIVOS
+       ===================================================== */
+
+    .mb-5 {
+        margin-bottom: 10px !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 8px !important;
+    }
+
+    .mb-3 {
+        margin-bottom: 6px !important;
+    }
+
+    .mt-4 {
+        margin-top: 0 !important;
+    }
+
+}
+
+
+/* =========================================================
    RESPONSIVIDADE
    ========================================================= */
 
 @media (max-width: 768px) {
+
     .logo-recom {
         width: 40px !important;
         height: 40px !important;
         max-width: 40px !important;
         max-height: 40px !important;
     }
+
 }

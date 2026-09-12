@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard do Coordenador
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4 mb-5">
+
+    <!-- TÍTULO -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                Dashboard do Coordenador
+            </h2>
+
+            <p class="text-muted mb-0">
+                Visão geral das atividades e acompanhamento da RECOM.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- INDICADORES PRINCIPAIS -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-building fs-2 text-primary"></i>
+                    </div>
+
+                    <h3 class="mb-1">
+                        {{ total_escolas }}
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Escolas cadastradas
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-check-circle fs-2 text-success"></i>
+                    </div>
+
+                    <h3 class="mb-1 text-success">
+                        {{ escolas_ativas }}
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Escolas ativas
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-exclamation-triangle fs-2 text-warning"></i>
+                    </div>
+
+                    <h3 class="mb-1">
+                        {{ total_problematicas }}
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Problemáticas registradas
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-clipboard-check fs-2 text-success"></i>
+                    </div>
+
+                    <h3 class="mb-1">
+                        {{ total_visitas }}
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Visitas realizadas
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- SEGUNDA LINHA DE INDICADORES -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-x-circle fs-2 text-danger"></i>
+                    </div>
+
+                    <h3 class="mb-1 text-danger">
+                        {{ escolas_inativas }}
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Escolas inativas
+                    </p>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-shield-check fs-2 text-success"></i>
+                    </div>
+
+                    <h3 class="mb-1 text-success">
+                        {{ visitas_sem_alteracao }}
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Visitas sem alteração
+                    </p>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-exclamation-diamond fs-2 text-warning"></i>
+                    </div>
+
+                    <h3 class="mb-1 text-warning">
+                        {{ visitas_com_alteracao }}
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Visitas com alteração
+                    </p>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="mb-2">
+                        <i class="bi bi-people fs-2 text-primary"></i>
+                    </div>
+
+                    <h3 class="mb-1">
+                        {{ total_gcms }}
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        GCMs ativos
+                    </p>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ATALHOS -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header">
+            <strong>
+                Acesso Rápido
+            </strong>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-6 col-lg-3">
+                    <a
+                        href="{% url 'escolas:listar_escolas' %}"
+                        class="btn btn-outline-primary w-100 py-3"
+                    >
+                        <i class="bi bi-building me-2"></i>
+                        Escolas
+                    </a>
+                </div>
+
+
+                <div class="col-md-6 col-lg-3">
+                    <a
+                        href="{% url 'visitas:cadastrar_visita' %}"
+                        class="btn btn-outline-success w-100 py-3"
+                    >
+                        <i class="bi bi-clipboard-check me-2"></i>
+                        Registrar Visita
+                    </a>
+                </div>
+
+
+                <div class="col-md-6 col-lg-3">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary w-100 py-3"
+                        disabled
+                    >
+                        <i class="bi bi-card-checklist me-2"></i>
+                        Cartão Programa
+                    </button>
+                </div>
+
+
+                <div class="col-md-6 col-lg-3">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary w-100 py-3"
+                        disabled
+                    >
+                        <i class="bi bi-exclamation-octagon me-2"></i>
+                        Ocorrências
+                    </button>
+                </div>
+
+
+                <div class="col-md-6 col-lg-3">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary w-100 py-3"
+                        disabled
+                    >
+                        <i class="bi bi-megaphone me-2"></i>
+                        Ações Educativas
+                    </button>
+                </div>
+
+
+                <div class="col-md-6 col-lg-3">
+                    <a
+                        href="{% url 'core:relatorios' %}"
+                        class="btn btn-outline-dark w-100 py-3"
+                    >
+                        <i class="bi bi-bar-chart me-2"></i>
+                        Relatórios
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- TABELAS -->
+    <div class="row g-4">
+
+        <!-- ESCOLAS POR POLO -->
+        <div class="col-lg-5">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-header">
+                    <strong>
+                        Escolas por Polo
+                    </strong>
+                </div>
+
+                <div class="card-body">
+
+                    {% if escolas_por_polo %}
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle mb-0">
+
+                                <thead>
+                                    <tr>
+                                        <th>Polo</th>
+                                        <th class="text-end">
+                                            Quantidade
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    {% for item in escolas_por_polo %}
+
+                                        <tr>
+
+                                            <td>
+                                                Polo {{ item.polo }}
+                                            </td>
+
+                                            <td class="text-end">
+                                                <strong>
+                                                    {{ item.total }}
+                                                </strong>
+                                            </td>
+
+                                        </tr>
+
+                                    {% endfor %}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    {% else %}
+
+                        <p class="text-muted mb-0">
+                            Nenhuma escola cadastrada.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PROBLEMÁTICAS POR TIPO -->
+        <div class="col-lg-7">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-header">
+                    <strong>
+                        Problemáticas por Tipo
+                    </strong>
+                </div>
+
+                <div class="card-body">
+
+                    {% if problematicas_por_tipo %}
+
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle mb-0">
+
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Problemática
+                                        </th>
+
+                                        <th class="text-end">
+                                            Quantidade
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    {% for item in problematicas_por_tipo %}
+
+                                        <tr>
+
+                                            <td>
+                                                {{ item.tipo_problematica__nome }}
+                                            </td>
+
+                                            <td class="text-end">
+                                                <strong>
+                                                    {{ item.total }}
+                                                </strong>
+                                            </td>
+
+                                        </tr>
+
+                                    {% endfor %}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    {% else %}
+
+                        <p class="text-muted mb-0">
+                            Nenhuma problemática registrada.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

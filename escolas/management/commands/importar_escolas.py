@@ -59,6 +59,21 @@ class Command(BaseCommand):
         "antenor navarro": "Gramame",
         "fernando milanez": "Gramame",
         "oscar de castro": "Cruz das Armas",
+
+        # Casos conferidos após a primeira importação.
+        "agostinho fonseca neto": "Cristo",
+        "frei albino": "Bessa",
+        "chico xavier": "Bessa",
+        "em nazinha barbosa": "Manaíra",
+        "seráfico da nóbrega": "Manaíra",
+        "joão monteiro da franca": "Jardim Veneza",
+
+        # O PDF não permite determinar o bairro com segurança.
+        # Se o bairro for preenchido manualmente no sistema, o
+        # importador preservará esse valor nas próximas importações.
+        "olivio ribeiro campos": "",
+        "rotary francisco": "",
+        "angelo francisco": "",
     }
 
     # ============================================================
@@ -638,6 +653,13 @@ class Command(BaseCommand):
             endereco,
         )
 
+        endereco_sem_bairro = (
+            self.remover_bairro_do_endereco(
+                endereco,
+                bairro,
+            )
+        )
+
         monitoramento = (
             self.converter_sim_nao(
                 monitoramento_original
@@ -665,7 +687,7 @@ class Command(BaseCommand):
         return {
             "nome": nome,
             "polo": str(polo),
-            "endereco": endereco,
+            "endereco": endereco_sem_bairro,
             "bairro": bairro,
             "gestor": gestor,
             "telefone": telefone,
@@ -787,9 +809,81 @@ class Command(BaseCommand):
 
         return ""
 
+    def remover_bairro_do_endereco(
+        self,
+        endereco,
+        bairro,
+    ):
+        """
+        Remove do campo de endereço o bairro que já foi identificado
+        e será salvo separadamente.
+
+        A remoção só acontece quando o bairro aparece no final do
+        endereço. Assim preservamos rua, número, s/n e complementos.
+
+        Exemplos:
+
+        Rua Emílio de Araújo Chaves - 118 - Altiplano
+        -> Rua Emílio de Araújo Chaves - 118
+
+        Av. Dom Bosco, 755, Cristo Redentor
+        -> Av. Dom Bosco, 755
+
+        Av. Goiania, Gravatá (Valentina)
+        -> Av. Goiania, Gravatá
+        """
+
+        endereco = self.limpar_texto(
+            endereco
+        )
+
+        bairro = self.limpar_texto(
+            bairro
+        )
+
+        if not endereco or not bairro:
+            return endereco
+
+        bairro_escapado = re.escape(
+            bairro
+        )
+
+        padroes = [
+            # Rua X - Bairro / Rua X – Bairro / Rua X — Bairro
+            rf"\s*[-–—]\s*{bairro_escapado}\s*$",
+
+            # Rua X, Bairro
+            rf"\s*,\s*{bairro_escapado}\s*$",
+
+            # Rua X (Bairro)
+            rf"\s*\(\s*{bairro_escapado}\s*\)\s*$",
+        ]
+
+        for padrao in padroes:
+            endereco_limpo = re.sub(
+                padrao,
+                "",
+                endereco,
+                flags=re.IGNORECASE,
+            ).strip(
+                " ,;-–—"
+            )
+
+            # Nunca transformamos um endereço válido em vazio.
+            if (
+                endereco_limpo
+                and endereco_limpo != endereco
+            ):
+                return endereco_limpo
+
+        return endereco
+
     def bairro_valido(self, bairro):
         """
         Evita gravar como bairro valores claramente inválidos.
+
+        Essa validação também impede que número do imóvel,
+        "s/n" ou trechos de endereço sejam confundidos com bairro.
         """
 
         bairro = self.limpar_texto(
@@ -809,14 +903,33 @@ class Command(BaseCommand):
             "nao informado",
         }
 
-        if bairro.casefold() in valores_invalidos:
+        bairro_normalizado = bairro.casefold()
+
+        if bairro_normalizado in valores_invalidos:
             return False
 
-        # Bairro não deve ser apenas número.
-        if re.fullmatch(
-            r"\d+",
+        # Exemplos inválidos encontrados no PDF:
+        # "195 -", "516 -", "4455, Bessa" e
+        # "43 – Jardim Veneza".
+        if re.search(
+            r"\d",
             bairro,
         ):
+            return False
+
+        # Evita valores iniciados por s/n, como:
+        # "s/n., Bessa".
+        if re.match(
+            r"^s\s*/?\s*n\b",
+            bairro_normalizado,
+        ):
+            return False
+
+        # Abreviações muito curtas, como "Jd.", não são
+        # consideradas seguras para preenchimento automático.
+        if len(
+            bairro.strip()
+        ) <= 3:
             return False
 
         return True

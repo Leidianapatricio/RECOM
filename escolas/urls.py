@@ -52,4 +52,10 @@ urlpatterns = [
         views.editar_problematica,
         name="editar_problematica",
     ),
+
+    path(
+        "<int:escola_pk>/problematicas/<int:problematica_pk>/excluir/",
+        views.excluir_problematica,
+        name="excluir_problematica",
+    ),
 ]

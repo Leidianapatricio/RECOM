@@ -1,0 +1,954 @@
+{% extends "base.html" %}
+
+{% block title %}
+Relatório de Problemáticas - RECOM
+{% endblock %}
+
+
+{% block content %}
+
+<style>
+
+    /* =========================================================
+       CABEÇALHO EXCLUSIVO PARA PDF
+       ========================================================= */
+
+    .cabecalho-pdf {
+        display: none;
+    }
+
+
+    /* =========================================================
+       PAGINAÇÃO
+       ========================================================= */
+
+    .paginacao-relatorio .page-link {
+        min-width: 34px;
+        text-align: center;
+    }
+
+
+    /* =========================================================
+       IMPRESSÃO / PDF
+       ========================================================= */
+
+    @media print {
+
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+
+
+        body {
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-size: 10px !important;
+            min-height: auto !important;
+        }
+
+
+        nav,
+        footer,
+        .navbar,
+        .footer-recom,
+        .no-print,
+        form,
+        button,
+        .paginacao-relatorio {
+            display: none !important;
+        }
+
+
+        .container {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+
+        .cabecalho-pdf {
+            display: block !important;
+            text-align: center;
+            margin: 0 0 12px 0 !important;
+            padding: 0 !important;
+        }
+
+
+        .cabecalho-pdf h2 {
+            font-size: 21px !important;
+            font-weight: 700 !important;
+            color: #062846 !important;
+            margin: 0 !important;
+        }
+
+
+        .cabecalho-pdf h4 {
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            color: #062846 !important;
+            margin: 4px 0 !important;
+        }
+
+
+        .cabecalho-pdf p {
+            font-size: 9px !important;
+            margin: 0 !important;
+            color: #444444 !important;
+        }
+
+
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #bfc7ce !important;
+            border-radius: 4px !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+
+        .card-header {
+            background: #eef1f4 !important;
+            color: #000000 !important;
+            border-bottom: 1px solid #bfc7ce !important;
+            padding: 6px 8px !important;
+        }
+
+
+        .card-header strong {
+            color: #062846 !important;
+            font-size: 11px !important;
+        }
+
+
+        .card-body {
+            padding: 7px !important;
+        }
+
+
+        .table-responsive {
+            overflow: visible !important;
+        }
+
+
+        table,
+        .table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            table-layout: auto !important;
+            font-size: 8px !important;
+            margin-bottom: 0 !important;
+        }
+
+
+        .table thead th {
+            background: #062846 !important;
+            color: #ffffff !important;
+            border: 1px solid #6d7b88 !important;
+            font-size: 8px !important;
+            font-weight: 600 !important;
+            padding: 4px !important;
+            vertical-align: middle !important;
+        }
+
+
+        .table tbody td {
+            color: #000000 !important;
+            border: 1px solid #c7ced4 !important;
+            padding: 4px !important;
+            vertical-align: top !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+        }
+
+
+        thead {
+            display: table-header-group;
+        }
+
+
+        tr {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+        }
+
+
+        .badge {
+            color: #000000 !important;
+            background: #ffffff !important;
+            border: 1px solid #777777 !important;
+            font-size: 7px !important;
+            padding: 2px 4px !important;
+        }
+
+
+        a {
+            color: #000000 !important;
+            text-decoration: none !important;
+        }
+
+
+        a[href]::after {
+            content: none !important;
+        }
+
+
+        .shadow,
+        .shadow-sm,
+        .shadow-lg {
+            box-shadow: none !important;
+        }
+
+    }
+
+</style>
+
+
+<div class="container mt-4 mb-5">
+
+
+    <!-- ====================================================== -->
+    <!-- CABEÇALHO DA TELA -->
+    <!-- ====================================================== -->
+
+    <div class="card shadow-sm mb-4 no-print">
+
+        <div class="card-body">
+
+            <div
+                class="d-flex flex-wrap
+                       justify-content-between
+                       align-items-center
+                       gap-3"
+            >
+
+                <div>
+
+                    <h2 class="mb-1">
+                        Relatório de Problemáticas
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Consulte as problemáticas registradas
+                        nas escolas acompanhadas pela RECOM.
+
+                    </p>
+
+                </div>
+
+
+                <div class="d-flex gap-2">
+
+                    <a
+                        href="{% url 'core:relatorios' %}"
+                        class="btn btn-outline-secondary"
+                    >
+
+                        <i class="bi bi-arrow-left me-1"></i>
+
+                        Voltar
+
+                    </a>
+
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-danger"
+                        onclick="window.print()"
+                    >
+
+                        <i class="bi bi-file-earmark-pdf me-1"></i>
+
+                        Salvar em PDF
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ====================================================== -->
+    <!-- CABEÇALHO DO PDF -->
+    <!-- ====================================================== -->
+
+    <div class="cabecalho-pdf">
+
+        <h2>
+            RECOM
+        </h2>
+
+        <h4>
+            Relatório de Problemáticas
+        </h4>
+
+        <p>
+            Ronda Escolar Comunitária
+        </p>
+
+    </div>
+
+
+    <!-- ====================================================== -->
+    <!-- FILTROS -->
+    <!-- ====================================================== -->
+
+    <div class="card shadow-sm mb-4 no-print">
+
+        <div class="card-header">
+
+            <strong>
+                Filtros
+            </strong>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <form
+                method="get"
+                class="row g-3"
+                id="form-filtros-problematicas"
+            >
+
+
+                <!-- POLO -->
+                <div class="col-md-6 col-lg-3">
+
+                    <label
+                        for="polo"
+                        class="form-label"
+                    >
+                        Polo
+                    </label>
+
+
+                    <select
+                        name="polo"
+                        id="polo"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            Todos os polos
+                        </option>
+
+
+                        {% for valor, nome in polos %}
+
+                            <option
+                                value="{{ valor }}"
+                                {% if polo_selecionado == valor|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                Polo {{ valor }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- ESCOLA -->
+                <div class="col-md-6 col-lg-3">
+
+                    <label
+                        for="escola"
+                        class="form-label"
+                    >
+                        Escola
+                    </label>
+
+
+                    <select
+                        name="escola"
+                        id="escola"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            Todas as escolas
+                        </option>
+
+
+                        {% for escola in escolas %}
+
+                            <option
+                                value="{{ escola.pk }}"
+                                {% if escola_selecionada == escola.pk|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                {{ escola.nome }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- PROBLEMÁTICA -->
+                <div class="col-md-6 col-lg-3">
+
+                    <label
+                        for="tipo"
+                        class="form-label"
+                    >
+                        Problemática
+                    </label>
+
+
+                    <select
+                        name="tipo"
+                        id="tipo"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            Todas as problemáticas
+                        </option>
+
+
+                        {% for tipo in tipos_problematicas %}
+
+                            <option
+                                value="{{ tipo.pk }}"
+                                {% if tipo_selecionado == tipo.pk|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                {{ tipo.nome }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- SITUAÇÃO -->
+                <div class="col-md-6 col-lg-3">
+
+                    <label
+                        for="situacao"
+                        class="form-label"
+                    >
+                        Situação
+                    </label>
+
+
+                    <select
+                        name="situacao"
+                        id="situacao"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            Todas
+                        </option>
+
+
+                        {% for valor, nome in situacoes %}
+
+                            <option
+                                value="{{ valor }}"
+                                {% if situacao_selecionada == valor %}
+                                    selected
+                                {% endif %}
+                            >
+
+                                {{ nome }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- BOTÕES -->
+                <div
+                    class="col-12
+                           d-flex
+                           justify-content-end
+                           gap-2"
+                >
+
+                    <a
+                        href="{% url 'core:relatorio_problematicas' %}"
+                        class="btn btn-outline-secondary"
+                    >
+
+                        <i class="bi bi-x-circle me-1"></i>
+
+                        Limpar
+
+                    </a>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+
+                        <i class="bi bi-funnel me-1"></i>
+
+                        Filtrar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ====================================================== -->
+    <!-- RESULTADOS -->
+    <!-- ====================================================== -->
+
+    <div class="card shadow-sm">
+
+        <div
+            class="card-header
+                   d-flex
+                   justify-content-between
+                   align-items-center"
+        >
+
+            <strong>
+                Problemáticas Encontradas
+            </strong>
+
+
+            <span class="badge bg-primary">
+
+                {{ total_problematicas }}
+
+            </span>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+
+            {% if page_obj.object_list %}
+
+                <div class="table-responsive">
+
+                    <table
+                        class="table
+                               table-hover
+                               align-middle
+                               mb-0"
+                    >
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Escola
+                                </th>
+
+                                <th>
+                                    Polo
+                                </th>
+
+                                <th>
+                                    Problemática
+                                </th>
+
+                                <th>
+                                    Situação
+                                </th>
+
+                                <th>
+                                    Data de Início
+                                </th>
+
+                                <th>
+                                    Última Atualização
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            {% for problematica in page_obj %}
+
+                                <tr>
+
+
+                                    <!-- ESCOLA -->
+                                    <td>
+
+                                        <a
+                                            href="{% url 'escolas:detalhe_escola' problematica.escola.pk %}"
+                                            class="text-decoration-none"
+                                        >
+
+                                            {{ problematica.escola.nome }}
+
+                                        </a>
+
+                                    </td>
+
+
+                                    <!-- POLO -->
+                                    <td class="text-nowrap">
+
+                                        Polo {{ problematica.escola.polo }}
+
+                                    </td>
+
+
+                                    <!-- PROBLEMÁTICA -->
+                                    <td>
+
+                                        {{ problematica.tipo_problematica.nome }}
+
+                                    </td>
+
+
+                                    <!-- SITUAÇÃO -->
+                                    <td>
+
+                                        {% if problematica.situacao == "ATIVA" %}
+
+                                            <span class="badge bg-danger">
+                                                Ativa
+                                            </span>
+
+                                        {% elif problematica.situacao == "EM_ACOMPANHAMENTO" %}
+
+                                            <span class="badge bg-warning text-dark">
+                                                Em acompanhamento
+                                            </span>
+
+                                        {% elif problematica.situacao == "RESOLVIDA" %}
+
+                                            <span class="badge bg-success">
+                                                Resolvida
+                                            </span>
+
+                                        {% else %}
+
+                                            {{ problematica.get_situacao_display }}
+
+                                        {% endif %}
+
+                                    </td>
+
+
+                                    <!-- DATA DE INÍCIO -->
+                                    <td class="text-nowrap">
+
+                                        {{ problematica.data_registro|date:"d/m/Y" }}
+
+                                    </td>
+
+
+                                    <!-- ÚLTIMA ATUALIZAÇÃO -->
+                                    <td class="text-nowrap">
+
+                                        {{ problematica.atualizado_em|date:"d/m/Y H:i" }}
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+            {% else %}
+
+                <div class="text-center py-5">
+
+                    <i class="bi bi-search fs-1 text-muted"></i>
+
+
+                    <p class="text-muted mt-3 mb-0">
+
+                        Nenhuma problemática encontrada
+                        com os filtros selecionados.
+
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ====================================================== -->
+    <!-- PAGINAÇÃO -->
+    <!-- ====================================================== -->
+
+    {% if page_obj.paginator.num_pages > 1 %}
+
+        <div class="mt-4 paginacao-relatorio no-print">
+
+            <nav
+                aria-label="Paginação do relatório de problemáticas"
+            >
+
+                <ul
+                    class="pagination
+                           pagination-sm
+                           justify-content-center
+                           mb-2"
+                >
+
+
+                    <!-- PRIMEIRA -->
+                    {% if page_obj.has_previous %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="?page=1{% if polo_selecionado %}&polo={{ polo_selecionado }}{% endif %}{% if escola_selecionada %}&escola={{ escola_selecionada }}{% endif %}{% if tipo_selecionado %}&tipo={{ tipo_selecionado }}{% endif %}{% if situacao_selecionada %}&situacao={{ situacao_selecionada }}{% endif %}"
+                                title="Primeira página"
+                                aria-label="Primeira página"
+                            >
+
+                                &laquo;
+
+                            </a>
+
+                        </li>
+
+                    {% endif %}
+
+
+                    <!-- ANTERIOR -->
+                    {% if page_obj.has_previous %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="?page={{ page_obj.previous_page_number }}{% if polo_selecionado %}&polo={{ polo_selecionado }}{% endif %}{% if escola_selecionada %}&escola={{ escola_selecionada }}{% endif %}{% if tipo_selecionado %}&tipo={{ tipo_selecionado }}{% endif %}{% if situacao_selecionada %}&situacao={{ situacao_selecionada }}{% endif %}"
+                                title="Página anterior"
+                                aria-label="Página anterior"
+                            >
+
+                                &lsaquo;
+
+                            </a>
+
+                        </li>
+
+                    {% endif %}
+
+
+                    <!-- NÚMEROS -->
+                    {% for numero in page_obj.paginator.page_range %}
+
+                        {% if numero >= page_obj.number|add:"-2" and numero <= page_obj.number|add:"2" %}
+
+                            {% if numero == page_obj.number %}
+
+                                <li
+                                    class="page-item active"
+                                    aria-current="page"
+                                >
+
+                                    <span class="page-link">
+
+                                        {{ numero }}
+
+                                    </span>
+
+                                </li>
+
+                            {% else %}
+
+                                <li class="page-item">
+
+                                    <a
+                                        class="page-link"
+                                        href="?page={{ numero }}{% if polo_selecionado %}&polo={{ polo_selecionado }}{% endif %}{% if escola_selecionada %}&escola={{ escola_selecionada }}{% endif %}{% if tipo_selecionado %}&tipo={{ tipo_selecionado }}{% endif %}{% if situacao_selecionada %}&situacao={{ situacao_selecionada }}{% endif %}"
+                                    >
+
+                                        {{ numero }}
+
+                                    </a>
+
+                                </li>
+
+                            {% endif %}
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+                    <!-- PRÓXIMA -->
+                    {% if page_obj.has_next %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="?page={{ page_obj.next_page_number }}{% if polo_selecionado %}&polo={{ polo_selecionado }}{% endif %}{% if escola_selecionada %}&escola={{ escola_selecionada }}{% endif %}{% if tipo_selecionado %}&tipo={{ tipo_selecionado }}{% endif %}{% if situacao_selecionada %}&situacao={{ situacao_selecionada }}{% endif %}"
+                                title="Próxima página"
+                                aria-label="Próxima página"
+                            >
+
+                                &rsaquo;
+
+                            </a>
+
+                        </li>
+
+                    {% endif %}
+
+
+                    <!-- ÚLTIMA -->
+                    {% if page_obj.has_next %}
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="?page={{ page_obj.paginator.num_pages }}{% if polo_selecionado %}&polo={{ polo_selecionado }}{% endif %}{% if escola_selecionada %}&escola={{ escola_selecionada }}{% endif %}{% if tipo_selecionado %}&tipo={{ tipo_selecionado }}{% endif %}{% if situacao_selecionada %}&situacao={{ situacao_selecionada }}{% endif %}"
+                                title="Última página"
+                                aria-label="Última página"
+                            >
+
+                                &raquo;
+
+                            </a>
+
+                        </li>
+
+                    {% endif %}
+
+                </ul>
+
+            </nav>
+
+
+            <p class="text-center text-muted small mb-0">
+
+                Página {{ page_obj.number }}
+                de {{ page_obj.paginator.num_pages }}
+
+                <span class="mx-1">
+                    •
+                </span>
+
+                {{ total_problematicas }}
+
+                {% if total_problematicas == 1 %}
+                    registro
+                {% else %}
+                    registros
+                {% endif %}
+
+            </p>
+
+        </div>
+
+    {% endif %}
+
+
+</div>
+
+
+<!-- ========================================================== -->
+<!-- JAVASCRIPT -->
+<!-- ========================================================== -->
+
+<script>
+
+    /*
+    =============================================================
+    FILTRO POLO → ESCOLA
+    =============================================================
+    */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const campoPolo =
+                document.getElementById("polo");
+
+            const campoEscola =
+                document.getElementById("escola");
+
+            const formulario =
+                document.getElementById(
+                    "form-filtros-problematicas"
+                );
+
+
+            if (
+                campoPolo &&
+                formulario
+            ) {
+
+                campoPolo.addEventListener(
+                    "change",
+                    function () {
+
+                        if (campoEscola) {
+
+                            campoEscola.value = "";
+
+                        }
+
+                        formulario.submit();
+
+                    }
+                );
+
+            }
+
+        }
+    );
+
+</script>
+
+
+{% endblock %}

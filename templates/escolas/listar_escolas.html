@@ -6,6 +6,13 @@ Escolas
 
 {% block content %}
 
+<style>
+    .paginacao-relatorio .page-link {
+        min-width: 34px;
+        text-align: center;
+    }
+</style>
+
 <div class="container mt-4">
 
     <!-- CABEÇALHO -->
@@ -32,15 +39,11 @@ Escolas
 
     <!-- MENSAGENS -->
     {% if messages %}
-
         {% for message in messages %}
-
             <div class="alert alert-{{ message.tags }}">
                 {{ message }}
             </div>
-
         {% endfor %}
-
     {% endif %}
 
 
@@ -101,7 +104,7 @@ Escolas
                                     selected
                                 {% endif %}
                             >
-                                {{ nome }}
+                                {{ valor }}
                             </option>
 
                         {% endfor %}
@@ -240,6 +243,7 @@ Escolas
                         <thead>
 
                             <tr>
+
                                 <th>Nome</th>
                                 <th>Polo</th>
                                 <th>Bairro</th>
@@ -252,6 +256,7 @@ Escolas
                                 <th class="text-center">
                                     Ações
                                 </th>
+
                             </tr>
 
                         </thead>
@@ -267,7 +272,7 @@ Escolas
                                     </td>
 
                                     <td>
-                                        {{ escola.get_polo_display }}
+                                        {{ escola.polo }}
                                     </td>
 
                                     <td>
@@ -363,80 +368,158 @@ Escolas
                 </div>
 
 
+                <!-- ====================================================== -->
                 <!-- PAGINAÇÃO -->
+                <!-- ====================================================== -->
+
                 {% if page_obj.paginator.num_pages > 1 %}
 
-                    <nav
-                        aria-label="Paginação das escolas"
-                        class="mt-4"
-                    >
+                    <div class="mt-4 paginacao-relatorio">
 
-                        <ul class="pagination justify-content-center">
+                        <nav aria-label="Paginação das escolas">
 
-                            {% if page_obj.has_previous %}
-
-                                <li class="page-item">
-
-                                    <a
-                                        class="page-link"
-                                        href="?page={{ page_obj.previous_page_number }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}&situacao={{ situacao_selecionada }}"
-                                    >
-                                        Anterior
-                                    </a>
-
-                                </li>
-
-                            {% endif %}
+                            <ul class="pagination pagination-sm justify-content-center mb-2">
 
 
-                            {% for numero in page_obj.paginator.page_range %}
-
-                                {% if numero == page_obj.number %}
-
-                                    <li class="page-item active">
-
-                                        <span class="page-link">
-                                            {{ numero }}
-                                        </span>
-
-                                    </li>
-
-                                {% else %}
+                                <!-- PRIMEIRA -->
+                                {% if page_obj.has_previous %}
 
                                     <li class="page-item">
 
                                         <a
                                             class="page-link"
-                                            href="?page={{ numero }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}&situacao={{ situacao_selecionada }}"
+                                            href="?page=1{% if busca %}&busca={{ busca|urlencode }}{% endif %}{% if polo_selecionado %}&polo={{ polo_selecionado }}{% endif %}{% if bairro_selecionado %}&bairro={{ bairro_selecionado|urlencode }}{% endif %}{% if situacao_selecionada %}&situacao={{ situacao_selecionada }}{% endif %}"
+                                            title="Primeira página"
+                                            aria-label="Primeira página"
                                         >
-                                            {{ numero }}
+                                            &laquo;
                                         </a>
 
                                     </li>
 
                                 {% endif %}
 
-                            {% endfor %}
+
+                                <!-- ANTERIOR -->
+                                {% if page_obj.has_previous %}
+
+                                    <li class="page-item">
+
+                                        <a
+                                            class="page-link"
+                                            href="?page={{ page_obj.previous_page_number }}{% if busca %}&busca={{ busca|urlencode }}{% endif %}{% if polo_selecionado %}&polo={{ polo_selecionado }}{% endif %}{% if bairro_selecionado %}&bairro={{ bairro_selecionado|urlencode }}{% endif %}{% if situacao_selecionada %}&situacao={{ situacao_selecionada }}{% endif %}"
+                                            title="Página anterior"
+                                            aria-label="Página anterior"
+                                        >
+                                            &lsaquo;
+                                        </a>
+
+                                    </li>
+
+                                {% endif %}
 
 
-                            {% if page_obj.has_next %}
+                                <!-- NÚMEROS DAS PÁGINAS -->
+                                {% for numero in page_obj.paginator.page_range %}
 
-                                <li class="page-item">
+                                    {% if numero >= page_obj.number|add:"-2" and numero <= page_obj.number|add:"2" %}
 
-                                    <a
-                                        class="page-link"
-                                        href="?page={{ page_obj.next_page_number }}&busca={{ busca }}&polo={{ polo_selecionado }}&bairro={{ bairro_selecionado }}&situacao={{ situacao_selecionada }}"
-                                    >
-                                        Próxima
-                                    </a>
+                                        {% if numero == page_obj.number %}
 
-                                </li>
+                                            <li
+                                                class="page-item active"
+                                                aria-current="page"
+                                            >
 
+                                                <span class="page-link">
+                                                    {{ numero }}
+                                                </span>
+
+                                            </li>
+
+                                        {% else %}
+
+                                            <li class="page-item">
+
+                                                <a
+                                                    class="page-link"
+                                                    href="?page={{ numero }}{% if busca %}&busca={{ busca|urlencode }}{% endif %}{% if polo_selecionado %}&polo={{ polo_selecionado }}{% endif %}{% if bairro_selecionado %}&bairro={{ bairro_selecionado|urlencode }}{% endif %}{% if situacao_selecionada %}&situacao={{ situacao_selecionada }}{% endif %}"
+                                                >
+                                                    {{ numero }}
+                                                </a>
+
+                                            </li>
+
+                                        {% endif %}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+
+                                <!-- PRÓXIMA -->
+                                {% if page_obj.has_next %}
+
+                                    <li class="page-item">
+
+                                        <a
+                                            class="page-link"
+                                            href="?page={{ page_obj.next_page_number }}{% if busca %}&busca={{ busca|urlencode }}{% endif %}{% if polo_selecionado %}&polo={{ polo_selecionado }}{% endif %}{% if bairro_selecionado %}&bairro={{ bairro_selecionado|urlencode }}{% endif %}{% if situacao_selecionada %}&situacao={{ situacao_selecionada }}{% endif %}"
+                                            title="Próxima página"
+                                            aria-label="Próxima página"
+                                        >
+                                            &rsaquo;
+                                        </a>
+
+                                    </li>
+
+                                {% endif %}
+
+
+                                <!-- ÚLTIMA -->
+                                {% if page_obj.has_next %}
+
+                                    <li class="page-item">
+
+                                        <a
+                                            class="page-link"
+                                            href="?page={{ page_obj.paginator.num_pages }}{% if busca %}&busca={{ busca|urlencode }}{% endif %}{% if polo_selecionado %}&polo={{ polo_selecionado }}{% endif %}{% if bairro_selecionado %}&bairro={{ bairro_selecionado|urlencode }}{% endif %}{% if situacao_selecionada %}&situacao={{ situacao_selecionada }}{% endif %}"
+                                            title="Última página"
+                                            aria-label="Última página"
+                                        >
+                                            &raquo;
+                                        </a>
+
+                                    </li>
+
+                                {% endif %}
+
+                            </ul>
+
+                        </nav>
+
+
+                        <!-- INFORMAÇÕES DA PAGINAÇÃO -->
+                        <p class="text-center text-muted small mb-0">
+
+                            Página {{ page_obj.number }}
+                            de {{ page_obj.paginator.num_pages }}
+
+                            <span class="mx-1">
+                                •
+                            </span>
+
+                            {{ page_obj.paginator.count }}
+
+                            {% if page_obj.paginator.count == 1 %}
+                                registro
+                            {% else %}
+                                registros
                             {% endif %}
 
-                        </ul>
+                        </p>
 
-                    </nav>
+                    </div>
 
                 {% endif %}
 

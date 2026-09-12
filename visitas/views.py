@@ -7,7 +7,9 @@ from .forms import RondaVisitaForm
 def cadastrar_visita(request):
 
     if request.method == "POST":
-        form = RondaVisitaForm(request.POST)
+        form = RondaVisitaForm(
+            request.POST
+        )
 
         if form.is_valid():
             visita = form.save()
@@ -23,7 +25,18 @@ def cadastrar_visita(request):
             )
 
     else:
-        form = RondaVisitaForm()
+        escola_id = request.GET.get(
+            "escola"
+        )
+
+        initial = {}
+
+        if escola_id:
+            initial["escola"] = escola_id
+
+        form = RondaVisitaForm(
+            initial=initial
+        )
 
     return render(
         request,

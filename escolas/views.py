@@ -152,12 +152,21 @@ def detalhe_escola(request, pk):
         pk=pk
     )
 
+    # Histórico de visitas da escola
+    visitas = escola.visitas.all().order_by(
+        "-data_visita",
+        "-horario"
+    )
+
+    contexto = {
+        "escola": escola,
+        "visitas": visitas,
+    }
+
     return render(
         request,
         "escolas/detalhe_escola.html",
-        {
-            "escola": escola
-        }
+        contexto
     )
 
 
@@ -297,6 +306,43 @@ def editar_problematica(
         request,
         "escolas/form_problematica.html",
         contexto
+    )
+
+
+def excluir_problematica(
+    request,
+    escola_pk,
+    problematica_pk
+):
+    escola = get_object_or_404(
+        Escola,
+        pk=escola_pk
+    )
+
+    problematica = get_object_or_404(
+        EscolaProblematica,
+        pk=problematica_pk,
+        escola=escola
+    )
+
+    if request.method == "POST":
+        nome_problematica = (
+            problematica.tipo_problematica.nome
+        )
+
+        problematica.delete()
+
+        messages.success(
+            request,
+            (
+                f'A problemática "{nome_problematica}" '
+                "foi removida da escola com sucesso."
+            )
+        )
+
+    return redirect(
+        "escolas:detalhe_escola",
+        pk=escola.pk
     )
 
 

@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Case, IntegerField, Value, When
 
 from .models import Escola, EscolaProblematica, TipoProblematica
 
@@ -70,7 +71,7 @@ class EscolaForm(forms.ModelForm):
                     "placeholder": "Endereço da escola",
                 }
             ),
-            
+
             "bairro": forms.TextInput(
                 attrs={
                     "class": "form-control",
@@ -191,7 +192,7 @@ class EscolaForm(forms.ModelForm):
 class EscolaProblematicaForm(forms.ModelForm):
 
     tipo_problematica = forms.ModelChoiceField(
-        queryset=TipoProblematica.objects.filter(ativa=True),
+        queryset=TipoProblematica.objects.none(),
         label="Problemática",
         empty_label="Selecione uma problemática",
         widget=forms.Select(
@@ -233,3 +234,25 @@ class EscolaProblematicaForm(forms.ModelForm):
                 }
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["tipo_problematica"].queryset = (
+            TipoProblematica.objects
+            .filter(ativa=True)
+            .annotate(
+                ordem_outros=Case(
+                    When(
+                        nome__iexact="Outras",
+                        then=Value(1),
+                    ),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by(
+                "ordem_outros",
+                "nome",
+            )
+        )
