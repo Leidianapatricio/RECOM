@@ -31,18 +31,30 @@ class RondaVisitaForm(forms.ModelForm):
         }
 
         widgets = {
+
+            # =================================================
+            # ESCOLA
+            # =================================================
             "escola": forms.Select(
                 attrs={
-                    "class": "form-select",
+                    "class": "form-select select-escola",
+                    "id": "id_escola",
+                    "data-placeholder": "Digite o nome da escola...",
                 }
             ),
 
+            # =================================================
+            # EQUIPE
+            # =================================================
             "equipe": forms.Select(
                 attrs={
                     "class": "form-select",
                 }
             ),
 
+            # =================================================
+            # DATA
+            # =================================================
             "data_visita": forms.DateInput(
                 attrs={
                     "class": "form-control",
@@ -50,6 +62,9 @@ class RondaVisitaForm(forms.ModelForm):
                 }
             ),
 
+            # =================================================
+            # HORÁRIO
+            # =================================================
             "horario": forms.TimeInput(
                 attrs={
                     "class": "form-control",
@@ -57,18 +72,27 @@ class RondaVisitaForm(forms.ModelForm):
                 }
             ),
 
+            # =================================================
+            # TIPO DE VISITA
+            # =================================================
             "tipo_visita": forms.Select(
                 attrs={
                     "class": "form-select",
                 }
             ),
 
+            # =================================================
+            # SITUAÇÃO
+            # =================================================
             "situacao": forms.Select(
                 attrs={
                     "class": "form-select",
                 }
             ),
 
+            # =================================================
+            # RELATO
+            # =================================================
             "relato": forms.Textarea(
                 attrs={
                     "class": "form-control",
@@ -80,6 +104,9 @@ class RondaVisitaForm(forms.ModelForm):
                 }
             ),
 
+            # =================================================
+            # ORIENTAÇÕES / PROVIDÊNCIAS
+            # =================================================
             "orientacoes": forms.Textarea(
                 attrs={
                     "class": "form-control",
@@ -93,20 +120,39 @@ class RondaVisitaForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+
         super().__init__(*args, **kwargs)
 
-        # Exibe somente escolas ativas no cadastro da visita
+        # =====================================================
+        # ESCOLAS
+        # =====================================================
+        #
+        # Exibe somente escolas ativas.
+        #
+        # A ordenação é feita alfabeticamente pelo nome,
+        # independentemente do polo.
+        #
+        # =====================================================
+
         self.fields["escola"].queryset = (
             self.fields["escola"]
             .queryset
-            .filter(ativa=True)
-            .order_by("polo", "nome")
+            .filter(
+                ativa=True
+            )
+            .order_by(
+                "nome"
+            )
         )
 
-        # Texto inicial dos campos de seleção
-        self.fields["escola"].empty_label = "Selecione uma escola"
+        self.fields["escola"].empty_label = (
+            "Digite ou selecione uma escola"
+        )
 
-        # Define os campos obrigatórios
+        # =====================================================
+        # CAMPOS OBRIGATÓRIOS
+        # =====================================================
+
         self.fields["escola"].required = True
         self.fields["equipe"].required = True
         self.fields["data_visita"].required = True

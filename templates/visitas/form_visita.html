@@ -4,7 +4,18 @@
 Registrar Visita
 {% endblock %}
 
+
 {% block content %}
+
+<!-- =========================================================
+     TOM SELECT - ESTILO DO CAMPO DE PESQUISA
+     ========================================================= -->
+
+<link
+    href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css"
+    rel="stylesheet"
+>
+
 
 <div class="container mt-4 mb-5">
 
@@ -12,7 +23,10 @@ Registrar Visita
 
         <div class="col-lg-9">
 
-            <!-- TÍTULO -->
+            <!-- =================================================
+                 TÍTULO
+                 ================================================= -->
+
             <div class="mb-4">
 
                 <h2 class="fw-bold">
@@ -26,7 +40,10 @@ Registrar Visita
             </div>
 
 
-            <!-- CARD DO FORMULÁRIO -->
+            <!-- =================================================
+                 CARD DO FORMULÁRIO
+                 ================================================= -->
+
             <div class="card shadow-sm">
 
                 <div class="card-body p-4">
@@ -36,15 +53,25 @@ Registrar Visita
                         {% csrf_token %}
 
 
-                        <!-- ERROS GERAIS -->
+                        <!-- =====================================
+                             ERROS GERAIS
+                             ===================================== -->
+
                         {% if form.non_field_errors %}
+
                             <div class="alert alert-danger">
+
                                 {{ form.non_field_errors }}
+
                             </div>
+
                         {% endif %}
 
 
-                        <!-- ESCOLA -->
+                        <!-- =====================================
+                             ESCOLA
+                             ===================================== -->
+
                         <div class="mb-3">
 
                             <label
@@ -57,15 +84,22 @@ Registrar Visita
                             {{ form.escola }}
 
                             {% for error in form.escola.errors %}
+
                                 <div class="text-danger small mt-1">
+
                                     {{ error }}
+
                                 </div>
+
                             {% endfor %}
 
                         </div>
 
 
-                        <!-- EQUIPE RESPONSÁVEL -->
+                        <!-- =====================================
+                             EQUIPE RESPONSÁVEL
+                             ===================================== -->
+
                         <div class="mb-3">
 
                             <label
@@ -78,15 +112,22 @@ Registrar Visita
                             {{ form.equipe }}
 
                             {% for error in form.equipe.errors %}
+
                                 <div class="text-danger small mt-1">
+
                                     {{ error }}
+
                                 </div>
+
                             {% endfor %}
 
                         </div>
 
 
-                        <!-- DATA E HORÁRIO -->
+                        <!-- =====================================
+                             DATA E HORÁRIO
+                             ===================================== -->
+
                         <div class="row">
 
                             <div class="col-md-6 mb-3">
@@ -101,9 +142,13 @@ Registrar Visita
                                 {{ form.data_visita }}
 
                                 {% for error in form.data_visita.errors %}
+
                                     <div class="text-danger small mt-1">
+
                                         {{ error }}
+
                                     </div>
+
                                 {% endfor %}
 
                             </div>
@@ -121,9 +166,13 @@ Registrar Visita
                                 {{ form.horario }}
 
                                 {% for error in form.horario.errors %}
+
                                     <div class="text-danger small mt-1">
+
                                         {{ error }}
+
                                     </div>
+
                                 {% endfor %}
 
                             </div>
@@ -131,7 +180,10 @@ Registrar Visita
                         </div>
 
 
-                        <!-- TIPO E SITUAÇÃO -->
+                        <!-- =====================================
+                             TIPO E SITUAÇÃO
+                             ===================================== -->
+
                         <div class="row">
 
                             <div class="col-md-6 mb-3">
@@ -146,9 +198,13 @@ Registrar Visita
                                 {{ form.tipo_visita }}
 
                                 {% for error in form.tipo_visita.errors %}
+
                                     <div class="text-danger small mt-1">
+
                                         {{ error }}
+
                                     </div>
+
                                 {% endfor %}
 
                             </div>
@@ -166,9 +222,13 @@ Registrar Visita
                                 {{ form.situacao }}
 
                                 {% for error in form.situacao.errors %}
+
                                     <div class="text-danger small mt-1">
+
                                         {{ error }}
+
                                     </div>
+
                                 {% endfor %}
 
                             </div>
@@ -176,7 +236,10 @@ Registrar Visita
                         </div>
 
 
-                        <!-- RELATO -->
+                        <!-- =====================================
+                             RELATO
+                             ===================================== -->
+
                         <div class="mb-3">
 
                             <label
@@ -189,15 +252,22 @@ Registrar Visita
                             {{ form.relato }}
 
                             {% for error in form.relato.errors %}
+
                                 <div class="text-danger small mt-1">
+
                                     {{ error }}
+
                                 </div>
+
                             {% endfor %}
 
                         </div>
 
 
-                        <!-- ORIENTAÇÕES -->
+                        <!-- =====================================
+                             ORIENTAÇÕES / PROVIDÊNCIAS
+                             ===================================== -->
+
                         <div class="mb-4">
 
                             <label
@@ -210,31 +280,45 @@ Registrar Visita
                             {{ form.orientacoes }}
 
                             {% for error in form.orientacoes.errors %}
+
                                 <div class="text-danger small mt-1">
+
                                     {{ error }}
+
                                 </div>
+
                             {% endfor %}
 
                         </div>
 
 
-                        <!-- BOTÕES -->
+                        <!-- =====================================
+                             BOTÕES
+                             ===================================== -->
+
                         <div class="d-flex justify-content-between">
 
                             <a
                                 href="{% url 'escolas:listar_escolas' %}"
                                 class="btn btn-outline-secondary"
                             >
+
                                 <i class="bi bi-arrow-left me-1"></i>
+
                                 Cancelar
+
                             </a>
+
 
                             <button
                                 type="submit"
                                 class="btn btn-primary"
                             >
+
                                 <i class="bi bi-check-circle me-1"></i>
+
                                 Registrar Visita
+
                             </button>
 
                         </div>
@@ -250,5 +334,64 @@ Registrar Visita
     </div>
 
 </div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<!-- =========================================================
+     TOM SELECT
+     Permite pesquisar a escola digitando o nome
+     ========================================================= -->
+
+<script
+    src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"
+></script>
+
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const campoEscola = document.getElementById(
+                "id_escola"
+            );
+
+
+            if (campoEscola) {
+
+                new TomSelect(
+                    campoEscola,
+                    {
+                        create: false,
+
+                        allowEmptyOption: true,
+
+                        placeholder: "Digite o nome da escola...",
+
+                        searchField: [
+                            "text"
+                        ],
+
+                        sortField: {
+                            field: "text",
+                            direction: "asc"
+                        },
+
+                        maxOptions: null,
+
+                        closeAfterSelect: true
+                    }
+                );
+
+            }
+
+        }
+    );
+
+</script>
 
 {% endblock %}
