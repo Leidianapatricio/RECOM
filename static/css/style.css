@@ -49,64 +49,108 @@ body {
 }
 
 
-/* LOGO */
+/* =========================================================
+   NAVBAR - LOGO
+   ========================================================= */
 
 .logo-recom {
     width: 88px !important;
     height: 88px !important;
+
     max-width: 88px !important;
     max-height: 88px !important;
+
     object-fit: contain;
     display: block;
 }
 
 
-/* MARCA */
+/* =========================================================
+   NAVBAR - MARCA RECOM
+   ========================================================= */
 
 .navbar-brand-recom {
     display: flex;
     align-items: center;
+
     gap: 13px;
+
     padding: 0;
-    margin: 0;
+
+    /*
+       Cria espaço entre o nome RECOM
+       e o primeiro item do menu.
+    */
+    margin: 0 30px 0 0;
+
     text-decoration: none;
 }
 
 .navbar-brand-text {
     line-height: 1.1;
+
+    /* Evita quebra do nome da marca */
+    white-space: nowrap;
 }
 
 .navbar-recom-title {
     display: block;
+
     color: var(--branco);
+
     font-size: 1.75rem;
     font-weight: 800;
+
     letter-spacing: 0.5px;
 }
 
 .navbar-recom-subtitle {
     display: block;
+
     color: var(--branco);
+
     font-size: 0.76rem;
     font-weight: 600;
+
     text-transform: uppercase;
+
     letter-spacing: 0.5px;
+
     opacity: 0.9;
 }
 
 
-/* LINKS */
+/* =========================================================
+   NAVBAR - MENU
+   ========================================================= */
+
+.navbar-recom .navbar-collapse {
+    flex-grow: 1;
+}
 
 .navbar-recom .navbar-menu-recom {
-    gap: 7px;
+    gap: 5px;
+
+    /* Mantém o menu alinhado à direita */
+    margin-left: auto;
 }
+
+
+/* =========================================================
+   NAVBAR - LINKS
+   ========================================================= */
 
 .navbar-recom .nav-link {
     position: relative;
+
     color: rgba(255, 255, 255, 0.92);
-    padding: 33px 10px 28px;
+
+    padding: 33px 9px 28px;
+
     font-size: 0.95rem;
     font-weight: 600;
+
+    white-space: nowrap;
 
     transition:
         color 0.2s ease,
@@ -118,7 +162,9 @@ body {
 }
 
 
-/* ITEM ATIVO */
+/* =========================================================
+   NAVBAR - ITEM ATIVO
+   ========================================================= */
 
 .navbar-recom .nav-link.active {
     color: var(--branco);
@@ -126,37 +172,48 @@ body {
 
 .navbar-recom .nav-link.active::after {
     content: "";
+
     position: absolute;
 
-    left: 10px;
-    right: 10px;
+    left: 9px;
+    right: 9px;
     bottom: 18px;
 
     height: 4px;
 
     background: var(--amarelo);
+
     border-radius: 5px;
 }
 
 
-/* ITENS DESABILITADOS */
+/* =========================================================
+   NAVBAR - ITENS DESABILITADOS
+   ========================================================= */
 
 .navbar-recom .nav-link.disabled {
     color: rgba(255, 255, 255, 0.40) !important;
+
+    cursor: default;
 }
 
 
-/* IDIOMA */
+/* =========================================================
+   NAVBAR - IDIOMA
+   ========================================================= */
 
 .navbar-language {
     display: flex;
     align-items: center;
+
+    margin-left: 8px !important;
 }
 
 .language-select {
     min-width: 65px;
 
     background-color: var(--branco);
+
     color: var(--azul-marinho);
 
     border: 1px solid rgba(255, 255, 255, 0.40);
@@ -165,13 +222,17 @@ body {
 }
 
 
-/* BOTÃO MOBILE */
+/* =========================================================
+   NAVBAR - BOTÃO MOBILE
+   ========================================================= */
 
 .navbar-toggler-recom {
     color: var(--branco);
+
     border: 1px solid rgba(255, 255, 255, 0.45);
 
     font-size: 1.7rem;
+
     padding: 4px 10px;
 }
 
@@ -180,7 +241,38 @@ body {
 }
 
 
-/* NAVBAR RESPONSIVA */
+/* =========================================================
+   NAVBAR - TELAS INTERMEDIÁRIAS
+   ========================================================= */
+
+@media (min-width: 992px) and (max-width: 1199px) {
+
+    .navbar-brand-recom {
+        margin-right: 15px;
+    }
+
+    .navbar-recom .navbar-menu-recom {
+        gap: 2px;
+    }
+
+    .navbar-recom .nav-link {
+        padding-left: 6px;
+        padding-right: 6px;
+
+        font-size: 0.88rem;
+    }
+
+    .navbar-recom .nav-link.active::after {
+        left: 6px;
+        right: 6px;
+    }
+
+}
+
+
+/* =========================================================
+   NAVBAR - RESPONSIVIDADE
+   ========================================================= */
 
 @media (max-width: 991px) {
 
@@ -188,19 +280,34 @@ body {
         padding: 4px 0;
     }
 
+    .navbar-brand-recom {
+        margin-right: 0;
+    }
+
+    .navbar-recom .navbar-collapse {
+        width: 100%;
+    }
+
+    .navbar-recom .navbar-menu-recom {
+        margin-left: 0;
+
+        padding: 12px 0 18px;
+
+        gap: 0;
+    }
+
     .navbar-recom .nav-link {
         padding: 10px 5px;
+
+        font-size: 0.95rem;
     }
 
     .navbar-recom .nav-link.active::after {
         display: none;
     }
 
-    .navbar-menu-recom {
-        padding: 12px 0 18px;
-    }
-
     .navbar-language {
+        margin-left: 0 !important;
         margin-top: 8px;
     }
 
@@ -212,6 +319,7 @@ body {
     .logo-recom {
         width: 62px !important;
         height: 62px !important;
+
         max-width: 62px !important;
         max-height: 62px !important;
     }
@@ -246,26 +354,34 @@ h6 {
 .btn-primary,
 .btn-recom {
     background: var(--azul-marinho);
+
     border-color: var(--azul-marinho);
+
     color: var(--branco);
+
     font-weight: 500;
 }
 
 .btn-primary:hover,
 .btn-recom:hover {
     background: var(--azul-escuro);
+
     border-color: var(--azul-escuro);
+
     color: var(--branco);
 }
 
 .btn-outline-primary {
     color: var(--azul-marinho);
+
     border-color: var(--azul-marinho);
 }
 
 .btn-outline-primary:hover {
     background: var(--azul-marinho);
+
     border-color: var(--azul-marinho);
+
     color: var(--branco);
 }
 
@@ -274,14 +390,19 @@ h6 {
 
 .btn-destaque {
     background: var(--amarelo);
+
     border-color: var(--amarelo);
+
     color: var(--azul-marinho);
+
     font-weight: 600;
 }
 
 .btn-destaque:hover {
     background: var(--amarelo-hover);
+
     border-color: var(--amarelo-hover);
+
     color: var(--azul-marinho);
 }
 
@@ -292,13 +413,17 @@ h6 {
 
 .card {
     border: 1px solid var(--borda);
+
     border-radius: 12px;
 }
 
 .card-recom {
     border: none;
+
     border-radius: 16px;
+
     background: var(--branco);
+
     box-shadow: 0 8px 24px rgba(6, 40, 70, 0.10);
 }
 
@@ -315,6 +440,7 @@ h6 {
 .form-control:focus,
 .form-select:focus {
     border-color: var(--azul);
+
     box-shadow: 0 0 0 0.2rem rgba(63, 127, 186, 0.20);
 }
 
@@ -325,7 +451,9 @@ h6 {
 
 .table thead th {
     background: var(--azul-marinho);
+
     color: var(--branco);
+
     border-color: var(--azul-marinho);
 }
 
@@ -340,8 +468,11 @@ h6 {
 
 .dashboard-card {
     border: none;
+
     border-radius: 16px;
+
     color: var(--branco);
+
     min-height: 130px;
 
     box-shadow: 0 8px 24px rgba(6, 40, 70, 0.16);
@@ -363,6 +494,7 @@ h6 {
 
 .bg-amarelo {
     background: var(--amarelo);
+
     color: var(--azul-marinho);
 }
 
@@ -378,6 +510,7 @@ h6 {
     border-radius: 50%;
 
     background: var(--azul-marinho);
+
     color: var(--branco);
 
     display: flex;
@@ -395,15 +528,90 @@ h6 {
    ========================================================= */
 
 .footer-recom {
-    background: var(--branco);
+    background: var(--azul-marinho);
 
-    border-top: 3px solid var(--azul-marinho);
+    color: rgba(255, 255, 255, 0.80);
 
-    padding: 20px 0;
+    border-top: 4px solid var(--amarelo);
+
+    padding: 22px 0 12px;
 
     margin-top: 50px;
+}
 
-    color: var(--texto-secundario);
+
+/* TÍTULO DO RODAPÉ */
+
+.footer-title {
+    color: var(--branco);
+
+    font-size: 1.35rem;
+    font-weight: 800;
+
+    line-height: 1.1;
+}
+
+.footer-subtitle {
+    color: rgba(255, 255, 255, 0.70);
+
+    font-size: 0.78rem;
+    font-weight: 600;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.7px;
+
+    margin-top: 4px;
+}
+
+
+/* MENSAGEM INSTITUCIONAL */
+
+.footer-message {
+    color: var(--amarelo);
+
+    font-size: 0.88rem;
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+}
+
+.footer-institution {
+    color: rgba(255, 255, 255, 0.65);
+
+    font-size: 0.82rem;
+
+    margin-top: 4px;
+}
+
+
+/* LINHA INFERIOR */
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+
+    margin-top: 16px;
+
+    padding-top: 10px;
+
+    text-align: center;
+
+    color: rgba(255, 255, 255, 0.50);
+
+    font-size: 0.76rem;
+}
+
+
+/* RESPONSIVIDADE DO RODAPÉ */
+
+@media (max-width: 767px) {
+
+    .footer-message {
+        margin-top: 10px;
+    }
+
 }
 
 
@@ -424,8 +632,11 @@ h6 {
 
     body {
         background: #ffffff !important;
+
         color: #000000 !important;
+
         font-size: 10px !important;
+
         min-height: auto !important;
     }
 
@@ -449,9 +660,11 @@ h6 {
 
     .container {
         width: 100% !important;
+
         max-width: 100% !important;
 
         margin: 0 !important;
+
         padding: 0 !important;
     }
 
@@ -466,6 +679,7 @@ h6 {
         text-align: center;
 
         margin: 0 0 12px 0 !important;
+
         padding: 0 !important;
     }
 
@@ -473,9 +687,11 @@ h6 {
         color: #062846 !important;
 
         font-size: 22px !important;
+
         font-weight: 700 !important;
 
         margin: 0 !important;
+
         padding: 0 !important;
     }
 
@@ -483,9 +699,11 @@ h6 {
         color: #062846 !important;
 
         font-size: 16px !important;
+
         font-weight: 600 !important;
 
         margin: 4px 0 !important;
+
         padding: 0 !important;
     }
 
@@ -495,6 +713,7 @@ h6 {
         font-size: 10px !important;
 
         margin: 0 !important;
+
         padding: 0 !important;
     }
 
@@ -513,6 +732,7 @@ h6 {
         margin-bottom: 8px !important;
 
         break-inside: avoid;
+
         page-break-inside: avoid;
     }
 
@@ -543,6 +763,7 @@ h6 {
 
     .row.g-3 {
         --bs-gutter-x: 6px !important;
+
         --bs-gutter-y: 6px !important;
     }
 
@@ -596,6 +817,7 @@ h6 {
         border: 1px solid #6d7b88 !important;
 
         font-size: 8px !important;
+
         font-weight: 600 !important;
 
         padding: 4px !important;
@@ -629,6 +851,7 @@ h6 {
 
     tr {
         break-inside: avoid !important;
+
         page-break-inside: avoid !important;
     }
 
@@ -645,6 +868,7 @@ h6 {
         border: 1px solid #777777 !important;
 
         font-size: 7px !important;
+
         font-weight: 600 !important;
 
         padding: 2px 4px !important;
@@ -740,6 +964,7 @@ h6 {
 
 .hero-line {
     width: 65px;
+
     height: 4px;
 
     background: var(--amarelo);
@@ -836,6 +1061,7 @@ h6 {
 
 .features-title-line {
     width: 50px;
+
     height: 4px;
 
     background: var(--amarelo);
@@ -880,6 +1106,7 @@ h6 {
 
 .feature-icon {
     width: 62px;
+
     height: 62px;
 
     border-radius: 50%;
