@@ -628,6 +628,11 @@ h6 {
    IMPRESSÃO / PDF
    ========================================================= */
 
+@page {
+    size: A4 portrait;
+    margin: 12mm;
+}
+
 @media print {
 
     body {
