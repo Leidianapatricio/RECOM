@@ -37,38 +37,190 @@ body {
    NAVBAR
    ========================================================= */
 
-.navbar {
-    background: var(--branco) !important;
-    border-bottom: 4px solid var(--azul-marinho);
+.navbar-recom {
+    background: var(--azul-marinho) !important;
+    border-bottom: 4px solid var(--amarelo);
+    padding: 0;
+    min-height: 92px;
 }
 
+.navbar-recom .container {
+    min-height: 92px;
+}
+
+
+/* LOGO */
+
 .logo-recom {
-    width: 65px !important;
-    height: 65px !important;
-    max-width: 65px !important;
-    max-height: 65px !important;
+    width: 88px !important;
+    height: 88px !important;
+    max-width: 88px !important;
+    max-height: 88px !important;
     object-fit: contain;
     display: block;
 }
 
-.navbar-brand {
+
+/* MARCA */
+
+.navbar-brand-recom {
     display: flex;
     align-items: center;
-    padding: 4px 0;
+    gap: 13px;
+    padding: 0;
     margin: 0;
+    text-decoration: none;
 }
 
-.navbar .nav-link {
+.navbar-brand-text {
+    line-height: 1.1;
+}
+
+.navbar-recom-title {
+    display: block;
+    color: var(--branco);
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.navbar-recom-subtitle {
+    display: block;
+    color: var(--branco);
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+}
+
+
+/* LINKS */
+
+.navbar-recom .navbar-menu-recom {
+    gap: 7px;
+}
+
+.navbar-recom .nav-link {
+    position: relative;
+    color: rgba(255, 255, 255, 0.92);
+    padding: 33px 10px 28px;
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+.navbar-recom .nav-link:hover {
+    color: var(--branco);
+}
+
+
+/* ITEM ATIVO */
+
+.navbar-recom .nav-link.active {
+    color: var(--branco);
+}
+
+.navbar-recom .nav-link.active::after {
+    content: "";
+    position: absolute;
+
+    left: 10px;
+    right: 10px;
+    bottom: 18px;
+
+    height: 4px;
+
+    background: var(--amarelo);
+    border-radius: 5px;
+}
+
+
+/* ITENS DESABILITADOS */
+
+.navbar-recom .nav-link.disabled {
+    color: rgba(255, 255, 255, 0.40) !important;
+}
+
+
+/* IDIOMA */
+
+.navbar-language {
+    display: flex;
+    align-items: center;
+}
+
+.language-select {
+    min-width: 65px;
+
+    background-color: var(--branco);
     color: var(--azul-marinho);
-    transition: 0.2s;
+
+    border: 1px solid rgba(255, 255, 255, 0.40);
+
+    font-weight: 600;
 }
 
-.navbar .nav-link:hover {
-    color: var(--azul);
+
+/* BOTÃO MOBILE */
+
+.navbar-toggler-recom {
+    color: var(--branco);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+
+    font-size: 1.7rem;
+    padding: 4px 10px;
 }
 
-.navbar .nav-link.disabled {
-    color: #9ca3af;
+.navbar-toggler-recom:focus {
+    box-shadow: none;
+}
+
+
+/* NAVBAR RESPONSIVA */
+
+@media (max-width: 991px) {
+
+    .navbar-recom {
+        padding: 4px 0;
+    }
+
+    .navbar-recom .nav-link {
+        padding: 10px 5px;
+    }
+
+    .navbar-recom .nav-link.active::after {
+        display: none;
+    }
+
+    .navbar-menu-recom {
+        padding: 12px 0 18px;
+    }
+
+    .navbar-language {
+        margin-top: 8px;
+    }
+
+}
+
+
+@media (max-width: 767px) {
+
+    .logo-recom {
+        width: 62px !important;
+        height: 62px !important;
+        max-width: 62px !important;
+        max-height: 62px !important;
+    }
+
+    .navbar-recom,
+    .navbar-recom .container {
+        min-height: 70px;
+    }
+
 }
 
 
@@ -191,7 +343,9 @@ h6 {
     border-radius: 16px;
     color: var(--branco);
     min-height: 130px;
+
     box-shadow: 0 8px 24px rgba(6, 40, 70, 0.16);
+
     transition: transform 0.2s ease;
 }
 
@@ -220,7 +374,9 @@ h6 {
 .icon-circle {
     width: 64px;
     height: 64px;
+
     border-radius: 50%;
+
     background: var(--azul-marinho);
     color: var(--branco);
 
@@ -229,6 +385,7 @@ h6 {
     justify-content: center;
 
     font-size: 32px;
+
     margin: 0 auto;
 }
 
@@ -239,9 +396,11 @@ h6 {
 
 .footer-recom {
     background: var(--branco);
+
     border-top: 3px solid var(--azul-marinho);
 
     padding: 20px 0;
+
     margin-top: 50px;
 
     color: var(--texto-secundario);
@@ -291,6 +450,7 @@ h6 {
     .container {
         width: 100% !important;
         max-width: 100% !important;
+
         margin: 0 !important;
         padding: 0 !important;
     }
@@ -302,30 +462,38 @@ h6 {
 
     .cabecalho-pdf {
         display: block !important;
+
         text-align: center;
+
         margin: 0 0 12px 0 !important;
         padding: 0 !important;
     }
 
     .cabecalho-pdf h2 {
         color: #062846 !important;
+
         font-size: 22px !important;
         font-weight: 700 !important;
+
         margin: 0 !important;
         padding: 0 !important;
     }
 
     .cabecalho-pdf h4 {
         color: #062846 !important;
+
         font-size: 16px !important;
         font-weight: 600 !important;
+
         margin: 4px 0 !important;
         padding: 0 !important;
     }
 
     .cabecalho-pdf p {
         color: #444444 !important;
+
         font-size: 10px !important;
+
         margin: 0 !important;
         padding: 0 !important;
     }
@@ -337,8 +505,11 @@ h6 {
 
     .card {
         border: 1px solid #bfc7ce !important;
+
         border-radius: 4px !important;
+
         box-shadow: none !important;
+
         margin-bottom: 8px !important;
 
         break-inside: avoid;
@@ -347,13 +518,17 @@ h6 {
 
     .card-header {
         background: #eef1f4 !important;
+
         color: #000000 !important;
+
         padding: 6px 8px !important;
+
         border-bottom: 1px solid #bfc7ce !important;
     }
 
     .card-header strong {
         color: #062846 !important;
+
         font-size: 11px !important;
     }
 
@@ -377,11 +552,13 @@ h6 {
 
     .row.g-3 h3 {
         font-size: 16px !important;
+
         margin-bottom: 2px !important;
     }
 
     .row.g-3 p {
         font-size: 8px !important;
+
         margin-bottom: 0 !important;
     }
 
@@ -401,29 +578,44 @@ h6 {
     table,
     .table {
         width: 100% !important;
+
         border-collapse: collapse !important;
+
         table-layout: auto !important;
+
         font-size: 8px !important;
+
         margin-bottom: 0 !important;
     }
 
     .table thead th {
         background: #062846 !important;
+
         color: #ffffff !important;
+
         border: 1px solid #6d7b88 !important;
+
         font-size: 8px !important;
         font-weight: 600 !important;
+
         padding: 4px !important;
+
         vertical-align: middle !important;
     }
 
     .table tbody td {
         color: #000000 !important;
+
         border: 1px solid #c7ced4 !important;
+
         padding: 4px !important;
+
         vertical-align: top !important;
+
         white-space: normal !important;
+
         word-break: normal !important;
+
         overflow-wrap: anywhere !important;
     }
 
@@ -447,10 +639,14 @@ h6 {
 
     .badge {
         color: #000000 !important;
+
         background: #ffffff !important;
+
         border: 1px solid #777777 !important;
+
         font-size: 7px !important;
         font-weight: 600 !important;
+
         padding: 2px 4px !important;
     }
 
@@ -461,6 +657,7 @@ h6 {
 
     a {
         color: #000000 !important;
+
         text-decoration: none !important;
     }
 
@@ -521,16 +718,316 @@ h6 {
 
 
 /* =========================================================
-   RESPONSIVIDADE
+   HOME - RECOM
    ========================================================= */
 
-@media (max-width: 768px) {
+.home-recom {
+    background: var(--fundo);
+}
 
-    .logo-recom {
-        width: 40px !important;
-        height: 40px !important;
-        max-width: 40px !important;
-        max-height: 40px !important;
+
+/* =========================================================
+   HOME - APRESENTAÇÃO
+   ========================================================= */
+
+.hero-recom {
+    background: var(--branco);
+
+    padding: 42px 0 28px;
+
+    border-bottom: 1px solid #edf1f4;
+}
+
+.hero-line {
+    width: 65px;
+    height: 4px;
+
+    background: var(--amarelo);
+
+    border-radius: 5px;
+
+    margin-bottom: 17px;
+}
+
+.recom-title {
+    color: var(--azul-marinho);
+
+    font-size: clamp(3rem, 5vw, 4.6rem);
+
+    font-weight: 800;
+
+    line-height: 1;
+
+    letter-spacing: -2px;
+
+    margin-bottom: 5px;
+}
+
+.recom-name {
+    color: var(--azul-marinho);
+
+    font-size: 1.45rem;
+
+    font-weight: 700;
+
+    margin-bottom: 15px;
+}
+
+.recom-subtitle {
+    color: #697581;
+
+    font-size: 1.35rem;
+
+    font-weight: 600;
+
+    margin-bottom: 15px;
+}
+
+.recom-description {
+    color: var(--texto-secundario);
+
+    font-size: 1rem;
+
+    line-height: 1.65;
+
+    max-width: 720px;
+
+    margin-bottom: 0;
+}
+
+.hero-message {
+    border-left: 4px solid var(--amarelo);
+
+    padding-left: 20px;
+
+    color: var(--azul-marinho);
+
+    font-size: 0.95rem;
+
+    font-weight: 800;
+
+    letter-spacing: 4px;
+
+    line-height: 1.65;
+
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   HOME - FUNCIONALIDADES
+   ========================================================= */
+
+.features-section {
+    padding: 28px 0 38px;
+}
+
+.features-title {
+    color: var(--azul-marinho);
+
+    font-size: 1.8rem;
+
+    font-weight: 800;
+
+    text-align: center;
+
+    margin-bottom: 0;
+}
+
+.features-title-line {
+    width: 50px;
+    height: 4px;
+
+    background: var(--amarelo);
+
+    border-radius: 4px;
+
+    margin: 10px auto 24px;
+}
+
+
+/* =========================================================
+   HOME - CARDS
+   ========================================================= */
+
+.feature-card {
+    height: 100%;
+
+    background: var(--branco);
+
+    border: 1px solid var(--borda);
+
+    border-bottom: 4px solid var(--amarelo);
+
+    border-radius: 8px;
+
+    padding: 22px 20px 20px;
+
+    text-align: center;
+
+    box-shadow: 0 3px 10px rgba(6, 40, 70, 0.04);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow: 0 8px 20px rgba(6, 40, 70, 0.10);
+}
+
+.feature-icon {
+    width: 62px;
+    height: 62px;
+
+    border-radius: 50%;
+
+    margin: 0 auto 15px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: var(--azul-claro);
+
+    color: var(--azul-marinho);
+
+    font-size: 1.7rem;
+}
+
+.feature-card h5 {
+    color: var(--azul-marinho);
+
+    font-size: 1.05rem;
+
+    font-weight: 800;
+
+    margin-bottom: 10px;
+}
+
+.feature-card p {
+    color: var(--texto-secundario);
+
+    font-size: 0.92rem;
+
+    line-height: 1.45;
+
+    margin-bottom: 0;
+}
+
+
+/* =========================================================
+   HOME - COMPROMISSO
+   ========================================================= */
+
+.commitment-box {
+    background: var(--azul-claro);
+
+    border-radius: 8px;
+
+    margin-top: 20px;
+
+    padding: 18px 26px;
+}
+
+.commitment-icon {
+    color: var(--azul-marinho);
+
+    font-size: 2.7rem;
+
+    width: 65px;
+
+    text-align: center;
+}
+
+.commitment-content {
+    border-left: 1px solid #cbd9e6;
+
+    padding-left: 25px;
+}
+
+.commitment-content h4 {
+    color: var(--azul-marinho);
+
+    font-size: 1.15rem;
+
+    font-weight: 800;
+
+    margin-bottom: 5px;
+}
+
+.commitment-content p {
+    color: var(--texto-secundario);
+
+    font-size: 0.92rem;
+
+    margin-bottom: 0;
+}
+
+.commitment-message {
+    border-left: 4px solid var(--amarelo);
+
+    padding-left: 20px;
+
+    color: var(--azul-marinho);
+
+    font-weight: 800;
+
+    font-size: 0.98rem;
+
+    line-height: 1.45;
+}
+
+
+/* =========================================================
+   HOME - RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 991px) {
+
+    .hero-message {
+        margin-top: 10px;
+    }
+
+    .commitment-message {
+        margin-top: 20px;
+    }
+
+}
+
+
+@media (max-width: 767px) {
+
+    .hero-recom {
+        padding: 35px 0 25px;
+    }
+
+    .recom-title {
+        font-size: 3.2rem;
+    }
+
+    .recom-name {
+        font-size: 1.2rem;
+    }
+
+    .recom-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .commitment-content {
+        border-left: 0;
+
+        padding-left: 0;
+
+        margin-top: 10px;
+    }
+
+    .commitment-icon {
+        text-align: left;
     }
 
 }

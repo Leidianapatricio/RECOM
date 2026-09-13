@@ -4,126 +4,52 @@
 
 {% block content %}
 
-<section class="container py-5">
+<div class="home-recom">
 
-    <div class="row align-items-center g-5">
+    <!-- APRESENTAÇÃO -->
+    <section class="hero-recom">
 
-        <!-- APRESENTAÇÃO -->
-        <div class="col-lg-6">
+        <div class="container">
 
-            <span class="badge bg-primary mb-3">
-                {% trans "Ronda Escolar Comunitária" %}
-            </span>
+            <div class="row align-items-center g-4">
 
-            <h1 class="display-4 fw-bold lh-sm">
-                {% trans "RECOM:" %}
-                <br>
-                {% trans "gestão e acompanhamento da segurança escolar" %}
-            </h1>
+                <div class="col-lg-8">
 
-            <p class="lead text-muted mt-4">
-                {% trans "Sistema desenvolvido para apoiar o acompanhamento das escolas, o registro de problemáticas, visitas, ocorrências e ações realizadas pela Ronda Escolar Comunitária." %}
-            </p>
+                    <div class="hero-line"></div>
 
-            <p class="text-muted">
-                {% trans "A plataforma centraliza informações importantes das unidades escolares e facilita o acompanhamento das atividades desenvolvidas pela equipe da RECOM." %}
-            </p>
+                    <h1 class="recom-title">
+                        RECOM
+                    </h1>
 
-        </div>
-
-
-        <!-- FUNCIONALIDADES -->
-        <div class="col-lg-6">
-
-            <div class="card shadow-sm p-4">
-
-                <h2 class="fw-bold mb-4">
-                    {% trans "O que o RECOM oferece?" %}
-                </h2>
-
-
-                <!-- ESCOLAS -->
-                <div class="d-flex gap-3 mb-4">
-
-                    <div class="logo-box flex-shrink-0">
-                        <i class="bi bi-building"></i>
+                    <div class="recom-name">
+                        {% trans "Ronda Escolar Comunitária" %}
                     </div>
 
-                    <div>
-
-                        <h5 class="fw-bold">
-                            {% trans "Gestão de Escolas" %}
-                        </h5>
-
-                        <p class="text-muted mb-0">
-                            {% trans "Cadastro, consulta e acompanhamento das unidades escolares atendidas pela Ronda Escolar Comunitária." %}
-                        </p>
-
+                    <div class="recom-subtitle">
+                        {% trans "Gestão e acompanhamento da segurança escolar" %}
                     </div>
+
+                    <p class="recom-description">
+                        {% trans "Sistema destinado ao registro, acompanhamento e monitoramento das escolas, problemáticas, visitas e ações realizadas pela Ronda Escolar Comunitária, contribuindo para ambientes escolares mais seguros e acolhedores." %}
+                    </p>
 
                 </div>
 
 
-                <!-- PROBLEMÁTICAS -->
-                <div class="d-flex gap-3 mb-4">
+                <div class="col-lg-4">
 
-                    <div class="logo-box flex-shrink-0">
-                        <i class="bi bi-exclamation-triangle"></i>
-                    </div>
+                    <div class="hero-message">
 
-                    <div>
+                        {% trans "Educação" %}
+                        <br>
 
-                        <h5 class="fw-bold">
-                            {% trans "Acompanhamento de Problemáticas" %}
-                        </h5>
+                        {% trans "Segurança" %}
+                        <br>
 
-                        <p class="text-muted mb-0">
-                            {% trans "Registro e acompanhamento das principais problemáticas identificadas nas escolas." %}
-                        </p>
+                        {% trans "Cidadania" %}
+                        <br>
 
-                    </div>
-
-                </div>
-
-
-                <!-- VISITAS -->
-                <div class="d-flex gap-3 mb-4">
-
-                    <div class="logo-box flex-shrink-0">
-                        <i class="bi bi-clipboard-check"></i>
-                    </div>
-
-                    <div>
-
-                        <h5 class="fw-bold">
-                            {% trans "Registro de Visitas" %}
-                        </h5>
-
-                        <p class="text-muted mb-0">
-                            {% trans "Registro das visitas e rondas realizadas nas unidades escolares." %}
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <!-- HISTÓRICO -->
-                <div class="d-flex gap-3">
-
-                    <div class="logo-box flex-shrink-0">
-                        <i class="bi bi-clock-history"></i>
-                    </div>
-
-                    <div>
-
-                        <h5 class="fw-bold">
-                            {% trans "Histórico de Acompanhamento" %}
-                        </h5>
-
-                        <p class="text-muted mb-0">
-                            {% trans "Consulta ao histórico de visitas, registros e ações relacionadas às escolas acompanhadas." %}
-                        </p>
+                        {% trans "Para um futuro melhor" %}
 
                     </div>
 
@@ -133,8 +59,156 @@
 
         </div>
 
-    </div>
+    </section>
 
-</section>
+
+    <!-- FUNCIONALIDADES -->
+    <section class="features-section">
+
+        <div class="container">
+
+            <h2 class="features-title">
+                {% trans "O que o RECOM oferece?" %}
+            </h2>
+
+            <div class="features-title-line"></div>
+
+
+            <div class="row g-3">
+
+                <!-- GESTÃO DE ESCOLAS -->
+                <div class="col-xl-3 col-md-6">
+
+                    <div class="feature-card">
+
+                        <div class="feature-icon">
+                            <i class="bi bi-building"></i>
+                        </div>
+
+                        <h5>
+                            {% trans "Gestão de Escolas" %}
+                        </h5>
+
+                        <p>
+                            {% trans "Cadastro, consulta e acompanhamento das unidades escolares atendidas pela Ronda Escolar Comunitária." %}
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- PROBLEMÁTICAS -->
+                <div class="col-xl-3 col-md-6">
+
+                    <div class="feature-card">
+
+                        <div class="feature-icon">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+
+                        <h5>
+                            {% trans "Registro de Problemáticas" %}
+                        </h5>
+
+                        <p>
+                            {% trans "Identificação e acompanhamento das principais situações que afetam o ambiente escolar." %}
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- VISITAS -->
+                <div class="col-xl-3 col-md-6">
+
+                    <div class="feature-card">
+
+                        <div class="feature-icon">
+                            <i class="bi bi-clipboard-check-fill"></i>
+                        </div>
+
+                        <h5>
+                            {% trans "Registro de Visitas" %}
+                        </h5>
+
+                        <p>
+                            {% trans "Registro das rondas, visitas e ações realizadas pelas equipes da RECOM nas escolas." %}
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACOMPANHAMENTO -->
+                <div class="col-xl-3 col-md-6">
+
+                    <div class="feature-card">
+
+                        <div class="feature-icon">
+                            <i class="bi bi-bar-chart-fill"></i>
+                        </div>
+
+                        <h5>
+                            {% trans "Acompanhamento" %}
+                        </h5>
+
+                        <p>
+                            {% trans "Consulta de históricos, indicadores e relatórios para apoiar o acompanhamento das ações." %}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- COMPROMISSO -->
+            <div class="commitment-box">
+
+                <div class="row align-items-center g-3">
+
+                    <div class="col-md-auto">
+
+                        <div class="commitment-icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-lg commitment-content">
+
+                        <h4>
+                            {% trans "Juntos por escolas mais seguras" %}
+                        </h4>
+
+                        <p>
+                            {% trans "A RECOM atua de forma integrada com a comunidade escolar, promovendo a prevenção da violência, o diálogo e o fortalecimento da cidadania." %}
+                        </p>
+
+                    </div>
+
+
+                    <div class="col-lg-3">
+
+                        <div class="commitment-message">
+                            {% trans "Educação, segurança e cidadania caminhando juntas." %}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
 
 {% endblock %}

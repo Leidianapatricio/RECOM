@@ -1,7 +1,51 @@
+{% load i18n %}
+
 <footer class="footer-recom">
-    <div class="container text-center">
-        <small>
-            RECOM — Sistema de Gestão da Ronda Escolar Comunitária
-        </small>
+
+    <div class="container">
+
+        <div class="row align-items-center gy-2">
+
+            <!-- IDENTIFICAÇÃO -->
+            <div class="col-md-6 text-center text-md-start">
+
+                <div class="footer-title">
+                    RECOM
+                </div>
+
+                <div class="footer-subtitle">
+                    {% trans "Ronda Escolar Comunitária" %}
+                </div>
+
+            </div>
+
+
+            <!-- MENSAGEM INSTITUCIONAL -->
+            <div class="col-md-6 text-center text-md-end">
+
+                <div class="footer-message">
+                    {% trans "Educação • Segurança • Cidadania" %}
+                </div>
+
+                <div class="footer-institution">
+                    {% trans "Guarda Civil Metropolitana de João Pessoa" %}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PARTE INFERIOR -->
+        <div class="footer-bottom">
+
+            <small>
+                © {% now "Y" %} RECOM —
+                {% trans "Sistema de Gestão da Ronda Escolar Comunitária" %}
+            </small>
+
+        </div>
+
     </div>
+
 </footer>

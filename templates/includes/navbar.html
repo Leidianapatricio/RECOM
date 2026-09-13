@@ -1,24 +1,42 @@
 {% load static %}
 {% load i18n %}
 
-<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-recom shadow-sm">
+
     <div class="container">
 
+        <!-- MARCA RECOM -->
         <a
-            class="navbar-brand"
+            class="navbar-brand navbar-brand-recom"
             href="{% url 'core:home' %}"
         >
+
             <img
-                src="{% static 'img/logo_recom.png' %}"
+                src="{% static 'img/logo_recom.png' %}?v=3"
                 alt="Logo da RECOM"
                 class="logo-recom"
-                width="65"
-                height="65"
+                width="95"
+                height="95"
             >
+
+            <div class="navbar-brand-text d-none d-md-block">
+
+                <span class="navbar-recom-title">
+                    RECOM
+                </span>
+
+                <span class="navbar-recom-subtitle">
+                    {% trans "Ronda Escolar Comunitária" %}
+                </span>
+
+            </div>
+
         </a>
 
+
+        <!-- BOTÃO MOBILE -->
         <button
-            class="navbar-toggler"
+            class="navbar-toggler navbar-toggler-recom"
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#menuNavbar"
@@ -26,51 +44,63 @@
             aria-expanded="false"
             aria-label="Abrir menu"
         >
-            <span class="navbar-toggler-icon"></span>
+            <i class="bi bi-list"></i>
         </button>
 
+
+        <!-- MENU -->
         <div
             class="collapse navbar-collapse"
             id="menuNavbar"
         >
 
-            <ul class="navbar-nav ms-auto fw-semibold align-items-lg-center">
+            <ul class="navbar-nav ms-auto fw-semibold align-items-lg-center navbar-menu-recom">
 
-                <!-- Início -->
+                <!-- INÍCIO -->
                 <li class="nav-item">
+
                     <a
-                        class="nav-link"
+                        class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
                         href="{% url 'core:home' %}"
                     >
-                        <i class="bi bi-house-door me-1"></i>
-                        Início
+                        <i class="bi bi-house-door-fill me-1"></i>
+                        {% trans "Início" %}
                     </a>
+
                 </li>
 
-                <!-- Escolas -->
+
+                <!-- ESCOLAS -->
                 <li class="nav-item">
+
                     <a
-                        class="nav-link"
+                        class="nav-link {% if request.resolver_match.app_name == 'escolas' %}active{% endif %}"
                         href="{% url 'escolas:listar_escolas' %}"
                     >
                         <i class="bi bi-building me-1"></i>
-                        Escolas
+                        {% trans "Escolas" %}
                     </a>
+
                 </li>
 
-                <!-- Visitas -->
+
+                <!-- VISITAS -->
                 <li class="nav-item">
+
                     <a
-                        class="nav-link"
+                        class="nav-link {% if request.resolver_match.app_name == 'visitas' %}active{% endif %}"
                         href="{% url 'visitas:cadastrar_visita' %}"
                     >
                         <i class="bi bi-clipboard-check me-1"></i>
-                        Visitas
+                        {% trans "Visitas" %}
                     </a>
+
                 </li>
 
-                <!-- Ocorrências -->
+
+                <!-- OCORRÊNCIAS -->
                 <li class="nav-item">
+
                     <a
                         class="nav-link disabled"
                         href="#"
@@ -78,13 +108,16 @@
                         aria-disabled="true"
                         title="Funcionalidade em desenvolvimento"
                     >
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        Ocorrências
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        {% trans "Ocorrências" %}
                     </a>
+
                 </li>
 
-                <!-- Ações -->
+
+                <!-- AÇÕES -->
                 <li class="nav-item">
+
                     <a
                         class="nav-link disabled"
                         href="#"
@@ -92,18 +125,21 @@
                         aria-disabled="true"
                         title="Funcionalidade em desenvolvimento"
                     >
-                        <i class="bi bi-people me-1"></i>
-                        Ações
+                        <i class="bi bi-people-fill me-1"></i>
+                        {% trans "Ações" %}
                     </a>
+
                 </li>
 
-                <!-- Idioma -->
-                <li class="nav-item ms-lg-3">
+
+                <!-- IDIOMA -->
+                <li class="nav-item ms-lg-3 navbar-language">
 
                     <form
                         action="{% url 'set_language' %}"
                         method="post"
                     >
+
                         {% csrf_token %}
 
                         <input
@@ -114,7 +150,7 @@
 
                         <select
                             name="language"
-                            class="form-select form-select-sm"
+                            class="form-select form-select-sm language-select"
                             onchange="this.form.submit()"
                             aria-label="Selecionar idioma"
                         >
@@ -148,4 +184,5 @@
         </div>
 
     </div>
+
 </nav>
