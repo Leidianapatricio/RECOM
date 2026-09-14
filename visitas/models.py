@@ -16,8 +16,11 @@ class RondaVisita(models.Model):
 
     TIPO_VISITA_CHOICES = [
         ("ROTINA", "Visita de rotina"),
+        ("ENTRADA", "Acompanhamento de entrada"),
         ("SAIDA", "Acompanhamento de saída"),
         ("EVENTO", "Acompanhamento de evento"),
+        ("PALESTRA", "Palestra"),
+        ("FANTOCHE", "Teatro de fantoches"),
         ("APOIO", "Apoio / atendimento"),
         ("OUTRA", "Outra"),
     ]

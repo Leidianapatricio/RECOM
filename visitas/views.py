@@ -6,6 +6,10 @@ from .forms import RondaVisitaForm
 from .models import RondaVisita
 
 
+# =========================================================
+# CADASTRAR VISITA
+# =========================================================
+
 def cadastrar_visita(request):
 
     if request.method == "POST":
@@ -45,9 +49,63 @@ def cadastrar_visita(request):
         "visitas/form_visita.html",
         {
             "form": form,
+            "modo_edicao": False,
         }
     )
 
+
+# =========================================================
+# EDITAR VISITA
+# =========================================================
+
+def editar_visita(request, pk):
+
+    visita = get_object_or_404(
+        RondaVisita,
+        pk=pk
+    )
+
+    if request.method == "POST":
+
+        form = RondaVisitaForm(
+            request.POST,
+            instance=visita
+        )
+
+        if form.is_valid():
+
+            visita = form.save()
+
+            messages.success(
+                request,
+                "Visita atualizada com sucesso."
+            )
+
+            return redirect(
+                "escolas:detalhe_escola",
+                pk=visita.escola.pk
+            )
+
+    else:
+
+        form = RondaVisitaForm(
+            instance=visita
+        )
+
+    return render(
+        request,
+        "visitas/form_visita.html",
+        {
+            "form": form,
+            "visita": visita,
+            "modo_edicao": True,
+        }
+    )
+
+
+# =========================================================
+# EXCLUIR VISITA
+# =========================================================
 
 @require_POST
 def excluir_visita(request, pk):

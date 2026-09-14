@@ -19,5 +19,11 @@ urlpatterns = [
         views.excluir_visita,
         name="excluir_visita",
     ),
+    
+    path(
+    "editar/<int:pk>/",
+    views.editar_visita,
+    name="editar_visita",
+    ),
 
 ]
