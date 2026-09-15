@@ -12,6 +12,7 @@ class RondaVisita(models.Model):
         ("D", "Equipe D"),
         ("E", "Equipe E"),
         ("F", "Equipe F"),
+        ("EXTRA", "Equipe Extraordinário"),
     ]
 
     TIPO_VISITA_CHOICES = [
@@ -38,7 +39,7 @@ class RondaVisita(models.Model):
     )
 
     equipe = models.CharField(
-        max_length=1,
+        max_length=10,
         choices=EQUIPE_CHOICES,
         verbose_name="Equipe responsável",
     )
