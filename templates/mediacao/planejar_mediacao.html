@@ -1,0 +1,131 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{% if edicao %}Editar Planejamento{% else %}Planejar Mediação{% endif %} - RECOM
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/mediacao.css' %}">
+
+<div class="container mediacao-container">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="mediacao-titulo mb-1">
+                <i class="bi bi-calendar-check me-2"></i>
+                {% if edicao %}
+                    Editar Planejamento
+                {% else %}
+                    Planejar Mediação
+                {% endif %}
+            </h2>
+            <p class="text-muted mb-0">
+                Projeto Cultura de Paz — RECOM
+            </p>
+        </div>
+
+        <a href="{% url 'mediacao:listar_planejamentos' %}"
+           class="btn btn-mediacao-outline">
+            <i class="bi bi-arrow-left me-1"></i>
+            Planejamentos
+        </a>
+    </div>
+
+    <div class="card mediacao-card">
+        <div class="card-header">
+            <h5>
+                <i class="bi bi-journal-text me-2"></i>
+                Dados do Planejamento
+            </h5>
+        </div>
+
+        <div class="card-body p-4">
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+                        <label for="{{ form.data.id_for_label }}"
+                               class="form-label">
+                            Data da mediação *
+                        </label>
+
+                        {{ form.data }}
+
+                        {% for erro in form.data.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ erro }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-8">
+                        <label for="{{ form.escola.id_for_label }}"
+                               class="form-label">
+                            Escola *
+                        </label>
+
+                        {{ form.escola }}
+
+                        {% for erro in form.escola.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ erro }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-12">
+                        <label for="{{ form.mediacoes_previstas.id_for_label }}"
+                               class="form-label">
+                            Mediações previstas / Observações *
+                        </label>
+
+                        {{ form.mediacoes_previstas }}
+
+                        {% for erro in form.mediacoes_previstas.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ erro }}
+                            </div>
+                        {% endfor %}
+
+                        <div class="form-text">
+                            Descreva as atividades, temas e estratégias
+                            de mediação previstas para a escola.
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+
+                    <a href="{% url 'mediacao:listar_planejamentos' %}"
+                       class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-mediacao">
+                        <i class="bi bi-floppy me-1"></i>
+                        {% if edicao %}
+                            Salvar Alterações
+                        {% else %}
+                            Salvar Planejamento
+                        {% endif %}
+                    </button>
+
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

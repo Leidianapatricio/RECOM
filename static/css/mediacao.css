@@ -1,0 +1,127 @@
+
+:root {
+    --mediacao-azul: #092B49;
+    --mediacao-dourado: #B78B32;
+}
+
+.mediacao-container {
+    padding-top: 24px;
+    padding-bottom: 40px;
+}
+
+.mediacao-titulo {
+    color: var(--mediacao-azul);
+    font-weight: 700;
+}
+
+.mediacao-card {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: none !important;
+}
+
+.mediacao-card .card-header {
+    background: var(--mediacao-azul);
+    color: #fff;
+    padding: 15px 20px;
+}
+
+.mediacao-card .card-header h5 {
+    margin: 0;
+    color: #fff;
+    font-weight: 600;
+}
+
+.mediacao-card .form-label {
+    color: var(--mediacao-azul);
+    font-weight: 600;
+}
+
+.mediacao-card .form-control:focus,
+.mediacao-card .form-select:focus {
+    border-color: var(--mediacao-dourado);
+    box-shadow: 0 0 0 .2rem rgba(183, 139, 50, .15);
+}
+
+.btn-mediacao {
+    background: var(--mediacao-azul);
+    border: 1px solid var(--mediacao-azul);
+    color: #fff;
+}
+
+.btn-mediacao:hover,
+.btn-mediacao:focus {
+    background: var(--mediacao-dourado);
+    border-color: var(--mediacao-dourado);
+    color: #fff;
+}
+
+.btn-mediacao-outline {
+    background: #fff;
+    border: 1px solid var(--mediacao-azul);
+    color: var(--mediacao-azul);
+}
+
+.btn-mediacao-outline:hover {
+    background: var(--mediacao-azul);
+    color: #fff;
+}
+
+.mediacao-secao {
+    color: var(--mediacao-azul);
+    font-weight: 700;
+    font-size: 1.05rem;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 9px;
+    margin-bottom: 18px;
+}
+
+.mediacao-card .table thead th {
+    background: var(--mediacao-azul);
+    color: #fff;
+    font-weight: 600;
+    border-color: var(--mediacao-azul);
+    white-space: nowrap;
+}
+
+.mediacao-card .table td {
+    vertical-align: middle;
+}
+
+.mediacao-numero input {
+    text-align: center;
+}
+
+.mediacao-valor {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+
+    .mediacao-nao-imprimir,
+    nav,
+    footer {
+        display: none !important;
+    }
+
+    .mediacao-container {
+        padding: 0;
+    }
+
+    .mediacao-card {
+        border: 1px solid #ccc;
+        break-inside: avoid;
+    }
+
+    .mediacao-card .card-header,
+    .mediacao-card .table thead th {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}

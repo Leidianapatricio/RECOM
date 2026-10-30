@@ -1,0 +1,276 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Dashboard do Mediador - RECOM
+{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ==========================================
+       DASHBOARD DO MEDIADOR
+    ========================================== */
+
+    .dashboard-mediador {
+        padding-top: 24px;
+        padding-bottom: 40px;
+    }
+
+    .dashboard-mediador .titulo-principal {
+        color: #092B49;
+        font-weight: 700;
+    }
+
+    /* ==========================================
+       CARDS DE ACESSO RÁPIDO
+    ========================================== */
+
+    .dashboard-mediador .atalho-card {
+        height: 100%;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: none !important;
+        transition: border-color .2s ease;
+    }
+
+    .dashboard-mediador .atalho-card:hover {
+        border-color: #B78B32;
+    }
+
+    .dashboard-mediador .atalho-card .card-body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dashboard-mediador .atalho-icone {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background-color: #eaf0f5;
+        color: #092B49;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    .dashboard-mediador .atalho-card h5 {
+        color: #092B49;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .dashboard-mediador .atalho-card p {
+        color: #6c757d;
+        font-size: .9rem;
+        margin-bottom: 20px;
+    }
+
+    .dashboard-mediador .btn-atalho {
+        background-color: #092B49;
+        color: #ffffff;
+        border: 1px solid #092B49;
+        margin-top: auto;
+        font-weight: 500;
+    }
+
+    .dashboard-mediador .btn-atalho:hover {
+        background-color: #B78B32;
+        border-color: #B78B32;
+        color: #ffffff;
+    }
+
+    @media (max-width: 767px) {
+        .dashboard-mediador {
+            padding-top: 15px;
+        }
+
+        .dashboard-mediador .titulo-principal {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="container dashboard-mediador">
+
+    <!-- ==========================================
+         CABEÇALHO
+    ========================================== -->
+
+    <div class="mb-4">
+
+        <h2 class="titulo-principal mb-2">
+            <i class="bi bi-people me-2"></i>
+            Dashboard do Mediador
+        </h2>
+
+        <p class="text-muted mb-2">
+            Planejamento e acompanhamento das atividades
+            de mediação escolar — Projeto Cultura de Paz.
+        </p>
+
+        {% if usuario %}
+            <p class="mb-0">
+                <i class="bi bi-person-circle me-1"></i>
+                <strong>Mediador:</strong>
+                {{ request.user.get_full_name|default:request.user.username }}
+            </p>
+        {% endif %}
+
+    </div>
+
+    <!-- ==========================================
+         CARDS DE ACESSO RÁPIDO
+    ========================================== -->
+
+    <div class="row g-3">
+
+        <!-- PLANEJAR MEDIAÇÃO -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card atalho-card">
+
+                <div class="card-body">
+
+                    <div class="atalho-icone">
+                        <i class="bi bi-calendar-plus"></i>
+                    </div>
+
+                    <h5>
+                        Planejar Mediação
+                    </h5>
+
+                    <p>
+                        Organize as mediações que serão
+                        desenvolvidas nas escolas.
+                    </p>
+
+                    <a
+                        href="{% url 'mediacao:planejar_mediacao' %}"
+                        class="btn btn-atalho w-100"
+                    >
+                        <i class="bi bi-calendar-check me-1"></i>
+                        Planejar
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- REGISTRAR ATIVIDADE -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card atalho-card">
+
+                <div class="card-body">
+
+                    <div class="atalho-icone">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+
+                    <h5>
+                        Registrar Atividade
+                    </h5>
+
+                    <p>
+                        Preencha a ficha de acompanhamento
+                        das atividades realizadas.
+                    </p>
+
+                    <a
+                        href="{% url 'mediacao:registrar_atividade' %}"
+                        class="btn btn-atalho w-100"
+                    >
+                        <i class="bi bi-file-earmark-text me-1"></i>
+                        Registrar
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- MEUS PLANEJAMENTOS -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card atalho-card">
+
+                <div class="card-body">
+
+                    <div class="atalho-icone">
+                        <i class="bi bi-calendar3"></i>
+                    </div>
+
+                    <h5>
+                        Meus Planejamentos
+                    </h5>
+
+                    <p>
+                        Consulte, acompanhe e edite
+                        os planejamentos cadastrados.
+                    </p>
+
+                    <a
+                        href="{% url 'mediacao:listar_planejamentos' %}"
+                        class="btn btn-atalho w-100"
+                    >
+                        <i class="bi bi-list-check me-1"></i>
+                        Visualizar
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- HISTÓRICO DE ATIVIDADES -->
+
+        <div class="col-md-6 col-xl-3">
+
+            <div class="card atalho-card">
+
+                <div class="card-body">
+
+                    <div class="atalho-icone">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+
+                    <h5>
+                        Histórico de Atividades
+                    </h5>
+
+                    <p>
+                        Consulte as atividades realizadas
+                        e os registros anteriores.
+                    </p>
+
+                    <a
+                        href="{% url 'mediacao:listar_atividades' %}"
+                        class="btn btn-atalho w-100"
+                    >
+                        <i class="bi bi-journal-text me-1"></i>
+                        Consultar
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

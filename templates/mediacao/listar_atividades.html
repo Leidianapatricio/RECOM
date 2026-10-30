@@ -1,0 +1,120 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Atividades de Mediação - RECOM{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/mediacao.css' %}">
+
+<div class="container mediacao-container">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="mediacao-titulo mb-1">
+                <i class="bi bi-clipboard-data me-2"></i>
+                Atividades de Mediação
+            </h2>
+
+            <p class="text-muted mb-0">
+                Histórico das atividades realizadas nas escolas.
+            </p>
+        </div>
+
+        <a href="{% url 'mediacao:registrar_atividade' %}"
+           class="btn btn-mediacao">
+            <i class="bi bi-plus-lg me-1"></i>
+            Registrar Atividade
+        </a>
+    </div>
+
+    <div class="card mediacao-card">
+
+        <div class="card-header">
+            <h5>
+                <i class="bi bi-list-check me-2"></i>
+                Atividades Registradas
+            </h5>
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover mb-0">
+
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Escola</th>
+                            <th>Turno</th>
+                            <th>Turma</th>
+                            <th>Público</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for atividade in atividades %}
+                            <tr>
+
+                                <td>
+                                    {{ atividade.data|date:"d/m/Y" }}
+                                </td>
+
+                                <td>
+                                    {{ atividade.escola.nome }}
+                                </td>
+
+                                <td>
+                                    {{ atividade.get_turno_display }}
+                                </td>
+
+                                <td>
+                                    {{ atividade.turma|default:"—" }}
+                                </td>
+
+                                <td>
+                                    {{ atividade.total_publico }}
+                                </td>
+
+                                <td>
+                                    <div class="d-flex justify-content-center flex-wrap gap-2">
+
+                                        <a href="{% url 'mediacao:detalhe_atividade' atividade.pk %}"
+                                           class="btn btn-sm btn-mediacao-outline">
+                                            <i class="bi bi-eye"></i>
+                                            Visualizar
+                                        </a>
+
+                                        <a href="{% url 'mediacao:editar_atividade' atividade.pk %}"
+                                           class="btn btn-sm btn-mediacao">
+                                            <i class="bi bi-pencil-square"></i>
+                                            Editar
+                                        </a>
+
+                                    </div>
+                                </td>
+
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="bi bi-clipboard-x fs-2 d-block mb-2"></i>
+                                    Nenhuma atividade registrada.
+                                </td>
+                            </tr>
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Case, When, Value, IntegerField, Prefetch
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -949,8 +950,19 @@ def listar_efetivo(request, plantao_id, viatura_id):
         EfetivoViatura.objects.filter(viatura=viatura)
 
         .select_related("gcm")
+        .annotate(
+            ordem_funcao=Case(
+                When(funcao="C", then=Value(1)),
+                When(funcao="M", then=Value(2)),
+                When(funcao="P1", then=Value(3)),
+                When(funcao="P2", then=Value(4)),
+                default=Value(5),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by("ordem_funcao", "gcm__nome")
 
-        .order_by("funcao", "gcm__nome")
+        
 
     )
 
@@ -1253,39 +1265,94 @@ def _garantir_cartao(request, plantao):
     return cartao
 
 
+
 @acesso_gestao_equipes
 def visualizar_cartao(request, plantao_id):
-    plantao = get_object_or_404(Plantao, pk=plantao_id)
+
+    plantao = get_object_or_404(
+        Plantao,
+        pk=plantao_id
+    )
+
     cartao = (
-        CartaoPrograma.objects.filter(plantao=plantao)
+        CartaoPrograma.objects
+        .filter(plantao=plantao)
         .select_related("coordenador", "plantao")
         .first()
     )
+
     if fluxo_cartao_ativo(request):
         return redirecionar_fluxo(
-            request, "cartao_programa:listar_missoes", plantao_id=plantao.pk
+            request,
+            "cartao_programa:listar_missoes",
+            plantao_id=plantao.pk
         )
 
+    # ==========================================
+    # ORDENAR EFETIVO: C, M, P1, P2
+    # ==========================================
+
+    efetivo_ordenado = (
+        EfetivoViatura.objects
+        .select_related("gcm")
+        .annotate(
+            ordem_funcao=Case(
+                When(funcao="C", then=Value(1)),
+                When(funcao="M", then=Value(2)),
+                When(funcao="P1", then=Value(3)),
+                When(funcao="P2", then=Value(4)),
+                default=Value(5),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by("ordem_funcao", "pk")
+    )
+
+    # ==========================================
+    # VIATURAS DO PLANTÃO
+    # ==========================================
+
     viaturas = (
-        ViaturaPlantao.objects.filter(plantao=plantao)
+        ViaturaPlantao.objects
+        .filter(plantao=plantao)
         .select_related("equipe")
-        .prefetch_related("efetivo__gcm")
+        .prefetch_related(
+            Prefetch(
+                "efetivo",
+                queryset=efetivo_ordenado
+            )
+        )
         .order_by("identificacao")
     )
+
+    # ==========================================
+    # MISSÕES DO CARTÃO PROGRAMA
+    # ==========================================
+
     missoes = (
-        MissaoCartao.objects.filter(cartao=cartao)
+        MissaoCartao.objects
+        .filter(cartao=cartao)
         .select_related("viatura", "escola")
         .order_by("numero")
         if cartao is not None
         else MissaoCartao.objects.none()
     )
-    return render(request, "cartao_programa/cartoes/detalhe.html", {
-        "plantao": plantao,
-        "cartao": cartao,
-        "viaturas": viaturas,
-        "missoes": missoes,
-        "fluxo_cartao": fluxo_cartao_ativo(request),
-    })
+
+    # ==========================================
+    # RENDERIZAÇÃO
+    # ==========================================
+
+    return render(
+        request,
+        "cartao_programa/cartoes/detalhe.html",
+        {
+            "plantao": plantao,
+            "cartao": cartao,
+            "viaturas": viaturas,
+            "missoes": missoes,
+            "fluxo_cartao": fluxo_cartao_ativo(request),
+        }
+    )
 
 
 # =====================================================

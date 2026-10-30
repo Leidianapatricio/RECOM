@@ -38,4 +38,9 @@ urlpatterns = [
         "admin/",
         admin.site.urls,
     ),
+    
+    path(
+    "mediacao/",
+    include("mediacao.urls")
+    ),
 ]

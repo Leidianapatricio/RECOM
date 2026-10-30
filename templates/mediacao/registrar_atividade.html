@@ -1,0 +1,318 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{% if edicao %}Editar Atividade{% else %}Registrar Atividade{% endif %} - RECOM
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/mediacao.css' %}">
+
+<div class="container mediacao-container">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="mediacao-titulo mb-1">
+                <i class="bi bi-clipboard-check me-2"></i>
+                {% if edicao %}
+                    Editar Atividade
+                {% else %}
+                    Registrar Atividade
+                {% endif %}
+            </h2>
+
+            <p class="text-muted mb-0">
+                Ficha de Acompanhamento de Atividades nas Escolas
+                — Projeto Cultura de Paz
+            </p>
+        </div>
+
+        <a href="{% url 'mediacao:listar_atividades' %}"
+           class="btn btn-mediacao-outline">
+            <i class="bi bi-arrow-left me-1"></i>
+            Atividades
+        </a>
+    </div>
+
+    <div class="card mediacao-card">
+
+        <div class="card-header">
+            <h5>
+                <i class="bi bi-file-earmark-text me-2"></i>
+                Ficha de Acompanhamento
+            </h5>
+        </div>
+
+        <div class="card-body p-4">
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <h5 class="mediacao-secao">
+                    1. Identificação da Escola
+                </h5>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.planejamento.id_for_label }}">
+                            Planejamento vinculado
+                        </label>
+                        {{ form.planejamento }}
+                        {{ form.planejamento.errors }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.escola.id_for_label }}">
+                            Escola *
+                        </label>
+                        {{ form.escola }}
+                        {{ form.escola.errors }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="{{ form.data.id_for_label }}">
+                            Data *
+                        </label>
+                        {{ form.data }}
+                        {{ form.data.errors }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="{{ form.turno.id_for_label }}">
+                            Turno *
+                        </label>
+                        {{ form.turno }}
+                        {{ form.turno.errors }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="{{ form.turma.id_for_label }}">
+                            Turma
+                        </label>
+                        {{ form.turma }}
+                        {{ form.turma.errors }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.diretor.id_for_label }}">
+                            Diretor(a)
+                        </label>
+                        {{ form.diretor }}
+                        {{ form.diretor.errors }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.coordenador.id_for_label }}">
+                            Coordenador(a)
+                        </label>
+                        {{ form.coordenador }}
+                        {{ form.coordenador.errors }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.inspetor_1.id_for_label }}">
+                            Inspetor(a) 1
+                        </label>
+                        {{ form.inspetor_1 }}
+                        {{ form.inspetor_1.errors }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.inspetor_2.id_for_label }}">
+                            Inspetor(a) 2
+                        </label>
+                        {{ form.inspetor_2 }}
+                        {{ form.inspetor_2.errors }}
+                    </div>
+
+                </div>
+
+                <h5 class="mediacao-secao">
+                    2. Público Atendido
+                </h5>
+
+                <div class="row g-3 mb-4 mediacao-numero">
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="{{ form.alunos.id_for_label }}">
+                            Alunos
+                        </label>
+                        {{ form.alunos }}
+                        {{ form.alunos.errors }}
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="{{ form.profissionais.id_for_label }}">
+                            Profissionais
+                        </label>
+                        {{ form.profissionais }}
+                        {{ form.profissionais.errors }}
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="{{ form.familiares.id_for_label }}">
+                            Familiares
+                        </label>
+                        {{ form.familiares }}
+                        {{ form.familiares.errors }}
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="{{ form.outros_publico.id_for_label }}">
+                            Outros
+                        </label>
+                        {{ form.outros_publico }}
+                        {{ form.outros_publico.errors }}
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="{{ form.quantidade_homens.id_for_label }}">
+                            Homens (H)
+                        </label>
+                        {{ form.quantidade_homens }}
+                        {{ form.quantidade_homens.errors }}
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="{{ form.quantidade_mulheres.id_for_label }}">
+                            Mulheres (M)
+                        </label>
+                        {{ form.quantidade_mulheres }}
+                        {{ form.quantidade_mulheres.errors }}
+                    </div>
+
+                </div>
+
+                <h5 class="mediacao-secao">
+                    3. Necessidades Especiais
+                </h5>
+
+                <p class="text-muted small">
+                    Siglas conforme a ficha original de acompanhamento.
+                </p>
+
+                <div class="row g-3 mb-4 mediacao-numero">
+
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="{{ form.necessidade_nt.id_for_label }}">
+                            Nt
+                        </label>
+                        {{ form.necessidade_nt }}
+                        {{ form.necessidade_nt.errors }}
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="{{ form.necessidade_aut.id_for_label }}">
+                            Aut
+                        </label>
+                        {{ form.necessidade_aut }}
+                        {{ form.necessidade_aut.errors }}
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="{{ form.necessidade_df_f.id_for_label }}">
+                            Df.F
+                        </label>
+                        {{ form.necessidade_df_f }}
+                        {{ form.necessidade_df_f.errors }}
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="{{ form.necessidade_df_i.id_for_label }}">
+                            Df.I
+                        </label>
+                        {{ form.necessidade_df_i }}
+                        {{ form.necessidade_df_i.errors }}
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="{{ form.necessidade_df_v.id_for_label }}">
+                            Df.V
+                        </label>
+                        {{ form.necessidade_df_v }}
+                        {{ form.necessidade_df_v.errors }}
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="form-label" for="{{ form.necessidade_outros.id_for_label }}">
+                            Out
+                        </label>
+                        {{ form.necessidade_outros }}
+                        {{ form.necessidade_outros.errors }}
+                    </div>
+
+                </div>
+
+                <h5 class="mediacao-secao">
+                    4. Descrição da Atividade
+                </h5>
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <label class="form-label" for="{{ form.mediadores_presentes.id_for_label }}">
+                            Mediadores Presentes *
+                        </label>
+                        {{ form.mediadores_presentes }}
+                        {{ form.mediadores_presentes.errors }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="{{ form.tema_dinamica.id_for_label }}">
+                            Tema e Dinâmica *
+                        </label>
+                        {{ form.tema_dinamica }}
+                        {{ form.tema_dinamica.errors }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="{{ form.fatos_marcantes.id_for_label }}">
+                            Fatos Marcantes
+                        </label>
+                        {{ form.fatos_marcantes }}
+                        {{ form.fatos_marcantes.errors }}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="{{ form.observacoes.id_for_label }}">
+                            Observações
+                        </label>
+                        {{ form.observacoes }}
+                        {{ form.observacoes.errors }}
+                    </div>
+
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+
+                    <a href="{% url 'mediacao:listar_atividades' %}"
+                       class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-mediacao">
+                        <i class="bi bi-floppy me-1"></i>
+                        {% if edicao %}
+                            Salvar Alterações
+                        {% else %}
+                            Registrar Atividade
+                        {% endif %}
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

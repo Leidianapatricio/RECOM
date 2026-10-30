@@ -1,3 +1,4 @@
+
 from django.urls import path
 
 from . import views
@@ -9,11 +10,19 @@ app_name = "core"
 
 urlpatterns = [
 
+    # =========================================================
+    # PÁGINA INICIAL
+    # =========================================================
+
     path(
         "",
         views.home,
         name="home"
     ),
+
+    # =========================================================
+    # AUTENTICAÇÃO
+    # =========================================================
 
     path(
         "login/",
@@ -32,6 +41,10 @@ urlpatterns = [
         views.logout_view,
         name="logout"
     ),
+
+    # =========================================================
+    # DASHBOARDS
+    # =========================================================
 
     path(
         "dashboard/admin/",
@@ -81,4 +94,23 @@ urlpatterns = [
         views_relatorios.relatorio_visitas,
         name="relatorio_visitas"
     ),
+
+    # =========================================================
+    # EXPORTAÇÃO DE RELATÓRIOS DE VISITAS
+    # =========================================================
+
+    # Exportar todas as visitas filtradas para PDF
+    path(
+        "relatorios/visitas/pdf/",
+        views_relatorios.exportar_visitas_pdf,
+        name="exportar_visitas_pdf"
+    ),
+
+    # Exportar todas as visitas filtradas para CSV
+    path(
+        "relatorios/visitas/csv/",
+        views_relatorios.exportar_visitas_csv,
+        name="exportar_visitas_csv"
+    ),
+
 ]

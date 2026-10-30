@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from cartao_programa.models import EfetivoViatura, MissaoCartao
 from usuarios.models import Usuario
 
-from .forms import RondaVisitaForm
+from .forms import RondaVisitaForm, dados_da_missao
 from .models import RondaVisita
 
 
@@ -289,7 +289,8 @@ def cadastrar_visita(request):
 
                 visita.missao_cartao = missao
 
-                visita.escola = missao.escola
+                for campo, valor in dados_da_missao(missao).items():
+                    setattr(visita, campo, valor)
 
             else:
 
@@ -448,9 +449,8 @@ def editar_visita(request, pk):
 
             if missao is not None:
 
-                atualizada.escola = (
-                    missao.escola
-                )
+                for campo, valor in dados_da_missao(missao).items():
+                    setattr(atualizada, campo, valor)
 
             try:
 

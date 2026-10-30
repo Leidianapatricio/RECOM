@@ -1,9 +1,93 @@
 
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
 
-<div class="container py-4">
+
+<style>
+    /* ==========================================
+       PADRÃO VISUAL RECOM
+       ========================================== */
+
+    .cartao-programa .card {
+        border-radius: 10px;
+    }
+
+    .cartao-programa .card-header {
+        background-color: #092B49;
+        color: #ffffff;
+    }
+
+    .cartao-programa .card-header h5 {
+        color: #ffffff;
+    }
+
+    .cartao-programa .table thead th {
+        background-color: #092B49;
+        color: #ffffff;
+        border-color: #092B49;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .cartao-programa .table tbody td {
+        vertical-align: middle;
+    }
+
+    /* ==========================================
+       EFETIVO DA VIATURA
+       ========================================== */
+
+    .efetivo-lista {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .efetivo-integrante {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+        max-width: 100%;
+    }
+
+    .efetivo-funcao {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #092B49;
+        color: #ffffff;
+        min-width: 34px;
+        padding: 4px 7px;
+        border-radius: 5px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        line-height: 1.2;
+        flex-shrink: 0;
+    }
+
+    .efetivo-nome {
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .cartao-programa .btn-light:hover {
+        background-color: #B78B32;
+        border-color: #B78B32;
+        color: #ffffff;
+    }
+
+    @media (max-width: 767px) {
+        .efetivo-lista {
+            min-width: 170px;
+        }
+    }
+</style>
+
+<div class="container py-4 cartao-programa">
 
     <!-- ============================================== -->
     <!-- CABEÇALHO DO CARTÃO PROGRAMA -->
@@ -25,22 +109,35 @@
 
         <div class="d-flex flex-wrap gap-2">
 
-            <a href="{% url 'cartao_programa:listar_plantoes' %}"
-               class="btn btn-outline-secondary">
+            <a
+                href="{% url 'cartao_programa:listar_plantoes' %}"
+                class="btn btn-outline-secondary"
+            >
                 <i class="bi bi-arrow-left me-1"></i>
                 Plantões
             </a>
 
-            <a href="{% url 'cartao_programa:editar_cartao' plantao.pk %}"
-               class="btn btn-outline-primary">
+            <a
+                href="{% url 'cartao_programa:editar_cartao' plantao.pk %}"
+                class="btn btn-outline-primary"
+            >
                 <i class="bi bi-pencil-square me-1"></i>
                 Editar Cartão
             </a>
+            
+            <button
+                type="button"
+                class="btn btn-outline-primary btn-imprimir-cartao"
+                onclick="window.print()"
+            >
+                <i class="bi bi-printer me-1"></i>
+                Imprimir / Salvar PDF
+            </button>
+
 
         </div>
 
     </div>
-
 
     <!-- ============================================== -->
     <!-- MENSAGENS DO SISTEMA -->
@@ -49,22 +146,22 @@
     {% if messages %}
         {% for message in messages %}
 
-            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show"
-                 role="alert">
-
+            <div
+                class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show"
+                role="alert"
+            >
                 {{ message }}
 
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"
-                        aria-label="Fechar">
-                </button>
-
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Fechar"
+                ></button>
             </div>
 
         {% endfor %}
     {% endif %}
-
 
     <!-- ============================================== -->
     <!-- INFORMAÇÕES GERAIS -->
@@ -72,10 +169,9 @@
 
     <div class="card border-0 shadow-sm mb-4">
 
-        <div class="card-header text-white py-3"
-             style="background-color: #092B49;">
+        <div class="card-header text-white py-3">
 
-            <h5 class="mb-0 text-white">
+            <h5 class="mb-0">
                 <i class="bi bi-info-circle me-2"></i>
                 Informações Gerais
             </h5>
@@ -100,7 +196,6 @@
 
                 </div>
 
-
                 <!-- COORDENADOR RESPONSÁVEL -->
 
                 <div class="col-md-4">
@@ -114,7 +209,6 @@
                     </div>
 
                 </div>
-
 
                 <!-- NÚMERO DO PLANTÃO -->
 
@@ -130,7 +224,6 @@
 
                 </div>
 
-
                 <!-- LOCAL DE DESCANSO -->
 
                 <div class="col-md-4">
@@ -145,7 +238,6 @@
                     </div>
 
                 </div>
-
 
                 <!-- OBSERVAÇÕES GERAIS -->
 
@@ -167,48 +259,43 @@
 
     </div>
 
-
     <!-- ============================================== -->
     <!-- VIATURAS DO PLANTÃO -->
     <!-- ============================================== -->
 
     <div class="card border-0 shadow-sm mb-4">
 
-        <!-- CABEÇALHO DAS VIATURAS -->
+        <!-- CABEÇALHO -->
 
-        <div class="card-header text-white py-3"
-             style="background-color: #092B49;">
+        <div class="card-header text-white py-3">
 
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
 
-                <h5 class="mb-0 text-white">
+                <h5 class="mb-0">
                     <i class="bi bi-truck me-2"></i>
                     Viaturas do Plantão
                 </h5>
-
-                <!-- BOTÕES DE GERENCIAMENTO -->
 
                 <div class="d-flex flex-wrap gap-2">
 
                     <!-- EDITAR EFETIVO -->
 
-                    <a href="{% url 'cartao_programa:listar_viaturas' plantao.pk %}"
-                       class="btn btn-light btn-sm">
-
+                    <a
+                        href="{% url 'cartao_programa:listar_viaturas' plantao.pk %}"
+                        class="btn btn-light btn-sm"
+                    >
                         <i class="bi bi-people me-1"></i>
                         Editar Efetivo
-
                     </a>
-
 
                     <!-- GERENCIAR VIATURAS -->
 
-                    <a href="{% url 'cartao_programa:listar_viaturas' plantao.pk %}"
-                       class="btn btn-light btn-sm">
-
+                    <a
+                        href="{% url 'cartao_programa:listar_viaturas' plantao.pk %}"
+                        class="btn btn-light btn-sm"
+                    >
                         <i class="bi bi-truck me-1"></i>
                         Gerenciar Viaturas
-
                     </a>
 
                 </div>
@@ -217,8 +304,7 @@
 
         </div>
 
-
-        <!-- TABELA DE VIATURAS -->
+        <!-- TABELA -->
 
         <div class="card-body p-0">
 
@@ -226,8 +312,7 @@
 
                 <table class="table table-hover align-middle mb-0">
 
-                    <thead class="table-light">
-
+                    <thead>
                         <tr>
                             <th class="ps-3">Viatura</th>
                             <th>Modelo</th>
@@ -235,7 +320,6 @@
                             <th>Equipe</th>
                             <th>Efetivo</th>
                         </tr>
-
                     </thead>
 
                     <tbody>
@@ -250,13 +334,11 @@
                                     {{ viatura.identificacao }}
                                 </td>
 
-
                                 <!-- MODELO -->
 
                                 <td>
                                     {{ viatura.modelo|default:"—" }}
                                 </td>
-
 
                                 <!-- TIPO DE SERVIÇO -->
 
@@ -264,53 +346,134 @@
                                     {{ viatura.get_tipo_servico_display }}
                                 </td>
 
-
                                 <!-- EQUIPE -->
 
                                 <td>
                                     {{ viatura.equipe.nome|default:"Sem equipe fixa" }}
                                 </td>
 
-
-                                <!-- EFETIVO COM SIGLAS ALINHADAS -->
+                                <!-- ================================== -->
+                                <!-- EFETIVO ORDENADO: C, M, P1, P2 -->
+                                <!-- ================================== -->
 
                                 <td>
 
-                                    <div style="max-width: 320px;">
+                                    <div class="efetivo-lista">
 
-                                        {% for integrante in viatura.efetivo.all %}
+                                        {% with integrantes=viatura.efetivo.all %}
 
-                                            <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+                                            <!-- COMANDANTE -->
 
-                                                <!-- NOME DO GCM -->
+                                            {% for integrante in integrantes %}
 
-                                                <span class="fw-semibold">
-                                                    {{ integrante.gcm.nome }}
-                                                </span>
+                                                {% if integrante.funcao == "C" %}
 
+                                                    <div class="efetivo-integrante">
 
-                                                <!-- SIGLA DA FUNÇÃO -->
+                                                        <span
+                                                            class="efetivo-funcao"
+                                                            title="{{ integrante.get_funcao_display }}"
+                                                        >
+                                                            C
+                                                        </span>
 
-                                                <span class="badge text-white text-center flex-shrink-0"
-                                                      style="background-color: #092B49; min-width: 34px;"
-                                                      title="{{ integrante.get_funcao_display }}">
+                                                        <span class="efetivo-nome">
+                                                            {{ integrante.gcm.nome }}
+                                                        </span>
 
-                                                    {{ integrante.funcao }}
+                                                    </div>
 
-                                                </span>
+                                                {% endif %}
 
-                                            </div>
+                                            {% endfor %}
 
-                                        {% empty %}
+                                            <!-- MOTORISTA -->
 
-                                            <span class="text-muted small">
-                                                <i class="bi bi-person-x me-1"></i>
-                                                Nenhum GCM escalado.
-                                            </span>
+                                            {% for integrante in integrantes %}
 
-                                        {% endfor %}
+                                                {% if integrante.funcao == "M" %}
+
+                                                    <div class="efetivo-integrante">
+
+                                                        <span
+                                                            class="efetivo-funcao"
+                                                            title="{{ integrante.get_funcao_display }}"
+                                                        >
+                                                            M
+                                                        </span>
+
+                                                        <span class="efetivo-nome">
+                                                            {{ integrante.gcm.nome }}
+                                                        </span>
+
+                                                    </div>
+
+                                                {% endif %}
+
+                                            {% endfor %}
+
+                                            <!-- PATRULHEIRO 1 -->
+
+                                            {% for integrante in integrantes %}
+
+                                                {% if integrante.funcao == "P1" %}
+
+                                                    <div class="efetivo-integrante">
+
+                                                        <span
+                                                            class="efetivo-funcao"
+                                                            title="{{ integrante.get_funcao_display }}"
+                                                        >
+                                                            P1
+                                                        </span>
+
+                                                        <span class="efetivo-nome">
+                                                            {{ integrante.gcm.nome }}
+                                                        </span>
+
+                                                    </div>
+
+                                                {% endif %}
+
+                                            {% endfor %}
+
+                                            <!-- PATRULHEIRO 2 -->
+
+                                            {% for integrante in integrantes %}
+
+                                                {% if integrante.funcao == "P2" %}
+
+                                                    <div class="efetivo-integrante">
+
+                                                        <span
+                                                            class="efetivo-funcao"
+                                                            title="{{ integrante.get_funcao_display }}"
+                                                        >
+                                                            P2
+                                                        </span>
+
+                                                        <span class="efetivo-nome">
+                                                            {{ integrante.gcm.nome }}
+                                                        </span>
+
+                                                    </div>
+
+                                                {% endif %}
+
+                                            {% endfor %}
+
+                                        {% endwith %}
 
                                     </div>
+
+                                    {% if not viatura.efetivo.all %}
+
+                                        <span class="text-muted small">
+                                            <i class="bi bi-person-x me-1"></i>
+                                            Nenhum GCM escalado.
+                                        </span>
+
+                                    {% endif %}
 
                                 </td>
 
@@ -319,14 +482,12 @@
                         {% empty %}
 
                             <tr>
-
-                                <td colspan="5"
-                                    class="text-center text-muted py-4">
-
+                                <td
+                                    colspan="5"
+                                    class="text-center text-muted py-4"
+                                >
                                     Nenhuma viatura cadastrada neste plantão.
-
                                 </td>
-
                             </tr>
 
                         {% endfor %}
@@ -341,39 +502,34 @@
 
     </div>
 
-
     <!-- ============================================== -->
     <!-- MISSÕES DO CARTÃO PROGRAMA -->
     <!-- ============================================== -->
 
     <div class="card border-0 shadow-sm mb-4">
 
-        <!-- CABEÇALHO DAS MISSÕES -->
+        <!-- CABEÇALHO -->
 
-        <div class="card-header text-white py-3"
-             style="background-color: #092B49;">
+        <div class="card-header text-white py-3">
 
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
 
-                <h5 class="mb-0 text-white">
+                <h5 class="mb-0">
                     <i class="bi bi-clipboard-check me-2"></i>
                     Missões do Cartão Programa
                 </h5>
 
-                <!-- BOTÃO ÚNICO DE GERENCIAMENTO -->
-
-                <a href="{% url 'cartao_programa:listar_missoes' plantao.pk %}"
-                   class="btn btn-light btn-sm">
-
+                <a
+                    href="{% url 'cartao_programa:listar_missoes' plantao.pk %}"
+                    class="btn btn-light btn-sm"
+                >
                     <i class="bi bi-list-task me-1"></i>
                     Gerenciar Missões
-
                 </a>
 
             </div>
 
         </div>
-
 
         <!-- TABELA DE MISSÕES -->
 
@@ -383,8 +539,7 @@
 
                 <table class="table table-hover align-middle mb-0">
 
-                    <thead class="table-light">
-
+                    <thead>
                         <tr>
                             <th class="ps-3">Nº</th>
                             <th>Viatura</th>
@@ -393,7 +548,6 @@
                             <th>Período</th>
                             <th>Horário</th>
                         </tr>
-
                     </thead>
 
                     <tbody>
@@ -408,13 +562,11 @@
                                     {{ missao.numero }}
                                 </td>
 
-
-                                <!-- VIATURA RESPONSÁVEL -->
+                                <!-- VIATURA -->
 
                                 <td>
                                     {{ missao.viatura.identificacao }}
                                 </td>
-
 
                                 <!-- TIPO DE MISSÃO -->
 
@@ -422,8 +574,7 @@
                                     {{ missao.get_tipo_missao_display }}
                                 </td>
 
-
-                                <!-- ESCOLA OU LOCAL -->
+                                <!-- ESCOLA / LOCAL -->
 
                                 <td>
 
@@ -439,13 +590,11 @@
 
                                 </td>
 
-
                                 <!-- PERÍODO -->
 
                                 <td>
                                     {{ missao.get_periodo_display }}
                                 </td>
-
 
                                 <!-- HORÁRIO -->
 
@@ -481,15 +630,15 @@
 
                             <tr>
 
-                                <td colspan="6"
-                                    class="text-center py-4">
-
+                                <td
+                                    colspan="6"
+                                    class="text-center text-muted py-4"
+                                >
                                     <i class="bi bi-clipboard-x fs-2 text-muted d-block mb-2"></i>
 
                                     <span class="text-muted">
                                         Nenhuma missão cadastrada neste Cartão Programa.
                                     </span>
-
                                 </td>
 
                             </tr>

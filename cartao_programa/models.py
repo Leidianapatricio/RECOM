@@ -396,10 +396,13 @@ class CartaoPrograma(models.Model):
 class MissaoCartao(models.Model):
 
     MISSAO_CHOICES = [
+        ("ENTRADA", "Entrada escolar"),
         ("SAIDA", "Saída escolar"),
         ("VISITA", "Visita de rotina"),
         ("RONDAS", "Rondas"),
         ("RONDAS_PB", "Rondas e PB"),
+        ("PALESTRA", "Palestra"),
+        ("FANTOCHE", "Teatro de fantoches"),
         ("EJA", "Educação de Jovens e Adultos (EJA)"),
         ("OUTRA", "Outra atividade"),
     ]

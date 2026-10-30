@@ -1,0 +1,256 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detalhes da Atividade - RECOM{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/mediacao.css' %}">
+
+<div class="container mediacao-container">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <h2 class="mediacao-titulo mb-1">
+                <i class="bi bi-file-earmark-text me-2"></i>
+                Ficha de Acompanhamento
+            </h2>
+
+            <p class="text-muted mb-0">
+                Projeto Cultura de Paz — RECOM
+            </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mediacao-nao-imprimir">
+
+            <a href="{% url 'mediacao:listar_atividades' %}"
+               class="btn btn-mediacao-outline">
+                <i class="bi bi-arrow-left me-1"></i>
+                Voltar
+            </a>
+
+            <a href="{% url 'mediacao:editar_atividade' atividade.pk %}"
+               class="btn btn-mediacao-outline">
+                <i class="bi bi-pencil-square me-1"></i>
+                Editar
+            </a>
+
+            <button type="button"
+                    class="btn btn-mediacao"
+                    onclick="window.print()">
+                <i class="bi bi-printer me-1"></i>
+                Imprimir / PDF
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="card mediacao-card mb-4">
+
+        <div class="card-header">
+            <h5>
+                <i class="bi bi-building me-2"></i>
+                Identificação da Escola
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-8">
+                    <strong>Escola:</strong>
+                    {{ atividade.escola.nome }}
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Data:</strong>
+                    {{ atividade.data|date:"d/m/Y" }}
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Turno:</strong>
+                    {{ atividade.get_turno_display }}
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Turma:</strong>
+                    {{ atividade.turma|default:"—" }}
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Diretor(a):</strong>
+                    {{ atividade.diretor|default:"—" }}
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Coordenador(a):</strong>
+                    {{ atividade.coordenador|default:"—" }}
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Inspetor(a) 1:</strong>
+                    {{ atividade.inspetor_1|default:"—" }}
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Inspetor(a) 2:</strong>
+                    {{ atividade.inspetor_2|default:"—" }}
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card mediacao-card mb-4">
+
+        <div class="card-header">
+            <h5>
+                <i class="bi bi-people me-2"></i>
+                Público Atendido
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered text-center mb-0">
+
+                    <thead>
+                        <tr>
+                            <th>Alunos</th>
+                            <th>Profissionais</th>
+                            <th>Familiares</th>
+                            <th>Outros</th>
+                            <th>H</th>
+                            <th>M</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>{{ atividade.alunos }}</td>
+                            <td>{{ atividade.profissionais }}</td>
+                            <td>{{ atividade.familiares }}</td>
+                            <td>{{ atividade.outros_publico }}</td>
+                            <td>{{ atividade.quantidade_homens }}</td>
+                            <td>{{ atividade.quantidade_mulheres }}</td>
+                            <td>
+                                <strong>
+                                    {{ atividade.total_publico }}
+                                </strong>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card mediacao-card mb-4">
+
+        <div class="card-header">
+            <h5>
+                Necessidades Especiais
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered text-center mb-0">
+
+                    <thead>
+                        <tr>
+                            <th>Nt</th>
+                            <th>Aut</th>
+                            <th>Df.F</th>
+                            <th>Df.I</th>
+                            <th>Df.V</th>
+                            <th>Out</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>{{ atividade.necessidade_nt }}</td>
+                            <td>{{ atividade.necessidade_aut }}</td>
+                            <td>{{ atividade.necessidade_df_f }}</td>
+                            <td>{{ atividade.necessidade_df_i }}</td>
+                            <td>{{ atividade.necessidade_df_v }}</td>
+                            <td>{{ atividade.necessidade_outros }}</td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card mediacao-card mb-4">
+
+        <div class="card-header">
+            <h5>
+                <i class="bi bi-journal-text me-2"></i>
+                Descrição da Atividade
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="mb-4">
+                <h6 class="mediacao-secao">
+                    Mediadores Presentes
+                </h6>
+
+                <div class="mediacao-valor">
+                    {{ atividade.mediadores_presentes }}
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="mediacao-secao">
+                    Tema e Dinâmica
+                </h6>
+
+                <div class="mediacao-valor">
+                    {{ atividade.tema_dinamica }}
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h6 class="mediacao-secao">
+                    Fatos Marcantes
+                </h6>
+
+                <div class="mediacao-valor">
+                    {{ atividade.fatos_marcantes|default:"Não informado." }}
+                </div>
+            </div>
+
+            <div>
+                <h6 class="mediacao-secao">
+                    Observações
+                </h6>
+
+                <div class="mediacao-valor">
+                    {{ atividade.observacoes|default:"Não informado." }}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

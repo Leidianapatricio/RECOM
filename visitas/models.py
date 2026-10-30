@@ -24,6 +24,8 @@ class RondaVisita(models.Model):
         ("EVENTO", "Acompanhamento de evento"),
         ("PALESTRA", "Palestra"),
         ("FANTOCHE", "Teatro de fantoches"),
+        ("RONDAS", "Rondas"),
+        ("RONDAS_PB", "Rondas e PB"),
         ("APOIO", "Apoio / atendimento"),
         ("OUTRA", "Outra"),
     ]

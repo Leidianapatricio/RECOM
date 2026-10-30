@@ -9,6 +9,11 @@ from escolas.models import (
     EscolaProblematica,
 )
 
+from mediacao.models import (
+    PlanejamentoMediacao,
+    AtividadeMediacao,
+)
+
 from usuarios.models import Usuario
 from visitas.models import RondaVisita
 
@@ -432,20 +437,70 @@ def dashboard_gcm(request):
         }
     )
 
+
 def dashboard_mediador(request):
-    acesso = verificar_acesso_dashboard(request, "MEDIADOR")
+
+    acesso = verificar_acesso_dashboard(
+        request,
+        "MEDIADOR"
+    )
+
     if acesso:
         return acesso
 
     usuario = Usuario.objects.filter(
-        user=request.user
+        user=request.user,
+        ativo=True,
+        perfil="MEDIADOR",
     ).first()
+
+    if usuario is None:
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied(
+            "Perfil de Mediador não encontrado."
+        )
+
+    # ==========================================
+    # ESCOLAS ATIVAS
+    # ==========================================
+
+    escolas = (
+        Escola.objects
+        .filter(ativa=True)
+        .order_by("polo", "nome")
+    )
+
+    # ==========================================
+    # PLANEJAMENTOS RECENTES
+    # ==========================================
+
+    planejamentos_recentes = (
+        PlanejamentoMediacao.objects
+        .filter(mediador=usuario)
+        .select_related("escola")
+        .order_by("-data", "-criado_em")[:5]
+    )
+
+    # ==========================================
+    # ATIVIDADES RECENTES
+    # ==========================================
+
+    atividades_recentes = (
+        AtividadeMediacao.objects
+        .filter(mediador_responsavel=usuario)
+        .select_related("escola")
+        .order_by("-data", "-criado_em")[:5]
+    )
+
+    contexto = {
+        "usuario": usuario,
+        "escolas": escolas,
+        "planejamentos_recentes": planejamentos_recentes,
+        "atividades_recentes": atividades_recentes,
+    }
 
     return render(
         request,
         "dashboard/mediador.html",
-        {
-            "usuario": usuario
-        }
+        contexto
     )
-

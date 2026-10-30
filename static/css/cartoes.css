@@ -238,3 +238,92 @@
 .recom-header a.btn-recom-header-novo:hover i {
     color: #ffffff !important;
 }
+
+
+/* ==================================================
+   CARTÃO PROGRAMA - IMPRESSÃO / SALVAR PDF
+   ================================================== */
+
+@media print {
+
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+
+    html,
+    body {
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Ocultar elementos de navegação */
+    nav,
+    .navbar,
+    footer,
+    .btn-imprimir-cartao,
+    .cartao-programa .btn {
+        display: none !important;
+    }
+
+    /* Ajustar a largura do conteúdo */
+    .cartao-programa {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Preservar os cards */
+    .cartao-programa .card {
+        border: 1px solid #dddddd !important;
+        box-shadow: none !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Manter as cores do RECOM */
+    .cartao-programa .card-header,
+    .cartao-programa .table thead th {
+        background-color: #092B49 !important;
+        color: #ffffff !important;
+    }
+
+    /* Evitar separação entre título e conteúdo */
+    .cartao-programa .card-header {
+        break-after: avoid;
+    }
+
+    /* Evitar divisão de linhas */
+    .cartao-programa tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* Repetir cabeçalho das tabelas */
+    .cartao-programa thead {
+        display: table-header-group;
+    }
+
+    /* Exibir todas as colunas */
+    .cartao-programa .table-responsive {
+        overflow: visible !important;
+    }
+
+    .cartao-programa table {
+        width: 100% !important;
+    }
+
+    .cartao-programa th,
+    .cartao-programa td {
+        font-size: 11px;
+        padding: 7px !important;
+    }
+
+    /* Preservar as siglas do efetivo */
+    .efetivo-funcao {
+        background-color: #092B49 !important;
+        color: #ffffff !important;
+    }
+}
+
