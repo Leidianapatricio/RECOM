@@ -286,7 +286,7 @@ teste.
 | CT-F06-02 | CA10.1, CA10.3, CA10.6 e CA10.7 | Preparar dados válidos | Confirmar o cadastro | O perfil e a conta são criados com os dados informados e situação ativa |
 | CT-F06-03 | CA10.2 e CA10.9 | Preparar um cadastro válido | Enviar separadamente nome, matrícula ou perfil vazio | O campo é indicado como obrigatório e nenhum usuário é criado |
 | CT-F06-04 | CA10.4 e CA10.9 | Existir usuário com a matrícula informada | Tentar cadastrar outro usuário com a mesma matrícula | A duplicidade é informada e apenas o registro original permanece |
-| CT-F06-05 | CA10.5 e CA10.9 | Existir usuário com o CPF informado | Tentar cadastrar outro usuário com o mesmo CPF | A duplicidade é informada e o novo registro não é criado |
+| CT-F06-05 | CA10.5 e CA10.9 | Existir usuário com o matrícula informado | Tentar cadastrar outro usuário com o mesmo matrícula | A duplicidade é informada e o novo registro não é criado |
 | CT-F06-06 | CA10.8 | Preparar dados válidos | Concluir o cadastro | A conta recebe a senha provisória 1234 e fica marcada para primeiro acesso |
 
 ### F07 — Gerenciar Acesso ao Sistema
@@ -472,7 +472,7 @@ testes passaram na execução final.
 
 ## Conclusão da sprint 2
 
-Os testes confirmaram o cadastro de usuários, as validações de matrícula e CPF,
+Os testes confirmaram o cadastro de usuários, as validações de matrícula,
 a senha inicial, o primeiro acesso, o bloqueio de credenciais inválidas e de
 usuários inativos, bem como os principais fluxos de criação e consulta do
 Cartão Programa. Foram registradas cinco não conformidades distintas: ausência
