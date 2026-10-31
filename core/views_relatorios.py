@@ -7,7 +7,7 @@ from xml.sax.saxutils import escape
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db.models import Case, IntegerField, Value, When
+from django.db.models import Case, IntegerField, Value, When, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -480,6 +480,58 @@ def relatorio_problematicas(request):
 
 
 # =============================================================
+# AGRUPAMENTO POR CARTÃO PROGRAMA / VIATURA
+# =============================================================
+
+def _grupos_visitas(visitas):
+    """Agrupa registros por missão vinculada à viatura do plantão.
+
+    Os registros avulsos permanecem em grupo próprio. A ordem dos
+    grupos segue a primeira ocorrência no conjunto recebido.
+    """
+    grupos = {}
+    for visita in visitas:
+        missao = visita.missao_cartao
+        viatura = missao.viatura if missao else None
+        chave = (missao.cartao_id, viatura.pk) if missao else (None, None)
+
+        if chave not in grupos:
+            if viatura:
+                efetivo = sorted(
+                    viatura.efetivo.all(),
+                    key=lambda item: {"C": 0, "M": 1, "P1": 2, "P2": 3}.get(item.funcao, 9)
+                )
+                titulo = (
+                    f"Cartão Programa {missao.cartao.plantao.data:%d/%m/%Y}"
+                    f" — VTR {viatura.identificacao}"
+                )
+                equipe = viatura.equipe.nome if viatura.equipe_id else "Equipe não informada"
+            else:
+                efetivo = []
+                titulo = "Visitas sem missão vinculada"
+                equipe = "Não se aplica"
+
+            grupos[chave] = {
+                "titulo": titulo,
+                "equipe": equipe,
+                "efetivo": efetivo,
+                "visitas": [],
+            }
+        grupos[chave]["visitas"].append(visita)
+    return list(grupos.values())
+
+
+def _visitas_com_efetivo(visitas):
+    """Evita consultas repetidas ao buscar os integrantes das viaturas."""
+    return visitas.select_related(
+        "escola", "missao_cartao__cartao__plantao",
+        "missao_cartao__viatura__equipe"
+    ).prefetch_related(
+        "missao_cartao__viatura__efetivo__gcm"
+    )
+
+
+# =============================================================
 # RELATÓRIO DETALHADO DE VISITAS
 # =============================================================
 
@@ -488,12 +540,20 @@ def relatorio_visitas(request):
 
     visitas, filtros = _consultar_visitas(request)
 
+    # Exibe o efetivo somente após o envio do formulário de filtros.
+    # A navegação por páginas não conta como uma nova consulta.
+    campos_filtro = (
+        "polo", "escola", "equipe", "tipo_visita",
+        "situacao", "data_inicial", "data_final",
+    )
+    consulta_realizada = any(campo in request.GET for campo in campos_filtro)
+
     # Total de resultados filtrados
     total_visitas = visitas.count()
 
     # Paginação apenas na tela
     paginator = Paginator(
-        visitas,
+        _visitas_com_efetivo(visitas),
         10
     )
 
@@ -508,6 +568,8 @@ def relatorio_visitas(request):
 
     contexto = {
         "page_obj": page_obj,
+        "grupos_visitas": _grupos_visitas(page_obj.object_list),
+        "consulta_realizada": consulta_realizada,
         "total_visitas": total_visitas,
 
         # Opções dos filtros
@@ -534,12 +596,13 @@ def relatorio_visitas(request):
 
 
 # =============================================================
-# EXPORTAÇÃO CSV
+# EXPORTAÇÃO CSV - VISITAS COM EFETIVO DESIGNADO
 # =============================================================
 
 @login_required
 def exportar_visitas_csv(request):
 
+    # Mantém os filtros e as permissões já existentes.
     visitas, filtros = _consultar_visitas(request)
 
     resposta = HttpResponse(
@@ -558,7 +621,11 @@ def exportar_visitas_csv(request):
         delimiter=";"
     )
 
-    escritor.writerow([
+    # ==========================================
+    # CABEÇALHO DAS VISITAS
+    # ==========================================
+
+    cabecalho = [
         "Data",
         "Horário",
         "Escola",
@@ -568,21 +635,94 @@ def exportar_visitas_csv(request):
         "Situação",
         "Relato",
         "Orientações / Providências",
-    ])
+    ]
 
-    for visita in visitas.iterator():
+    # ==========================================
+    # AGRUPAR VISITAS POR CARTÃO PROGRAMA / VTR
+    # ==========================================
+
+    # Reutiliza as funções que já identificam
+    # o efetivo e organizam os grupos do PDF.
+    visitas_com_efetivo = _visitas_com_efetivo(
+        visitas
+    )
+
+    grupos = _grupos_visitas(
+        visitas_com_efetivo
+    )
+
+    # ==========================================
+    # ESCREVER CADA GRUPO NO CSV
+    # ==========================================
+
+    for grupo in grupos:
+
+        # Linha em branco entre grupos.
+        escritor.writerow([])
+
+        # Identificação do Cartão Programa e viatura.
+        escritor.writerow([
+            "Cartão Programa / Viatura",
+            grupo["titulo"],
+        ])
+
+        # Identificação da equipe.
+        escritor.writerow([
+            "Equipe designada",
+            grupo["equipe"],
+        ])
+
+        # Efetivo designado.
+        efetivo = []
+
+        for integrante in grupo["efetivo"]:
+
+            funcao = integrante.funcao
+
+            nome = (
+                integrante.gcm.nome
+                if integrante.gcm
+                else "Não identificado"
+            )
+
+            efetivo.append(
+                f"{funcao}: {nome}"
+            )
 
         escritor.writerow([
-            visita.data_visita.strftime("%d/%m/%Y"),
-            visita.horario.strftime("%H:%M") if visita.horario else "",
-            visita.escola.nome,
-            visita.escola.get_polo_display(),
-            visita.get_equipe_display(),
-            visita.get_tipo_visita_display(),
-            visita.get_situacao_display(),
-            visita.relato or "",
-            visita.orientacoes or "",
+            "Efetivo designado",
+            " | ".join(efetivo)
+            if efetivo
+            else "Não identificado",
         ])
+
+        # Linha em branco antes da tabela.
+        escritor.writerow([])
+
+        # Cabeçalho da tabela de visitas.
+        escritor.writerow(cabecalho)
+
+        # ======================================
+        # REGISTROS DE VISITAS DO GRUPO
+        # ======================================
+
+        for visita in grupo["visitas"]:
+
+            escritor.writerow([
+                visita.data_visita.strftime("%d/%m/%Y"),
+                (
+                    visita.horario.strftime("%H:%M")
+                    if visita.horario
+                    else ""
+                ),
+                visita.escola.nome,
+                visita.escola.get_polo_display(),
+                visita.get_equipe_display(),
+                visita.get_tipo_visita_display(),
+                visita.get_situacao_display(),
+                visita.relato or "",
+                visita.orientacoes or "",
+            ])
 
     return resposta
 
@@ -593,267 +733,120 @@ def exportar_visitas_csv(request):
 
 @login_required
 def exportar_visitas_pdf(request):
-
-    visitas, filtros = _consultar_visitas(request)
-
-    total_visitas = visitas.count()
+    visitas, _ = _consultar_visitas(request)
+    visitas = _visitas_com_efetivo(visitas)
+    grupos = _grupos_visitas(visitas)
+    total_visitas = sum(len(grupo["visitas"]) for grupo in grupos)
 
     buffer = BytesIO()
-
+    pagina = landscape(A4)
     documento = SimpleDocTemplate(
-        buffer,
-        pagesize=landscape(A4),
-        rightMargin=10 * mm,
-        leftMargin=10 * mm,
-        topMargin=12 * mm,
-        bottomMargin=12 * mm,
-        title="Relatório de Visitas - RECOM",
-        author="RECOM",
+        buffer, pagesize=pagina,
+        rightMargin=8 * mm, leftMargin=8 * mm,
+        topMargin=12 * mm, bottomMargin=12 * mm,
+        title="Relatório de Visitas - RECOM", author="RECOM",
     )
-
     estilos = getSampleStyleSheet()
-
-    estilo_titulo = ParagraphStyle(
-        "TituloRECOM",
-        parent=estilos["Heading1"],
-        fontName="Helvetica-Bold",
-        fontSize=15,
-        leading=18,
-        alignment=TA_CENTER,
+    titulo = ParagraphStyle(
+        "TituloRECOM", parent=estilos["Heading1"],
+        fontName="Helvetica-Bold", fontSize=15, leading=19,
+        alignment=TA_CENTER, textColor=colors.HexColor("#092B49"),
+        spaceAfter=3 * mm,
+    )
+    subtitulo = ParagraphStyle(
+        "SubtituloRECOM", parent=estilos["Normal"],
+        fontSize=10, leading=13, alignment=TA_CENTER,
+        spaceAfter=3 * mm,
+    )
+    celula = ParagraphStyle(
+        "CelulaRECOM", parent=estilos["Normal"],
+        fontName="Helvetica", fontSize=9, leading=12,
+        alignment=TA_LEFT, wordWrap="CJK",
+    )
+    cabecalho = ParagraphStyle(
+        "CabecalhoRECOM", parent=celula,
+        fontName="Helvetica-Bold", textColor=colors.white,
+    )
+    grupo_estilo = ParagraphStyle(
+        "GrupoRECOM", parent=estilos["Normal"],
+        fontName="Helvetica-Bold", fontSize=10, leading=13,
         textColor=colors.HexColor("#092B49"),
-        spaceAfter=5 * mm,
+    )
+    efetivo_estilo = ParagraphStyle(
+        "EfetivoRECOM", parent=estilos["Normal"],
+        fontSize=9, leading=12,
     )
 
-    estilo_subtitulo = ParagraphStyle(
-        "SubtituloRECOM",
-        parent=estilos["Normal"],
-        fontSize=9,
-        leading=12,
-        alignment=TA_CENTER,
-        spaceAfter=5 * mm,
-    )
+    def paragrafo(valor, estilo=celula):
+        texto = escape(str(valor if valor is not None and valor != "" else "-"))
+        return Paragraph(texto.replace("\r\n", "\n").replace("\n", "<br/>"), estilo)
 
-    estilo_celula = ParagraphStyle(
-        "CelulaRECOM",
-        parent=estilos["Normal"],
-        fontSize=6,
-        leading=8,
-        alignment=TA_LEFT,
-        wordWrap="CJK",
-    )
-
-    estilo_cabecalho = ParagraphStyle(
-        "CabecalhoTabelaRECOM",
-        parent=estilo_celula,
-        fontName="Helvetica-Bold",
-        textColor=colors.white,
-    )
-
-    def paragrafo(valor, estilo=estilo_celula):
-        texto = escape(str(valor or "-"))
-        texto = texto.replace("\n", "<br/>")
-        return Paragraph(texto, estilo)
-
-    elementos = []
-
-    elementos.append(
-        Paragraph(
-            "RECOM - Ronda Escolar Comunitária",
-            estilo_titulo
-        )
-    )
-
-    elementos.append(
-        Paragraph(
-            "Relatório de Visitas",
-            estilo_subtitulo
-        )
-    )
-
-    elementos.append(
-        Paragraph(
-            f"Total de visitas encontradas: {total_visitas}",
-            estilo_subtitulo
-        )
-    )
-
-    elementos.append(
-        Spacer(1, 3 * mm)
-    )
-
-    cabecalhos = [
-        "Data",
-        "Hora",
-        "Escola",
-        "Polo",
-        "Equipe",
-        "Tipo",
-        "Situação",
-        "Relato",
-        "Orientações / Providências",
+    elementos = [
+        Paragraph("RECOM - Ronda Escolar Comunitária", titulo),
+        Paragraph("Relatório de Visitas", subtitulo),
+        Paragraph(f"Total de visitas encontradas: {total_visitas}", subtitulo),
+        Spacer(1, 2 * mm),
     ]
+    largura_util = pagina[0] - 16 * mm
+    proporcoes = [0.085, 0.055, 0.15, 0.05, 0.07, 0.09, 0.10, 0.20, 0.20]
+    larguras = [largura_util * p for p in proporcoes]
+    nomes = ["Data", "Hora", "Escola", "Polo", "Equipe", "Tipo",
+             "Situação", "Relato", "Orientações / Providências"]
 
-    dados = [
-        [
-            paragrafo(campo, estilo_cabecalho)
-            for campo in cabecalhos
-        ]
-    ]
+    if not grupos:
+        elementos.append(Paragraph("Nenhuma visita encontrada.", subtitulo))
 
-    for visita in visitas.iterator():
+    for grupo in grupos:
+        elementos.append(Paragraph(escape(grupo["titulo"]), grupo_estilo))
+        elementos.append(Paragraph("Equipe: " + escape(grupo["equipe"]), efetivo_estilo))
+        if grupo["efetivo"]:
+            texto_efetivo = " | ".join(
+                f"{escape(item.funcao)}: {escape(item.gcm.nome)}"
+                for item in grupo["efetivo"]
+            )
+        else:
+            texto_efetivo = "Efetivo não vinculado" if grupo["titulo"].startswith("Cartão") else "Efetivo não identificado (visita avulsa)"
+        elementos.append(Paragraph("Efetivo: " + texto_efetivo, efetivo_estilo))
+        elementos.append(Spacer(1, 2 * mm))
 
-        dados.append([
-            paragrafo(
-                visita.data_visita.strftime("%d/%m/%Y")
-            ),
-            paragrafo(
-                visita.horario.strftime("%H:%M")
-                if visita.horario else ""
-            ),
-            paragrafo(visita.escola.nome),
-            paragrafo(
-                visita.escola.get_polo_display()
-            ),
-            paragrafo(
-                visita.get_equipe_display()
-            ),
-            paragrafo(
-                visita.get_tipo_visita_display()
-            ),
-            paragrafo(
-                visita.get_situacao_display()
-            ),
-            paragrafo(visita.relato),
-            paragrafo(visita.orientacoes),
-        ])
-
-    largura_util = landscape(A4)[0] - 20 * mm
-
-    proporcoes = [
-        0.07,  # Data
-        0.05,  # Hora
-        0.14,  # Escola
-        0.05,  # Polo
-        0.07,  # Equipe
-        0.10,  # Tipo
-        0.09,  # Situação
-        0.20,  # Relato
-        0.23,  # Orientações
-    ]
-
-    larguras = [
-        largura_util * proporcao
-        for proporcao in proporcoes
-    ]
-
-    tabela = LongTable(
-        dados,
-        colWidths=larguras,
-        repeatRows=1,
-        hAlign="CENTER",
-    )
-
-    tabela.setStyle(
-        TableStyle([
-            (
-                "BACKGROUND",
-                (0, 0),
-                (-1, 0),
-                colors.HexColor("#092B49")
-            ),
-            (
-                "GRID",
-                (0, 0),
-                (-1, -1),
-                0.25,
-                colors.HexColor("#CBD5DF")
-            ),
-            (
-                "VALIGN",
-                (0, 0),
-                (-1, -1),
-                "TOP"
-            ),
-            (
-                "LEFTPADDING",
-                (0, 0),
-                (-1, -1),
-                3
-            ),
-            (
-                "RIGHTPADDING",
-                (0, 0),
-                (-1, -1),
-                3
-            ),
-            (
-                "TOPPADDING",
-                (0, 0),
-                (-1, -1),
-                4
-            ),
-            (
-                "BOTTOMPADDING",
-                (0, 0),
-                (-1, -1),
-                4
-            ),
-            (
-                "ROWBACKGROUNDS",
-                (0, 1),
-                (-1, -1),
-                [
-                    colors.white,
-                    colors.HexColor("#F3F6F9")
-                ]
-            ),
-        ])
-    )
-
-    elementos.append(tabela)
+        dados = [[paragrafo(nome, cabecalho) for nome in nomes]]
+        for visita in grupo["visitas"]:
+            dados.append([
+                paragrafo(visita.data_visita.strftime("%d/%m/%Y")),
+                paragrafo(visita.horario.strftime("%H:%M") if visita.horario else ""),
+                paragrafo(visita.escola.nome),
+                paragrafo(visita.escola.get_polo_display()),
+                paragrafo(visita.get_equipe_display()),
+                paragrafo(visita.get_tipo_visita_display()),
+                paragrafo(visita.get_situacao_display()),
+                paragrafo(visita.relato),
+                paragrafo(visita.orientacoes),
+            ])
+        tabela = LongTable(dados, colWidths=larguras, repeatRows=1, hAlign="CENTER")
+        tabela.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#092B49")),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#CBD5DF")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 3),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1),
+             [colors.white, colors.HexColor("#F3F6F9")]),
+        ]))
+        elementos.append(tabela)
+        elementos.append(Spacer(1, 6 * mm))
 
     def rodape(canvas, doc):
         canvas.saveState()
-
-        canvas.setFont(
-            "Helvetica",
-            8
-        )
-
-        canvas.setFillColor(
-            colors.HexColor("#555555")
-        )
-
-        canvas.drawString(
-            10 * mm,
-            7 * mm,
-            "RECOM - Relatório de Visitas"
-        )
-
-        canvas.drawRightString(
-            landscape(A4)[0] - 10 * mm,
-            7 * mm,
-            f"Página {doc.page}"
-        )
-
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.HexColor("#555555"))
+        canvas.drawString(8 * mm, 7 * mm, "RECOM - Relatório de Visitas")
+        canvas.drawRightString(pagina[0] - 8 * mm, 7 * mm, f"Página {doc.page}")
         canvas.restoreState()
 
-    documento.build(
-        elementos,
-        onFirstPage=rodape,
-        onLaterPages=rodape,
-    )
-
-    pdf = buffer.getvalue()
+    documento.build(elementos, onFirstPage=rodape, onLaterPages=rodape)
+    resposta = HttpResponse(buffer.getvalue(), content_type="application/pdf")
     buffer.close()
-
-    resposta = HttpResponse(
-        pdf,
-        content_type="application/pdf"
-    )
-
-    resposta["Content-Disposition"] = (
-        'attachment; filename="relatorio_visitas_recom.pdf"'
-    )
-
+    resposta["Content-Disposition"] = 'attachment; filename="relatorio_visitas_recom.pdf"'
     return resposta

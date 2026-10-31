@@ -70,6 +70,15 @@ Relatório de Visitas - RECOM
         color: #ffffff;
     }
 
+    /* ==========================================
+       TABELA DE VISITAS
+       ========================================== */
+
+    .tabela-relatorio {
+        min-width: 1250px;
+        font-size: 14px;
+    }
+
     .tabela-relatorio thead th {
         background-color: #092B49;
         color: #ffffff;
@@ -77,19 +86,58 @@ Relatório de Visitas - RECOM
         vertical-align: middle;
         white-space: nowrap;
         border-color: #274a66;
+        padding: 10px;
     }
 
     .tabela-relatorio tbody td {
-        vertical-align: top;
-        font-size: 0.9rem;
+        font-size: 14px;
+        line-height: 1.5;
+        height: auto !important;
+        vertical-align: top !important;
+        padding: 10px;
+    }
+
+    .tabela-relatorio tbody tr {
+        height: auto !important;
     }
 
     .tabela-relatorio .coluna-texto {
-        min-width: 180px;
-        max-width: 300px;
-        white-space: pre-wrap;
+        min-width: 220px;
+        max-width: 350px;
+        white-space: normal;
         overflow-wrap: anywhere;
     }
+
+    .tabela-relatorio .conteudo-texto {
+        white-space: pre-line;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* ==========================================
+       IDENTIFICAÇÃO DO EFETIVO
+       ========================================== */
+
+    .grupo-visitas {
+        padding: 12px 16px;
+        background: #f3f6f9;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .grupo-visitas h6 {
+        color: #092B49;
+        margin-bottom: 5px;
+        font-weight: 700;
+    }
+
+    .grupo-visitas p {
+        margin-bottom: 4px;
+        font-size: 14px;
+    }
+
+    /* ==========================================
+       PAGINAÇÃO
+       ========================================== */
 
     .paginacao-relatorio .page-link {
         color: #092B49;
@@ -179,11 +227,10 @@ Relatório de Visitas - RECOM
 <div class="container mt-4 mb-5">
 
     <!-- ==========================================
-         CABEÇALHO
+         CABEÇALHO DO RELATÓRIO
          ========================================== -->
 
     <div class="card relatorio-card mb-4 no-print">
-
         <div class="card-body">
 
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
@@ -202,9 +249,7 @@ Relatório de Visitas - RECOM
 
                 <div class="d-flex flex-wrap gap-2 acoes-relatorio">
 
-                    <!-- VOLTAR -->
                     {% if eh_gcm %}
-
                         <a
                             href="{% url 'core:dashboard_gcm' %}"
                             class="btn btn-outline-secondary"
@@ -212,9 +257,7 @@ Relatório de Visitas - RECOM
                             <i class="bi bi-arrow-left me-1"></i>
                             Voltar
                         </a>
-
                     {% else %}
-
                         <a
                             href="{% url 'core:relatorios' %}"
                             class="btn btn-outline-secondary"
@@ -222,10 +265,8 @@ Relatório de Visitas - RECOM
                             <i class="bi bi-arrow-left me-1"></i>
                             Voltar
                         </a>
-
                     {% endif %}
 
-                    <!-- EXPORTAR PDF -->
                     <a
                         href="{% url 'core:exportar_visitas_pdf' %}{% if query_filtros %}?{{ query_filtros }}{% endif %}"
                         class="btn btn-exportar-pdf"
@@ -235,7 +276,6 @@ Relatório de Visitas - RECOM
                         Exportar PDF
                     </a>
 
-                    <!-- EXPORTAR CSV -->
                     <a
                         href="{% url 'core:exportar_visitas_csv' %}{% if query_filtros %}?{{ query_filtros }}{% endif %}"
                         class="btn btn-exportar-csv"
@@ -250,11 +290,10 @@ Relatório de Visitas - RECOM
             </div>
 
         </div>
-
     </div>
 
     <!-- ==========================================
-         FILTROS
+         FILTROS DE CONSULTA
          ========================================== -->
 
     <div class="card relatorio-card mb-4 no-print">
@@ -277,11 +316,7 @@ Relatório de Visitas - RECOM
 
                 <!-- POLO -->
                 <div class="col-md-6 col-lg-4">
-
-                    <label
-                        for="polo"
-                        class="form-label fw-semibold"
-                    >
+                    <label for="polo" class="form-label fw-semibold">
                         Polo
                     </label>
 
@@ -290,12 +325,9 @@ Relatório de Visitas - RECOM
                         id="polo"
                         class="form-select"
                     >
-                        <option value="">
-                            Todos os polos
-                        </option>
+                        <option value="">Todos os polos</option>
 
                         {% for valor, nome in polos %}
-
                             <option
                                 value="{{ valor }}"
                                 {% if polo_selecionado == valor|stringformat:"s" %}
@@ -304,20 +336,13 @@ Relatório de Visitas - RECOM
                             >
                                 Polo {{ valor }}
                             </option>
-
                         {% endfor %}
-
                     </select>
-
                 </div>
 
                 <!-- ESCOLA -->
                 <div class="col-md-6 col-lg-4">
-
-                    <label
-                        for="escola"
-                        class="form-label fw-semibold"
-                    >
+                    <label for="escola" class="form-label fw-semibold">
                         Escola
                     </label>
 
@@ -326,12 +351,9 @@ Relatório de Visitas - RECOM
                         id="escola"
                         class="form-select"
                     >
-                        <option value="">
-                            Todas as escolas
-                        </option>
+                        <option value="">Todas as escolas</option>
 
                         {% for escola in escolas %}
-
                             <option
                                 value="{{ escola.pk }}"
                                 {% if escola_selecionada == escola.pk|stringformat:"s" %}
@@ -340,20 +362,13 @@ Relatório de Visitas - RECOM
                             >
                                 {{ escola.nome }}
                             </option>
-
                         {% endfor %}
-
                     </select>
-
                 </div>
 
                 <!-- EQUIPE -->
                 <div class="col-md-6 col-lg-4">
-
-                    <label
-                        for="equipe"
-                        class="form-label fw-semibold"
-                    >
+                    <label for="equipe" class="form-label fw-semibold">
                         Equipe
                     </label>
 
@@ -362,12 +377,9 @@ Relatório de Visitas - RECOM
                         id="equipe"
                         class="form-select"
                     >
-                        <option value="">
-                            Todas as equipes
-                        </option>
+                        <option value="">Todas as equipes</option>
 
                         {% for valor, nome in equipes %}
-
                             <option
                                 value="{{ valor }}"
                                 {% if equipe_selecionada == valor %}
@@ -376,20 +388,13 @@ Relatório de Visitas - RECOM
                             >
                                 {{ nome }}
                             </option>
-
                         {% endfor %}
-
                     </select>
-
                 </div>
 
                 <!-- TIPO DE VISITA -->
                 <div class="col-md-6 col-lg-4">
-
-                    <label
-                        for="tipo_visita"
-                        class="form-label fw-semibold"
-                    >
+                    <label for="tipo_visita" class="form-label fw-semibold">
                         Tipo de visita
                     </label>
 
@@ -398,12 +403,9 @@ Relatório de Visitas - RECOM
                         id="tipo_visita"
                         class="form-select"
                     >
-                        <option value="">
-                            Todos os tipos
-                        </option>
+                        <option value="">Todos os tipos</option>
 
                         {% for valor, nome in tipos_visita %}
-
                             <option
                                 value="{{ valor }}"
                                 {% if tipo_visita_selecionado == valor %}
@@ -412,20 +414,13 @@ Relatório de Visitas - RECOM
                             >
                                 {{ nome }}
                             </option>
-
                         {% endfor %}
-
                     </select>
-
                 </div>
 
                 <!-- SITUAÇÃO -->
                 <div class="col-md-6 col-lg-4">
-
-                    <label
-                        for="situacao"
-                        class="form-label fw-semibold"
-                    >
+                    <label for="situacao" class="form-label fw-semibold">
                         Situação
                     </label>
 
@@ -434,12 +429,9 @@ Relatório de Visitas - RECOM
                         id="situacao"
                         class="form-select"
                     >
-                        <option value="">
-                            Todas as situações
-                        </option>
+                        <option value="">Todas as situações</option>
 
                         {% for valor, nome in situacoes %}
-
                             <option
                                 value="{{ valor }}"
                                 {% if situacao_selecionada == valor %}
@@ -448,20 +440,13 @@ Relatório de Visitas - RECOM
                             >
                                 {{ nome }}
                             </option>
-
                         {% endfor %}
-
                     </select>
-
                 </div>
 
                 <!-- DATA INICIAL -->
                 <div class="col-md-6 col-lg-4">
-
-                    <label
-                        for="data_inicial"
-                        class="form-label fw-semibold"
-                    >
+                    <label for="data_inicial" class="form-label fw-semibold">
                         Data inicial
                     </label>
 
@@ -472,16 +457,11 @@ Relatório de Visitas - RECOM
                         class="form-control"
                         value="{{ data_inicial }}"
                     >
-
                 </div>
 
                 <!-- DATA FINAL -->
                 <div class="col-md-6 col-lg-4">
-
-                    <label
-                        for="data_final"
-                        class="form-label fw-semibold"
-                    >
+                    <label for="data_final" class="form-label fw-semibold">
                         Data final
                     </label>
 
@@ -492,10 +472,9 @@ Relatório de Visitas - RECOM
                         class="form-control"
                         value="{{ data_final }}"
                     >
-
                 </div>
 
-                <!-- BOTÕES DOS FILTROS -->
+                <!-- BOTÕES -->
                 <div class="col-12 d-flex flex-wrap justify-content-end gap-2">
 
                     <a
@@ -519,11 +498,10 @@ Relatório de Visitas - RECOM
             </form>
 
         </div>
-
     </div>
 
     <!-- ==========================================
-         RESULTADOS
+         VISITAS ENCONTRADAS
          ========================================== -->
 
     <div class="card relatorio-card">
@@ -545,134 +523,160 @@ Relatório de Visitas - RECOM
 
             {% if page_obj.object_list %}
 
-                <div class="table-responsive">
+                {% for grupo in grupos_visitas %}
 
-                    <table class="table table-hover tabela-relatorio align-middle mb-0">
+                    <!-- ==================================
+                         EFETIVO DESIGNADO
+                         VISÍVEL APENAS APÓS FILTRAR
+                         ================================== -->
 
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Horário</th>
-                                <th>Escola</th>
-                                <th>Polo</th>
-                                <th>Equipe</th>
-                                <th>Tipo de visita</th>
-                                <th>Situação</th>
-                                <th>Relato</th>
-                                <th>Orientações / Providências</th>
-                            </tr>
-                        </thead>
+                    {% if consulta_realizada %}
 
-                        <tbody>
+                        <div class="grupo-visitas">
 
-                            {% for visita in page_obj %}
+                            <h6>
+                                <i class="bi bi-people me-2"></i>
+                                {{ grupo.titulo }}
+                            </h6>
 
+                            <p>
+                                <strong>Equipe:</strong>
+                                {{ grupo.equipe }}
+                            </p>
+
+                            <p>
+                                <strong>Efetivo:</strong>
+
+                                {% for integrante in grupo.efetivo %}
+                                    {{ integrante.funcao }}:
+                                    {{ integrante.gcm.nome }}
+
+                                    {% if not forloop.last %}
+                                        |
+                                    {% endif %}
+                                {% empty %}
+                                    Não identificado para estas visitas
+                                {% endfor %}
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                    <!-- ==================================
+                         TABELA DE VISITAS
+                         SEMPRE VISÍVEL
+                         ================================== -->
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover tabela-relatorio mb-0">
+
+                            <thead>
                                 <tr>
-
-                                    <!-- DATA -->
-                                    <td class="text-nowrap">
-                                        {{ visita.data_visita|date:"d/m/Y" }}
-                                    </td>
-
-                                    <!-- HORÁRIO -->
-                                    <td class="text-nowrap">
-                                        {{ visita.horario|time:"H:i" }}
-                                    </td>
-
-                                    <!-- ESCOLA -->
-                                    <td>
-                                        <a
-                                            href="{% url 'escolas:detalhe_escola' visita.escola.pk %}"
-                                            class="text-decoration-none"
-                                        >
-                                            {{ visita.escola.nome }}
-                                        </a>
-                                    </td>
-
-                                    <!-- POLO -->
-                                    <td class="text-nowrap">
-                                        Polo {{ visita.escola.polo }}
-                                    </td>
-
-                                    <!-- EQUIPE -->
-                                    <td class="text-nowrap">
-                                        {{ visita.get_equipe_display }}
-                                    </td>
-
-                                    <!-- TIPO DE VISITA -->
-                                    <td>
-                                        {{ visita.get_tipo_visita_display }}
-                                    </td>
-
-                                    <!-- SITUAÇÃO -->
-                                    <td>
-
-                                        {% if visita.situacao == "SEM_ALTERACAO" %}
-
-                                            <span class="badge bg-success">
-                                                Sem alteração
-                                            </span>
-
-                                        {% elif visita.situacao == "COM_ALTERACAO" %}
-
-                                            <span class="badge bg-warning text-dark">
-                                                Com alteração
-                                            </span>
-
-                                        {% else %}
-
-                                            {{ visita.get_situacao_display }}
-
-                                        {% endif %}
-
-                                    </td>
-
-                                    <!-- RELATO -->
-                                    <td class="coluna-texto">
-
-                                        {% if visita.relato %}
-
-                                            {{ visita.relato }}
-
-                                        {% else %}
-
-                                            <span class="text-muted">
-                                                -
-                                            </span>
-
-                                        {% endif %}
-
-                                    </td>
-
-                                    <!-- ORIENTAÇÕES -->
-                                    <td class="coluna-texto">
-
-                                        {% if visita.orientacoes %}
-
-                                            {{ visita.orientacoes }}
-
-                                        {% else %}
-
-                                            <span class="text-muted">
-                                                -
-                                            </span>
-
-                                        {% endif %}
-
-                                    </td>
-
+                                    <th>Data</th>
+                                    <th>Horário</th>
+                                    <th>Escola</th>
+                                    <th>Polo</th>
+                                    <th>Equipe</th>
+                                    <th>Tipo de visita</th>
+                                    <th>Situação</th>
+                                    <th>Relato</th>
+                                    <th>Orientações / Providências</th>
                                 </tr>
+                            </thead>
 
-                            {% endfor %}
+                            <tbody>
 
-                        </tbody>
+                                {% for visita in grupo.visitas %}
 
-                    </table>
+                                    <tr>
 
-                </div>
+                                        <!-- DATA -->
+                                        <td class="text-nowrap">
+                                            {{ visita.data_visita|date:"d/m/Y" }}
+                                        </td>
+
+                                        <!-- HORÁRIO -->
+                                        <td class="text-nowrap">
+                                            {{ visita.horario|time:"H:i" }}
+                                        </td>
+
+                                        <!-- ESCOLA -->
+                                        <td>
+                                            <a
+                                                href="{% url 'escolas:detalhe_escola' visita.escola.pk %}"
+                                                class="text-decoration-none"
+                                            >
+                                                {{ visita.escola.nome }}
+                                            </a>
+                                        </td>
+
+                                        <!-- POLO -->
+                                        <td class="text-nowrap">
+                                            Polo {{ visita.escola.polo }}
+                                        </td>
+
+                                        <!-- EQUIPE -->
+                                        <td class="text-nowrap">
+                                            {{ visita.get_equipe_display }}
+                                        </td>
+
+                                        <!-- TIPO DE VISITA -->
+                                        <td>
+                                            {{ visita.get_tipo_visita_display }}
+                                        </td>
+
+                                        <!-- SITUAÇÃO -->
+                                        <td>
+                                            {% if visita.situacao == "SEM_ALTERACAO" %}
+                                                <span class="badge bg-success">
+                                                    Sem alteração
+                                                </span>
+
+                                            {% elif visita.situacao == "COM_ALTERACAO" %}
+                                                <span class="badge bg-warning text-dark">
+                                                    Com alteração
+                                                </span>
+
+                                            {% else %}
+                                                {{ visita.get_situacao_display }}
+                                            {% endif %}
+                                        </td>
+
+                                        <!-- RELATO -->
+                                        <td class="coluna-texto">
+                                            {% if visita.relato %}
+                                                <div class="conteudo-texto">{{ visita.relato }}</div>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <!-- ORIENTAÇÕES -->
+                                        <td class="coluna-texto">
+                                            {% if visita.orientacoes %}
+                                                <div class="conteudo-texto">{{ visita.orientacoes }}</div>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% endfor %}
 
             {% else %}
 
+                <!-- NENHUMA VISITA ENCONTRADA -->
                 <div class="text-center py-5">
 
                     <i class="bi bi-search fs-1 text-muted"></i>
@@ -708,12 +712,10 @@ Relatório de Visitas - RECOM
         </p>
 
         {% if total_visitas > 0 %}
-
             <p class="resumo-resultados mb-0">
                 Os arquivos PDF e CSV incluem todos
                 os registros encontrados na consulta.
             </p>
-
         {% endif %}
 
     </div>
@@ -732,7 +734,6 @@ Relatório de Visitas - RECOM
 
                     <!-- PRIMEIRA PÁGINA -->
                     {% if page_obj.has_previous %}
-
                         <li class="page-item">
                             <a
                                 class="page-link"
@@ -743,12 +744,10 @@ Relatório de Visitas - RECOM
                                 &laquo;
                             </a>
                         </li>
-
                     {% endif %}
 
                     <!-- PÁGINA ANTERIOR -->
                     {% if page_obj.has_previous %}
-
                         <li class="page-item">
                             <a
                                 class="page-link"
@@ -759,7 +758,6 @@ Relatório de Visitas - RECOM
                                 &lsaquo;
                             </a>
                         </li>
-
                     {% endif %}
 
                     <!-- NÚMEROS DAS PÁGINAS -->
@@ -768,7 +766,6 @@ Relatório de Visitas - RECOM
                         {% if numero >= page_obj.number|add:"-2" and numero <= page_obj.number|add:"2" %}
 
                             {% if numero == page_obj.number %}
-
                                 <li class="page-item active">
                                     <span
                                         class="page-link"
@@ -777,9 +774,7 @@ Relatório de Visitas - RECOM
                                         {{ numero }}
                                     </span>
                                 </li>
-
                             {% else %}
-
                                 <li class="page-item">
                                     <a
                                         class="page-link"
@@ -788,7 +783,6 @@ Relatório de Visitas - RECOM
                                         {{ numero }}
                                     </a>
                                 </li>
-
                             {% endif %}
 
                         {% endif %}
@@ -797,7 +791,6 @@ Relatório de Visitas - RECOM
 
                     <!-- PRÓXIMA PÁGINA -->
                     {% if page_obj.has_next %}
-
                         <li class="page-item">
                             <a
                                 class="page-link"
@@ -808,12 +801,10 @@ Relatório de Visitas - RECOM
                                 &rsaquo;
                             </a>
                         </li>
-
                     {% endif %}
 
                     <!-- ÚLTIMA PÁGINA -->
                     {% if page_obj.has_next %}
-
                         <li class="page-item">
                             <a
                                 class="page-link"
@@ -824,7 +815,6 @@ Relatório de Visitas - RECOM
                                 &raquo;
                             </a>
                         </li>
-
                     {% endif %}
 
                 </ul>
@@ -832,7 +822,6 @@ Relatório de Visitas - RECOM
             </nav>
 
             <p class="text-center text-muted small mb-0">
-
                 Página {{ page_obj.number }}
                 de {{ page_obj.paginator.num_pages }}
 
@@ -845,7 +834,6 @@ Relatório de Visitas - RECOM
                 {% else %}
                     registros
                 {% endif %}
-
             </p>
 
         </div>
@@ -855,7 +843,7 @@ Relatório de Visitas - RECOM
 </div>
 
 <!-- ==========================================
-     JAVASCRIPT
+     JAVASCRIPT DOS FILTROS
      ========================================== -->
 
 <script>
