@@ -143,13 +143,24 @@ class RondaVisita(models.Model):
 
     class Meta:
         ordering = [
-            "-data_visita",
-            "-horario",
+        "-data_visita",
+        "-horario",
         ]
 
         verbose_name = "Ronda / Visita"
         verbose_name_plural = "Rondas / Visitas"
 
+        constraints = [
+            models.UniqueConstraint(
+                fields=["missao_cartao"],
+                condition=models.Q(
+                    missao_cartao__isnull=False
+                ),
+                name="unique_visita_por_missao",
+            ),
+        ]
+
+    
     # ==========================================
     # VALIDAÇÃO
     # ==========================================
@@ -163,12 +174,11 @@ class RondaVisita(models.Model):
 
             missao = self.missao_cartao
 
-            # Uma visita vinculada a uma missão
-            # deve pertencer à escola dessa missão.
+            # Verifica se a missão possui escola.
             if not missao.escola_id:
                 erros["missao_cartao"] = (
-                    "Esta missão não possui escola "
-                    "vinculada para registro de visita."
+                    "Esta missão não possui escola vinculada "
+                    "para registro de visita."
                 )
 
             elif (
@@ -176,13 +186,36 @@ class RondaVisita(models.Model):
                 and self.escola_id != missao.escola_id
             ):
                 erros["escola"] = (
-                    "A escola selecionada deve ser "
-                    "a mesma escola da missão "
-                    "do Cartão Programa."
+                    "A escola selecionada deve ser a mesma "
+                    "escola da missão do Cartão Programa."
+                )
+
+            # Impede visitas em missões não realizadas.
+            if missao.status_execucao == "NAO_REALIZADA":
+                erros["missao_cartao"] = (
+                    "Esta missão foi marcada como não realizada. "
+                    "Não é permitido registrar uma visita."
+                )
+
+            # Verifica se já existe visita para a missão.
+            visita_existente = (
+                RondaVisita.objects.filter(
+                    missao_cartao_id=self.missao_cartao_id
+                )
+                .exclude(pk=self.pk)
+                .exists()
+            )
+
+            if visita_existente:
+                erros["missao_cartao"] = (
+                    "Esta missão já possui uma visita registrada. "
+                    "Consulte o Cartão Programa para visualizar "
+                    "o registro realizado pela equipe."
                 )
 
         if erros:
             raise ValidationError(erros)
+
 
     # ==========================================
     # REPRESENTAÇÃO

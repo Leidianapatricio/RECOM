@@ -14,21 +14,20 @@
         </h2>
 
         <p class="text-muted">
-            Consulte suas missões e os dados
-            da viatura em que está escalado.
+            Consulte suas missões, acompanhe a execução
+            e visualize os dados da viatura em que está escalado.
         </p>
     </div>
 
     {% for item in cartoes_gcm %}
 
-        <div class="card shadow-sm mb-4">
+        <div class="card border mb-4 shadow-none">
 
             <div
                 class="card-header text-white"
                 style="background-color: #092B49;"
             >
-                <div class="d-flex flex-wrap
-                            justify-content-between gap-2">
+                <div class="d-flex flex-wrap justify-content-between gap-2">
 
                     <strong>
                         <i class="bi bi-calendar3 me-1"></i>
@@ -36,8 +35,7 @@
                     </strong>
 
                     <span>
-                        Viatura:
-                        {{ item.viatura.identificacao }}
+                        Viatura: {{ item.viatura.identificacao }}
                     </span>
 
                 </div>
@@ -103,16 +101,42 @@
 
                     <div class="border rounded p-3 mb-3">
 
-                        <div class="d-flex flex-wrap
-                                    justify-content-between gap-2 mb-2">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
 
                             <strong>
                                 Missão nº {{ missao.numero }}
                             </strong>
 
-                            <span class="badge bg-secondary">
-                                {{ missao.get_periodo_display }}
-                            </span>
+                            <div class="d-flex flex-wrap gap-2">
+
+                                <span class="badge bg-secondary">
+                                    {{ missao.get_periodo_display }}
+                                </span>
+
+                                {% if missao.status_execucao == "REALIZADA" %}
+
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        Realizada
+                                    </span>
+
+                                {% elif missao.status_execucao == "NAO_REALIZADA" %}
+
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-x-circle me-1"></i>
+                                        Não realizada
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-clock me-1"></i>
+                                        Pendente
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
 
                         </div>
 
@@ -158,24 +182,95 @@
 
                         {% endif %}
 
-                        {% if missao.escola %}
+                        {% if missao.status_execucao == "REALIZADA" %}
+
+                            <div class="alert alert-success py-2 mt-3 mb-0">
+
+                                <i class="bi bi-check-circle me-1"></i>
+                                Esta missão já possui registro de execução.
+
+                                {% if missao.registrado_por %}
+                                    <div class="small mt-1">
+                                        <strong>Registrado por:</strong>
+                                        {{ missao.registrado_por.nome }}
+                                    </div>
+                                {% endif %}
+
+                                {% if missao.atualizado_execucao_em %}
+                                    <div class="small">
+                                        <strong>Em:</strong>
+                                        {{ missao.atualizado_execucao_em|date:"d/m/Y H:i" }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
+
+                        {% elif missao.status_execucao == "NAO_REALIZADA" %}
+
+                            <div class="alert alert-danger py-2 mt-3 mb-0">
+
+                                <strong>
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    Missão não realizada
+                                </strong>
+
+                                <div class="mt-2">
+                                    <strong>Justificativa:</strong>
+                                    {{ missao.motivo_nao_realizacao|linebreaksbr }}
+                                </div>
+
+                                {% if missao.registrado_por %}
+                                    <div class="small mt-2">
+                                        <strong>Registrado por:</strong>
+                                        {{ missao.registrado_por.nome }}
+                                    </div>
+                                {% endif %}
+
+                                {% if missao.atualizado_execucao_em %}
+                                    <div class="small">
+                                        <strong>Em:</strong>
+                                        {{ missao.atualizado_execucao_em|date:"d/m/Y H:i" }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
+
+                        {% else %}
 
                             {% if item.pode_registrar_visita %}
 
-                                <a
-                                    href="{% url 'visitas:cadastrar_visita' %}?missao={{ missao.pk }}"
-                                    class="btn btn-sm btn-primary mt-2"
-                                >
-                                    <i class="bi bi-clipboard-check me-1"></i>
-                                    Registrar Visita
-                                </a>
+                                <div class="d-flex flex-wrap gap-2 mt-3">
+
+                                    {% if missao.escola %}
+
+                                        <a
+                                            href="{% url 'visitas:cadastrar_visita' %}?missao={{ missao.pk }}"
+                                            class="btn btn-sm btn-primary"
+                                        >
+                                            <i class="bi bi-clipboard-check me-1"></i>
+                                            Registrar Visita
+                                        </a>
+
+                                    {% endif %}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalNaoRealizada{{ missao.pk }}"
+                                    >
+                                        <i class="bi bi-x-circle me-1"></i>
+                                        Não realizada
+                                    </button>
+
+                                </div>
 
                             {% else %}
 
-                                <span class="text-muted small">
+                                <div class="text-muted small mt-3">
                                     <i class="bi bi-eye me-1"></i>
-                                    Missão disponível para consulta.
-                                </span>
+                                    Missão disponível somente para consulta.
+                                </div>
 
                             {% endif %}
 
@@ -183,11 +278,112 @@
 
                     </div>
 
+                    {% if missao.status_execucao == "PENDENTE" and item.pode_registrar_visita %}
+
+                        <div
+                            class="modal fade"
+                            id="modalNaoRealizada{{ missao.pk }}"
+                            tabindex="-1"
+                            aria-labelledby="tituloModalNaoRealizada{{ missao.pk }}"
+                            aria-hidden="true"
+                        >
+
+                            <div class="modal-dialog modal-dialog-centered">
+
+                                <div class="modal-content">
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'cartao_programa:registrar_missao_nao_realizada' missao.pk %}"
+                                    >
+
+                                        {% csrf_token %}
+
+                                        <div
+                                            class="modal-header text-white"
+                                            style="background-color: #092B49;"
+                                        >
+                                            <h5
+                                                class="modal-title"
+                                                id="tituloModalNaoRealizada{{ missao.pk }}"
+                                            >
+                                                Justificar missão não realizada
+                                            </h5>
+
+                                            <button
+                                                type="button"
+                                                class="btn-close btn-close-white"
+                                                data-bs-dismiss="modal"
+                                                aria-label="Fechar"
+                                            ></button>
+                                        </div>
+
+                                        <div class="modal-body">
+
+                                            <p>
+                                                <strong>
+                                                    Missão nº {{ missao.numero }}
+                                                </strong>
+                                            </p>
+
+                                            <label
+                                                for="motivo{{ missao.pk }}"
+                                                class="form-label fw-semibold"
+                                            >
+                                                Motivo da não realização
+                                                <span class="text-danger">*</span>
+                                            </label>
+
+                                            <textarea
+                                                name="motivo_nao_realizacao"
+                                                id="motivo{{ missao.pk }}"
+                                                class="form-control"
+                                                rows="4"
+                                                maxlength="3000"
+                                                required
+                                                placeholder="Descreva por que a missão não pôde ser realizada."
+                                            ></textarea>
+
+                                            <div class="form-text">
+                                                A justificativa será compartilhada
+                                                com os integrantes da viatura.
+                                            </div>
+
+                                        </div>
+
+                                        <div class="modal-footer">
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-secondary"
+                                                data-bs-dismiss="modal"
+                                            >
+                                                Voltar
+                                            </button>
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-danger"
+                                            >
+                                                Confirmar não realização
+                                            </button>
+
+                                        </div>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
                 {% empty %}
 
                     <div class="alert alert-light border">
-                        Nenhuma missão cadastrada
-                        para esta viatura.
+                        Nenhuma missão cadastrada para esta viatura.
                     </div>
 
                 {% endfor %}
@@ -200,8 +396,7 @@
 
         <div class="alert alert-info">
             <i class="bi bi-info-circle me-1"></i>
-            Você ainda não possui missões em
-            Cartões Programa cadastrados.
+            Você ainda não possui missões em Cartões Programa cadastrados.
         </div>
 
     {% endfor %}

@@ -9,6 +9,11 @@ from django.db.models import Case, When, Value, IntegerField, Prefetch
 from django.db.models.deletion import ProtectedError
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+from visitas.models import RondaVisita
+from django.db.models.deletion import ProtectedError
+from django.views.decorators.http import require_POST
 
 from usuarios.models import Usuario
 from .models import (
@@ -1607,6 +1612,67 @@ def editar_cartao(request, plantao_id):
             "edicao": True,
         }
     )
+# =========================================================
+# EXCLUIR CARTÃO PROGRAMA
+# PRESERVANDO AS VISITAS REGISTRADAS
+# =========================================================
+
+
+@login_required
+@require_POST
+def excluir_cartao(request, pk):
+
+    # Somente administradores e coordenadores
+    # podem excluir cartões.
+    usuario = Usuario.objects.filter(
+        user=request.user,
+        ativo=True
+    ).first()
+
+    if not (
+        request.user.is_superuser
+        or (
+            usuario is not None
+            and usuario.perfil in ["ADMIN", "COORDENADOR"]
+        )
+    ):
+        raise PermissionDenied(
+            "Você não possui permissão para excluir "
+            "Cartões Programa."
+        )
+
+    try:
+        with transaction.atomic():
+
+            cartao = get_object_or_404(
+                CartaoPrograma.objects.select_for_update(),
+                pk=pk
+            )
+
+            # As visitas vinculadas às missões serão
+            # preservadas pelo SET_NULL do modelo
+            # RondaVisita.
+            cartao.delete()
+
+    except ProtectedError:
+
+        messages.error(
+            request,
+            "Não foi possível excluir o Cartão Programa "
+            "porque existem registros protegidos vinculados."
+        )
+
+    else:
+
+        messages.success(
+            request,
+            "Cartão Programa excluído com sucesso. "
+            "As visitas já registradas foram preservadas."
+        )
+
+    return redirect(
+        "cartao_programa:listar_cartoes"
+    )
 
 
 # =====================================================
@@ -2345,4 +2411,103 @@ def registrar_quilometragem_gcm(request, viatura_id):
             "plantao": viatura.plantao,
             "escala": escala,
         }
+    )
+# =========================================================
+# GCM - REGISTRAR MISSÃO NÃO REALIZADA
+# =========================================================
+
+@login_required
+@require_POST
+def registrar_missao_nao_realizada(request, missao_id):
+
+    usuario = obter_gcm_logado(request)
+
+    motivo = request.POST.get(
+        "motivo_nao_realizacao", ""
+    ).strip()
+
+    if not motivo:
+        messages.error(
+            request,
+            "Informe o motivo da não realização da missão."
+        )
+        return redirect(
+            "cartao_programa:meu_cartao_programa"
+        )
+
+    if len(motivo) > 3000:
+        messages.error(
+            request,
+            "A justificativa deve ter no máximo 3000 caracteres."
+        )
+        return redirect(
+            "cartao_programa:meu_cartao_programa"
+        )
+
+    with transaction.atomic():
+
+        missao = get_object_or_404(
+            MissaoCartao.objects.select_for_update()
+            .select_related("cartao", "viatura"),
+            pk=missao_id
+        )
+
+        if missao.cartao.plantao_id != missao.viatura.plantao_id:
+            raise PermissionDenied(
+                "A missão não corresponde ao plantão da viatura."
+            )
+
+        escala = EfetivoViatura.objects.filter(
+            viatura_id=missao.viatura_id,
+            gcm=usuario,
+            funcao__in=["C", "P1", "P2"],
+        ).first()
+
+        if escala is None:
+            raise PermissionDenied(
+                "Você não possui autorização para justificar esta missão."
+            )
+
+        if missao.status_execucao != "PENDENTE":
+            messages.warning(
+                request,
+                "Esta missão já possui um resultado registrado."
+            )
+            return redirect(
+                "cartao_programa:meu_cartao_programa"
+            )
+
+        if RondaVisita.objects.filter(
+            missao_cartao_id=missao.pk
+        ).exists():
+            messages.warning(
+                request,
+                "Esta missão já possui uma visita registrada."
+            )
+            return redirect(
+                "cartao_programa:meu_cartao_programa"
+            )
+
+        missao.status_execucao = "NAO_REALIZADA"
+        missao.motivo_nao_realizacao = motivo
+        missao.registrado_por = usuario
+        missao.atualizado_execucao_em = timezone.now()
+
+        missao.save(
+            update_fields=[
+                "status_execucao",
+                "motivo_nao_realizacao",
+                "registrado_por",
+                "atualizado_execucao_em",
+            ]
+        )
+
+    messages.success(
+        request,
+        "Missão registrada como não realizada. "
+        "A justificativa está disponível para a equipe."
+    )
+
+    return redirect(
+        "cartao_programa:meu_cartao_programa"
     )

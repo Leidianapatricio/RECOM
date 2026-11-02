@@ -2,6 +2,8 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import IntegrityError, transaction
+from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -226,15 +228,16 @@ def redirecionar_apos_visita(request, visita):
 @login_required
 def cadastrar_visita(request):
     """
-    Permite cadastrar visitas avulsas e visitas
-    vinculadas ao Cartão Programa.
+    Registra visitas avulsas ou uma única visita
+    vinculada a cada missão do Cartão Programa.
 
-    Quando existe missão:
-    - valida a escala e a função do GCM;
-    - preenche a escola automaticamente;
-    - impede a troca da escola;
-    - vincula a visita à missão;
-    - retorna ao Cartão Programa do GCM.
+    Regras:
+    - C, P1 e P2 podem registrar visitas.
+    - Motorista não pode registrar visitas.
+    - Uma missão permite somente uma visita.
+    - Missões não realizadas não permitem visitas.
+    - Ao registrar a visita, a missão fica REALIZADA.
+    - Visitas avulsas continuam independentes.
     """
 
     usuario = obter_usuario_recom(request)
@@ -243,31 +246,50 @@ def cadastrar_visita(request):
     # IDENTIFICAR A MISSÃO
     # ==========================================
 
-    if request.method == "POST":
-
-        missao_id = request.POST.get(
-            "missao_cartao_id",
-            ""
+    missao_id = (
+        request.POST.get(
+            "missao_cartao_id", ""
         ).strip()
-
-    else:
-
-        missao_id = request.GET.get(
-            "missao",
-            ""
+        if request.method == "POST"
+        else request.GET.get(
+            "missao", ""
         ).strip()
+    )
 
-    missao = None
-
-    if missao_id:
-
-        missao = obter_missao_autorizada(
+    missao = (
+        obter_missao_autorizada(
             request,
             missao_id
         )
+        if missao_id
+        else None
+    )
 
     # ==========================================
-    # CADASTRO VIA POST
+    # VERIFICAÇÃO INICIAL
+    # ==========================================
+
+    if missao is not None:
+
+        visita_existente = RondaVisita.objects.filter(
+            missao_cartao_id=missao.pk
+        ).exists()
+
+        if (
+            missao.status_execucao != "PENDENTE"
+            or visita_existente
+        ):
+            messages.warning(
+                request,
+                "Esta missão já possui um resultado registrado."
+            )
+
+            return redirect(
+                "cartao_programa:meu_cartao_programa"
+            )
+
+    # ==========================================
+    # CADASTRAR VIA POST
     # ==========================================
 
     if request.method == "POST":
@@ -279,30 +301,118 @@ def cadastrar_visita(request):
 
         if form.is_valid():
 
-            visita = form.save(
-                commit=False
-            )
-
-            # O vínculo da missão é definido
-            # exclusivamente pelo servidor.
-            if missao is not None:
-
-                visita.missao_cartao = missao
-
-                for campo, valor in dados_da_missao(missao).items():
-                    setattr(visita, campo, valor)
-
-            else:
-
-                visita.missao_cartao = None
-
-            # ==================================
-            # VALIDAR MODELO
-            # ==================================
-
             try:
 
-                visita.full_clean()
+                with transaction.atomic():
+
+                    # ==================================
+                    # BLOQUEAR MISSÃO DURANTE O REGISTRO
+                    # ==================================
+
+                    if missao is not None:
+
+                        # Bloqueia somente a linha da missão.
+                        # Não realiza JOIN com campos opcionais.
+                        missao_bloqueada = get_object_or_404(
+                            MissaoCartao.objects.select_for_update(
+                                of=("self",)
+                            ),
+                            pk=missao.pk
+                        )
+
+                        # Revalida a permissão do usuário.
+                        validar_acesso_missao(
+                            request,
+                            missao_bloqueada
+                        )
+
+                        # Impede registro em missão
+                        # já realizada ou não realizada.
+                        if (
+                            missao_bloqueada.status_execucao
+                            != "PENDENTE"
+                        ):
+                            raise ValidationError(
+                                "Esta missão já possui um "
+                                "resultado registrado."
+                            )
+
+                        # Impede duplicidade mesmo quando
+                        # dois GCMs tentam salvar juntos.
+                        visita_existente = (
+                            RondaVisita.objects.filter(
+                                missao_cartao_id=missao_bloqueada.pk
+                            ).exists()
+                        )
+
+                        if visita_existente:
+                            raise ValidationError(
+                                "Já existe uma visita registrada "
+                                "para esta missão."
+                            )
+
+                        missao = missao_bloqueada
+
+                    # ==================================
+                    # PREPARAR VISITA
+                    # ==================================
+
+                    visita = form.save(
+                        commit=False
+                    )
+
+                    # O vínculo é definido pelo servidor.
+                    visita.missao_cartao = missao
+
+                    if missao is not None:
+
+                        # Preserva escola, equipe e data
+                        # determinadas pelo Cartão Programa.
+                        for campo, valor in dados_da_missao(
+                            missao
+                        ).items():
+
+                            setattr(
+                                visita,
+                                campo,
+                                valor
+                            )
+
+                    # ==================================
+                    # VALIDAR E SALVAR VISITA
+                    # ==================================
+
+                    visita.full_clean()
+                    visita.save()
+
+                    # ==================================
+                    # ATUALIZAR STATUS DA MISSÃO
+                    # ==================================
+
+                    if missao is not None:
+
+                        missao.status_execucao = "REALIZADA"
+
+                        missao.motivo_nao_realizacao = ""
+
+                        missao.registrado_por = usuario
+
+                        missao.atualizado_execucao_em = (
+                            timezone.now()
+                        )
+
+                        missao.save(
+                            update_fields=[
+                                "status_execucao",
+                                "motivo_nao_realizacao",
+                                "registrado_por",
+                                "atualizado_execucao_em",
+                            ]
+                        )
+
+            # ==========================================
+            # TRATAMENTO DE ERROS
+            # ==========================================
 
             except ValidationError as erro:
 
@@ -311,9 +421,16 @@ def cadastrar_visita(request):
                     erro
                 )
 
-            else:
+            except IntegrityError:
 
-                visita.save()
+                form.add_error(
+                    None,
+                    "Esta missão já possui uma visita "
+                    "ou ocorreu um conflito ao salvar. "
+                    "Atualize a página e tente novamente."
+                )
+
+            else:
 
                 messages.success(
                     request,
@@ -326,7 +443,7 @@ def cadastrar_visita(request):
                 )
 
     # ==========================================
-    # ABERTURA DO FORMULÁRIO VIA GET
+    # ABRIR FORMULÁRIO VIA GET
     # ==========================================
 
     else:
@@ -350,7 +467,6 @@ def cadastrar_visita(request):
             )
 
             if escola_id:
-
                 initial["escola"] = escola_id
 
         form = RondaVisitaForm(
@@ -385,129 +501,62 @@ def cadastrar_visita(request):
 
 @login_required
 def editar_visita(request, pk):
-    """
-    Edita uma visita existente.
-
-    Visitas vinculadas ao Cartão Programa
-    exigem autorização para a missão.
-
-    Visitas avulsas somente podem ser editadas
-    pela administração ou coordenação.
-    """
-
+    """Edita uma visita preservando missão, escola e permissões."""
     usuario = obter_usuario_recom(request)
-
     visita = get_object_or_404(
-        RondaVisita.objects.select_related(
-            "escola",
-            "missao_cartao",
-        ),
-        pk=pk
+        RondaVisita.objects.select_related("escola", "missao_cartao"), pk=pk
     )
-
     missao = visita.missao_cartao
-
-    # ==========================================
-    # VALIDAR PERMISSÕES
-    # ==========================================
-
     if missao is not None:
-
-        validar_acesso_missao(
-            request,
-            missao
-        )
-
+        validar_acesso_missao(request, missao)
     elif not pode_gerenciar_visitas(request):
-
         raise PermissionDenied(
-            "A edição de visitas avulsas está "
-            "restrita aos administradores "
-            "e coordenadores."
+            "A edição de visitas avulsas está restrita aos administradores e coordenadores."
         )
-
-    # ==========================================
-    # EDITAR VIA POST
-    # ==========================================
 
     if request.method == "POST":
-
-        form = RondaVisitaForm(
-            request.POST,
-            instance=visita,
-            missao=missao
-        )
-
+        form = RondaVisitaForm(request.POST, instance=visita, missao=missao)
         if form.is_valid():
-
-            atualizada = form.save(
-                commit=False
-            )
-
-            # Preserva a missão original.
-            atualizada.missao_cartao = missao
-
-            if missao is not None:
-
-                for campo, valor in dados_da_missao(missao).items():
-                    setattr(atualizada, campo, valor)
-
             try:
-
-                atualizada.full_clean()
-
+                with transaction.atomic():
+                    if missao is not None:
+                        missao = MissaoCartao.objects.select_for_update().select_related(
+                            "escola", "viatura", "cartao__plantao"
+                        ).get(pk=missao.pk)
+                        validar_acesso_missao(request, missao)
+                        if missao.status_execucao == "NAO_REALIZADA":
+                            raise ValidationError(
+                                "Esta missão está marcada como não realizada."
+                            )
+                    atualizada = form.save(commit=False)
+                    atualizada.missao_cartao = missao
+                    if missao is not None:
+                        for campo, valor in dados_da_missao(missao).items():
+                            setattr(atualizada, campo, valor)
+                    atualizada.full_clean()
+                    atualizada.save()
+                    if missao is not None and missao.status_execucao != "REALIZADA":
+                        missao.status_execucao = "REALIZADA"
+                        missao.motivo_nao_realizacao = ""
+                        missao.save(update_fields=["status_execucao", "motivo_nao_realizacao"])
             except ValidationError as erro:
-
-                adicionar_erros_modelo(
-                    form,
-                    erro
-                )
-
+                adicionar_erros_modelo(form, erro)
+            except IntegrityError:
+                form.add_error(None, "Não foi possível salvar a visita devido a um conflito de dados.")
             else:
-
-                atualizada.save()
-
-                messages.success(
-                    request,
-                    "Visita atualizada com sucesso."
-                )
-
-                return redirecionar_apos_visita(
-                    request,
-                    atualizada
-                )
-
-    # ==========================================
-    # ABRIR FORMULÁRIO DE EDIÇÃO
-    # ==========================================
-
+                messages.success(request, "Visita atualizada com sucesso.")
+                return redirecionar_apos_visita(request, atualizada)
     else:
+        form = RondaVisitaForm(instance=visita, missao=missao)
 
-        form = RondaVisitaForm(
-            instance=visita,
-            missao=missao
-        )
-
-    # ==========================================
-    # RENDERIZAR
-    # ==========================================
-
-    return render(
-        request,
-        "visitas/form_visita.html",
-        {
-            "form": form,
-            "visita": visita,
-            "modo_edicao": True,
-            "missao_cartao": missao,
-            "missao_cartao_id": (
-                missao.pk
-                if missao is not None
-                else None
-            ),
-            "usuario": usuario,
-        }
-    )
+    return render(request, "visitas/form_visita.html", {
+        "form": form,
+        "visita": visita,
+        "modo_edicao": True,
+        "missao_cartao": missao,
+        "missao_cartao_id": missao.pk if missao is not None else None,
+        "usuario": usuario,
+    })
 
 
 # =========================================================
@@ -517,36 +566,35 @@ def editar_visita(request, pk):
 @login_required
 @require_POST
 def excluir_visita(request, pk):
-    """
-    Exclusão de visitas restrita à gestão.
-
-    Somente Administradores e Coordenadores
-    podem excluir registros.
-    """
-
+    """Exclusão administrativa; reabre missão se sua visita for removida."""
     if not pode_gerenciar_visitas(request):
-
         raise PermissionDenied(
-            "Somente administradores e "
-            "coordenadores podem excluir "
-            "registros de visitas."
+            "Somente administradores e coordenadores podem excluir registros de visitas."
         )
 
-    visita = get_object_or_404(
-        RondaVisita,
-        pk=pk
-    )
+    # Obter a missão primeiro, e bloqueá-la antes de excluir a visita,
+    # mantendo a mesma ordem de bloqueios usada no cadastro.
+    referencia = get_object_or_404(RondaVisita, pk=pk)
+    missao_id = referencia.missao_cartao_id
+    escola_id = referencia.escola_id
+    with transaction.atomic():
+        missao = None
+        if missao_id is not None:
+            missao = MissaoCartao.objects.select_for_update().filter(pk=missao_id).first()
+        visita = get_object_or_404(RondaVisita, pk=pk)
+        if missao is not None and visita.missao_cartao_id != missao.pk:
+            raise ValidationError("O vínculo da visita foi alterado. Atualize a página.")
+        visita.delete()
+        if (missao is not None and not RondaVisita.objects.filter(
+                missao_cartao_id=missao.pk).exists()):
+            missao.status_execucao = "PENDENTE"
+            missao.motivo_nao_realizacao = ""
+            missao.registrado_por = None
+            missao.atualizado_execucao_em = None
+            missao.save(update_fields=[
+                "status_execucao", "motivo_nao_realizacao",
+                "registrado_por", "atualizado_execucao_em",
+            ])
 
-    escola_id = visita.escola_id
-
-    visita.delete()
-
-    messages.success(
-        request,
-        "Visita excluída com sucesso."
-    )
-
-    return redirect(
-        "escolas:detalhe_escola",
-        pk=escola_id
-    )
+    messages.success(request, "Visita excluída com sucesso.")
+    return redirect("escolas:detalhe_escola", pk=escola_id)

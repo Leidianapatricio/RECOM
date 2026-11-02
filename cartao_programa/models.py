@@ -481,6 +481,43 @@ class MissaoCartao(models.Model):
         blank=True,
         verbose_name="Observações"
     )
+    
+    # ==========================================
+    # CONTROLE DE EXECUÇÃO DA MISSÃO
+    # ==========================================
+
+    STATUS_EXECUCAO_CHOICES = [
+        ("PENDENTE", "Pendente"),
+        ("REALIZADA", "Realizada"),
+        ("NAO_REALIZADA", "Não realizada"),
+    ]
+
+    status_execucao = models.CharField(
+        max_length=20,
+        choices=STATUS_EXECUCAO_CHOICES,
+        default="PENDENTE",
+        verbose_name="Status da execução",
+    )
+
+    motivo_nao_realizacao = models.TextField(
+        blank=True,
+        verbose_name="Motivo da não realização",
+    )
+
+    registrado_por = models.ForeignKey(
+        Usuario,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="missoes_atualizadas",
+        verbose_name="GCM responsável pelo registro",
+    )
+
+    atualizado_execucao_em = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Data e hora da atualização da execução",
+    )
 
     class Meta:
         verbose_name = "Missão do Cartão Programa"
@@ -520,6 +557,20 @@ class MissaoCartao(models.Model):
                 erros["viatura"] = (
                     "A VTR deve pertencer ao mesmo plantão "
                     "do Cartão Programa."
+                )
+               
+
+        if self.status_execucao == "NAO_REALIZADA":
+
+            if not self.motivo_nao_realizacao.strip():
+                erros["motivo_nao_realizacao"] = (
+                    "Informe o motivo da não realização da missão."
+                )
+
+            elif len(self.motivo_nao_realizacao) > 3000:
+                erros["motivo_nao_realizacao"] = (
+                    "A justificativa deve ter no máximo "
+                    "3000 caracteres."
                 )
 
         if erros:

@@ -146,14 +146,22 @@ Cartões Programa e Missões - RECOM
 
                                 </a>
 
-                                <!-- GERENCIAR MISSÕES -->
-                                <a href="{% url 'cartao_programa:listar_missoes' cartao.plantao_id %}"
-                                   class="btn btn-sm recom-btn-missoes mb-1">
+                                <form
+                                    method="post"
+                                    action="{% url 'cartao_programa:excluir_cartao' cartao.pk %}"
+                                    class="d-inline"
+                                    onsubmit="return confirm('Deseja realmente excluir este Cartão Programa?');"
+                                        >
+                                    {% csrf_token %}
 
-                                    <i class="bi bi-list-check me-1"></i>
-                                    Missões
-
-                                </a>
+                                    <button
+                                        type="submit"
+                                        class="btn btn-outline-danger btn-sm"
+                                    >
+                                        <i class="bi bi-trash me-1"></i>
+                                        Excluir
+                                    </button>
+                                </form>
 
                             </td>
 

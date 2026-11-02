@@ -24,6 +24,12 @@ urlpatterns = [
         views.registrar_quilometragem_gcm,
         name="registrar_quilometragem_gcm"
     ),
+    
+    path(
+        "meu-cartao/missoes/<int:missao_id>/nao-realizada/",
+        views.registrar_missao_nao_realizada,
+        name="registrar_missao_nao_realizada"
+    ),
 
     # =====================================================
     # EQUIPES
@@ -229,6 +235,12 @@ urlpatterns = [
         "meu-cartao/viaturas/<int:viatura_id>/quilometragem/",
         views.registrar_quilometragem_gcm,
         name="registrar_quilometragem_gcm"
+    ),
+    
+    path(
+    "cartoes/<int:pk>/excluir/",
+    views.excluir_cartao,
+    name="excluir_cartao"
     ),
 
 ]
