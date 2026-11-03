@@ -1,52 +1,94 @@
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+
+from usuarios.models import Usuario
 
 from .forms import EscolaForm, EscolaProblematicaForm
 from .models import Escola, EscolaProblematica
 
 
+# =========================================================
+# FUNÇÕES AUXILIARES
+# =========================================================
+
+def obter_permissoes_visitas(request):
+    """
+    Identifica o usuário e suas permissões.
+
+    ADMIN / COORDENADOR:
+        Podem excluir qualquer visita.
+
+    GCM:
+        Pode excluir somente visitas registradas
+        por ele próprio.
+
+    Outros perfis:
+        Não podem excluir visitas.
+    """
+
+    if not request.user.is_authenticated:
+        return None, False
+
+    usuario = Usuario.objects.filter(
+        user=request.user,
+        ativo=True
+    ).first()
+
+    pode_excluir_todas = request.user.is_superuser or (
+        usuario is not None
+        and usuario.perfil in ["ADMIN", "COORDENADOR"]
+    )
+
+    return usuario, pode_excluir_todas
+
+
+# =========================================================
+# LISTAR ESCOLAS
+# =========================================================
+
 def listar_escolas(request):
+
     escolas = Escola.objects.all().order_by(
         "polo",
         "nome"
     )
 
     busca = request.GET.get(
-        "busca",
-        ""
+        "busca", ""
     ).strip()
 
     polo = request.GET.get(
-        "polo",
-        ""
+        "polo", ""
     ).strip()
 
     bairro = request.GET.get(
-        "bairro",
-        ""
+        "bairro", ""
     ).strip()
 
     situacao = request.GET.get(
-        "situacao",
-        "ativas"
+        "situacao", "ativas"
     ).strip()
 
-    # Filtro por situação
+    # ==========================================
+    # FILTRO POR SITUAÇÃO
+    # ==========================================
+
     if situacao == "ativas":
-        escolas = escolas.filter(
-            ativa=True
-        )
+        escolas = escolas.filter(ativa=True)
 
     elif situacao == "inativas":
-        escolas = escolas.filter(
-            ativa=False
-        )
+        escolas = escolas.filter(ativa=False)
 
-    # Se for "todas", não aplica filtro de ativa/inativa
+    # "todas": sem filtro de situação.
 
-    # Busca geral
+    # ==========================================
+    # BUSCA GERAL
+    # ==========================================
+
     if busca:
         escolas = escolas.filter(
             Q(nome__icontains=busca)
@@ -55,39 +97,43 @@ def listar_escolas(request):
             | Q(gestor__icontains=busca)
         )
 
-    # Filtro por polo
+    # ==========================================
+    # FILTRO POR POLO
+    # ==========================================
+
     if polo:
         escolas = escolas.filter(
             polo=polo
         )
 
-    # Filtro por bairro
+    # ==========================================
+    # FILTRO POR BAIRRO
+    # ==========================================
+
     if bairro:
         escolas = escolas.filter(
             bairro__iexact=bairro
         )
 
-    # Lista de bairros para o select
+    # ==========================================
+    # BAIRROS DISPONÍVEIS
+    # ==========================================
+
     bairros = (
         Escola.objects
         .exclude(bairro="")
-        .values_list(
-            "bairro",
-            flat=True
-        )
+        .values_list("bairro", flat=True)
         .distinct()
         .order_by("bairro")
     )
 
-    # Paginação
-    paginator = Paginator(
-        escolas,
-        10
-    )
+    # ==========================================
+    # PAGINAÇÃO
+    # ==========================================
 
-    numero_pagina = request.GET.get(
-        "page"
-    )
+    paginator = Paginator(escolas, 10)
+
+    numero_pagina = request.GET.get("page")
 
     page_obj = paginator.get_page(
         numero_pagina
@@ -110,13 +156,18 @@ def listar_escolas(request):
     )
 
 
+# =========================================================
+# CADASTRAR ESCOLA
+# =========================================================
+
 def cadastrar_escola(request):
+
     if request.method == "POST":
-        form = EscolaForm(
-            request.POST
-        )
+
+        form = EscolaForm(request.POST)
 
         if form.is_valid():
+
             escola = form.save()
 
             messages.success(
@@ -140,27 +191,63 @@ def cadastrar_escola(request):
     return render(
         request,
         "escolas/form_escola.html",
-        {
-            "form": form
-        }
+        {"form": form}
     )
 
 
+# =========================================================
+# DETALHES DA ESCOLA
+# =========================================================
+
+@login_required
 def detalhe_escola(request, pk):
+
     escola = get_object_or_404(
         Escola,
         pk=pk
     )
 
-    # Histórico de visitas da escola
-    visitas = escola.visitas.all().order_by(
-        "-data_visita",
-        "-horario"
+    # ==========================================
+    # IDENTIFICAR PERMISSÕES
+    # ==========================================
+
+    usuario, pode_excluir_todas = (
+        obter_permissoes_visitas(request)
     )
+
+    # ==========================================
+    # HISTÓRICO DE VISITAS
+    # ==========================================
+
+    visitas = list(
+        escola.visitas.select_related(
+            "registrado_por"
+        ).order_by(
+            "-data_visita",
+            "-horario"
+        )
+    )
+
+    # ==========================================
+    # PERMISSÕES INDIVIDUAIS
+    # ==========================================
+
+    for visita in visitas:
+
+        visita.pode_excluir = (
+            pode_excluir_todas
+            or (
+                usuario is not None
+                and usuario.perfil == "GCM"
+                and visita.registrado_por_id == usuario.pk
+            )
+        )
 
     contexto = {
         "escola": escola,
         "visitas": visitas,
+        "usuario_recom": usuario,
+        "pode_excluir_todas_visitas": pode_excluir_todas,
     }
 
     return render(
@@ -170,7 +257,12 @@ def detalhe_escola(request, pk):
     )
 
 
+# =========================================================
+# CADASTRAR PROBLEMÁTICA
+# =========================================================
+
 def cadastrar_problematica(request, pk):
+
     escola = get_object_or_404(
         Escola,
         pk=pk,
@@ -178,11 +270,13 @@ def cadastrar_problematica(request, pk):
     )
 
     if request.method == "POST":
+
         form = EscolaProblematicaForm(
             request.POST
         )
 
         if form.is_valid():
+
             tipo = form.cleaned_data[
                 "tipo_problematica"
             ]
@@ -193,6 +287,7 @@ def cadastrar_problematica(request, pk):
             ).exists()
 
             if ja_existe:
+
                 form.add_error(
                     "tipo_problematica",
                     (
@@ -202,6 +297,7 @@ def cadastrar_problematica(request, pk):
                 )
 
             else:
+
                 problematica = form.save(
                     commit=False
                 )
@@ -234,11 +330,16 @@ def cadastrar_problematica(request, pk):
     )
 
 
+# =========================================================
+# EDITAR PROBLEMÁTICA
+# =========================================================
+
 def editar_problematica(
     request,
     escola_pk,
     problematica_pk
 ):
+
     escola = get_object_or_404(
         Escola,
         pk=escola_pk
@@ -251,12 +352,14 @@ def editar_problematica(
     )
 
     if request.method == "POST":
+
         form = EscolaProblematicaForm(
             request.POST,
             instance=problematica
         )
 
         if form.is_valid():
+
             tipo = form.cleaned_data[
                 "tipo_problematica"
             ]
@@ -269,6 +372,7 @@ def editar_problematica(
             ).exists()
 
             if ja_existe:
+
                 form.add_error(
                     "tipo_problematica",
                     (
@@ -278,6 +382,7 @@ def editar_problematica(
                 )
 
             else:
+
                 form.save()
 
                 messages.success(
@@ -291,6 +396,7 @@ def editar_problematica(
                 )
 
     else:
+
         form = EscolaProblematicaForm(
             instance=problematica
         )
@@ -309,11 +415,16 @@ def editar_problematica(
     )
 
 
+# =========================================================
+# EXCLUIR PROBLEMÁTICA
+# =========================================================
+
 def excluir_problematica(
     request,
     escola_pk,
     problematica_pk
 ):
+
     escola = get_object_or_404(
         Escola,
         pk=escola_pk
@@ -326,6 +437,7 @@ def excluir_problematica(
     )
 
     if request.method == "POST":
+
         nome_problematica = (
             problematica.tipo_problematica.nome
         )
@@ -346,19 +458,26 @@ def excluir_problematica(
     )
 
 
+# =========================================================
+# EDITAR ESCOLA
+# =========================================================
+
 def editar_escola(request, pk):
+
     escola = get_object_or_404(
         Escola,
         pk=pk
     )
 
     if request.method == "POST":
+
         form = EscolaForm(
             request.POST,
             instance=escola
         )
 
         if form.is_valid():
+
             form.save()
 
             messages.success(
@@ -372,6 +491,7 @@ def editar_escola(request, pk):
             )
 
     else:
+
         form = EscolaForm(
             instance=escola
         )
@@ -387,13 +507,19 @@ def editar_escola(request, pk):
     )
 
 
+# =========================================================
+# DESATIVAR ESCOLA
+# =========================================================
+
 def desativar_escola(request, pk):
+
     escola = get_object_or_404(
         Escola,
         pk=pk
     )
 
     if request.method == "POST":
+
         escola.ativa = False
 
         escola.save(
@@ -418,13 +544,19 @@ def desativar_escola(request, pk):
     )
 
 
+# =========================================================
+# ATIVAR ESCOLA
+# =========================================================
+
 def ativar_escola(request, pk):
+
     escola = get_object_or_404(
         Escola,
         pk=pk
     )
 
     if request.method == "POST":
+
         escola.ativa = True
         escola.data_inativacao = None
 

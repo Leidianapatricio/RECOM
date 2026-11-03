@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}
@@ -8,7 +9,11 @@ Detalhes da Escola
 
 <div class="container mt-4 mb-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- ====================================================== -->
+    <!-- CABEÇALHO DA ESCOLA -->
+    <!-- ====================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
 
         <div>
             <h2>{{ escola.nome }}</h2>
@@ -380,9 +385,7 @@ Detalhes da Escola
 
                                     <td class="text-center">
 
-                                        <div
-                                            class="d-flex justify-content-center gap-2"
-                                        >
+                                        <div class="d-flex justify-content-center gap-2">
 
                                             <a
                                                 href="{% url 'escolas:editar_problematica' escola.pk problematica.pk %}"
@@ -457,11 +460,9 @@ Detalhes da Escola
     <!-- HISTÓRICO DE VISITAS -->
     <!-- ====================================================== -->
 
-    <div class="card shadow-sm mt-4">
+    <div class="card shadow-sm mt-4" id="historico-visitas">
 
-        <div
-            class="card-header d-flex justify-content-between align-items-center"
-        >
+        <div class="card-header d-flex justify-content-between align-items-center">
 
             <strong>
                 Histórico de Visitas
@@ -493,37 +494,14 @@ Detalhes da Escola
 
                             <tr>
 
-                                <th>
-                                    Data
-                                </th>
-
-                                <th>
-                                    Horário
-                                </th>
-
-                                <th>
-                                    Equipe
-                                </th>
-
-                                <th>
-                                    Tipo
-                                </th>
-
-                                <th>
-                                    Situação
-                                </th>
-
-                                <th>
-                                    Relato
-                                </th>
-
-                                <th>
-                                    Providências
-                                </th>
-
-                                <th class="text-center">
-                                    Ações
-                                </th>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Equipe</th>
+                                <th>Tipo</th>
+                                <th>Situação</th>
+                                <th>Relato</th>
+                                <th>Providências</th>
+                                <th class="text-center">Ações</th>
 
                             </tr>
 
@@ -587,9 +565,9 @@ Detalhes da Escola
 
                                     <td class="text-center text-nowrap">
 
-                                        <div
-                                            class="d-flex justify-content-center gap-2"
-                                        >
+                                        <div class="d-flex justify-content-center gap-2">
+
+                                            <!-- EDITAR VISITA -->
 
                                             <a
                                                 href="{% url 'visitas:editar_visita' visita.pk %}"
@@ -599,23 +577,30 @@ Detalhes da Escola
                                                 Editar
                                             </a>
 
-                                            <form
-                                                method="post"
-                                                action="{% url 'visitas:excluir_visita' visita.pk %}"
-                                                class="d-inline"
-                                            >
-                                                {% csrf_token %}
+                                            <!-- EXCLUIR VISITA -->
+                                            <!-- Permissão definida em escolas/views.py -->
 
-                                                <button
-                                                    type="submit"
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    onclick="return confirm('Deseja realmente excluir esta visita? Esta ação não poderá ser desfeita.');"
+                                            {% if visita.pode_excluir %}
+
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'visitas:excluir_visita' visita.pk %}"
+                                                    class="d-inline"
                                                 >
-                                                    <i class="bi bi-trash me-1"></i>
-                                                    Excluir
-                                                </button>
+                                                    {% csrf_token %}
 
-                                            </form>
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('Deseja realmente excluir esta visita? Esta ação não poderá ser desfeita.');"
+                                                    >
+                                                        <i class="bi bi-trash me-1"></i>
+                                                        Excluir
+                                                    </button>
+
+                                                </form>
+
+                                            {% endif %}
 
                                         </div>
 

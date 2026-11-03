@@ -7,6 +7,10 @@ from escolas.models import Escola
 
 class RondaVisita(models.Model):
 
+    # ==========================================
+    # OPÇÕES DE EQUIPE
+    # ==========================================
+
     EQUIPE_CHOICES = [
         ("A", "Equipe A"),
         ("B", "Equipe B"),
@@ -16,6 +20,10 @@ class RondaVisita(models.Model):
         ("F", "Equipe F"),
         ("EXTRA", "Equipe Extraordinário"),
     ]
+
+    # ==========================================
+    # TIPOS DE VISITA
+    # ==========================================
 
     TIPO_VISITA_CHOICES = [
         ("ROTINA", "Visita de rotina"),
@@ -29,6 +37,10 @@ class RondaVisita(models.Model):
         ("APOIO", "Apoio / atendimento"),
         ("OUTRA", "Outra"),
     ]
+
+    # ==========================================
+    # SITUAÇÃO DA VISITA
+    # ==========================================
 
     SITUACAO_CHOICES = [
         ("SEM_ALTERACAO", "Sem alteração"),
@@ -60,6 +72,23 @@ class RondaVisita(models.Model):
         help_text=(
             "Missão vinculada à visita. "
             "Pode ficar em branco para visitas avulsas."
+        ),
+    )
+
+    # ==========================================
+    # RESPONSÁVEL PELO REGISTRO
+    # ==========================================
+
+    registrado_por = models.ForeignKey(
+        "usuarios.Usuario",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="visitas_registradas_por_usuario",
+        verbose_name="Registrado por",
+        help_text=(
+            "Usuário responsável pelo cadastro da visita. "
+            "Preenchido automaticamente pelo sistema."
         ),
     )
 
@@ -131,20 +160,23 @@ class RondaVisita(models.Model):
 
     criado_em = models.DateTimeField(
         auto_now_add=True,
+        verbose_name="Criado em",
     )
 
     atualizado_em = models.DateTimeField(
         auto_now=True,
+        verbose_name="Atualizado em",
     )
 
     # ==========================================
-    # CONFIGURAÇÕES
+    # CONFIGURAÇÕES DO MODELO
     # ==========================================
 
     class Meta:
+
         ordering = [
-        "-data_visita",
-        "-horario",
+            "-data_visita",
+            "-horario",
         ]
 
         verbose_name = "Ronda / Visita"
@@ -160,12 +192,12 @@ class RondaVisita(models.Model):
             ),
         ]
 
-    
     # ==========================================
     # VALIDAÇÃO
     # ==========================================
 
     def clean(self):
+
         super().clean()
 
         erros = {}
@@ -176,6 +208,7 @@ class RondaVisita(models.Model):
 
             # Verifica se a missão possui escola.
             if not missao.escola_id:
+
                 erros["missao_cartao"] = (
                     "Esta missão não possui escola vinculada "
                     "para registro de visita."
@@ -185,6 +218,7 @@ class RondaVisita(models.Model):
                 self.escola_id
                 and self.escola_id != missao.escola_id
             ):
+
                 erros["escola"] = (
                     "A escola selecionada deve ser a mesma "
                     "escola da missão do Cartão Programa."
@@ -192,12 +226,13 @@ class RondaVisita(models.Model):
 
             # Impede visitas em missões não realizadas.
             if missao.status_execucao == "NAO_REALIZADA":
+
                 erros["missao_cartao"] = (
                     "Esta missão foi marcada como não realizada. "
                     "Não é permitido registrar uma visita."
                 )
 
-            # Verifica se já existe visita para a missão.
+            # Impede duplicidade de visita na missão.
             visita_existente = (
                 RondaVisita.objects.filter(
                     missao_cartao_id=self.missao_cartao_id
@@ -207,6 +242,7 @@ class RondaVisita(models.Model):
             )
 
             if visita_existente:
+
                 erros["missao_cartao"] = (
                     "Esta missão já possui uma visita registrada. "
                     "Consulte o Cartão Programa para visualizar "
@@ -216,12 +252,12 @@ class RondaVisita(models.Model):
         if erros:
             raise ValidationError(erros)
 
-
     # ==========================================
     # REPRESENTAÇÃO
     # ==========================================
 
     def __str__(self):
+
         return (
             f"{self.escola.nome} - "
             f"{self.data_visita.strftime('%d/%m/%Y')} - "
