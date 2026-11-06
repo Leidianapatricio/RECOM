@@ -7,7 +7,7 @@ from xml.sax.saxutils import escape
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db.models import Case, IntegerField, Value, When, Prefetch
+from django.db.models import Case, IntegerField, Value, When
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -25,7 +25,6 @@ from reportlab.platypus import (
     LongTable,
 )
 
-from cartao_programa.models import EfetivoViatura
 from escolas.models import Escola, EscolaProblematica, TipoProblematica
 from usuarios.models import Usuario
 from visitas.models import RondaVisita
@@ -88,57 +87,46 @@ def _query_filtros(request):
     return parametros.urlencode()
 
 
+def _autorizar_relatorios(request):
+    """Autoriza consultas de relatórios para ADMIN, COORDENADOR e GCM."""
+    if request.user.is_superuser:
+        return
+
+    if _perfil_usuario(request) not in ("ADMIN", "COORDENADOR", "GCM"):
+        raise PermissionDenied(
+            "Você não possui permissão para consultar os relatórios."
+        )
+
+
 def _visitas_permitidas(request):
     """
-    Retorna somente as visitas que o perfil pode consultar.
+    Permite consultar todas as visitas aos perfis
+    ADMIN, COORDENADOR e GCM.
 
-    Coordenador e administrador:
-        Todas as visitas.
-
-    GCM:
-        Visitas programadas vinculadas às viaturas
-        nas quais consta como integrante do efetivo.
-
-    Visitas avulsas:
-        Não são incluídas no relatório individual do
-        GCM porque o modelo atual não registra o autor.
+    Inclui visitas programadas e avulsas.
     """
 
-    usuario = _usuario_recom(request)
     perfil = _perfil_usuario(request)
 
-    visitas = (
+    if not request.user.is_authenticated:
+        raise PermissionDenied(
+            "É necessário estar autenticado."
+        )
+
+    if not request.user.is_superuser and perfil not in (
+        "ADMIN",
+        "COORDENADOR",
+        "GCM",
+    ):
+        raise PermissionDenied(
+            "Você não possui permissão para consultar "
+            "o relatório de visitas."
+        )
+
+    return (
         RondaVisita.objects
         .select_related("escola", "missao_cartao")
         .order_by("-data_visita", "-horario", "-pk")
-    )
-
-    if request.user.is_superuser:
-        return visitas
-
-    if perfil in ("ADMIN", "COORDENADOR"):
-        return visitas
-
-    if perfil == "GCM":
-
-        if usuario is None:
-            raise PermissionDenied(
-                "Não foi possível identificar o GCM autenticado."
-            )
-
-        viaturas = (
-            EfetivoViatura.objects
-            .filter(gcm=usuario)
-            .values_list("viatura_id", flat=True)
-        )
-
-        return visitas.filter(
-            missao_cartao__viatura_id__in=viaturas
-        )
-
-    raise PermissionDenied(
-        "Você não possui permissão para consultar "
-        "o relatório de visitas."
     )
 
 
@@ -240,40 +228,11 @@ def _consultar_visitas(request):
 
 
 def _escolas_disponiveis(request, polo=""):
-    """
-    Escolas apresentadas no filtro.
-    """
-
+    """Lista escolas ativas para os filtros dos perfis autorizados."""
+    _autorizar_relatorios(request)
     escolas = Escola.objects.filter(ativa=True)
-
     if polo:
         escolas = escolas.filter(polo=polo)
-
-    if _perfil_usuario(request) == "GCM":
-
-        usuario = _usuario_recom(request)
-
-        if usuario is None:
-            return escolas.none()
-
-        viaturas = (
-            EfetivoViatura.objects
-            .filter(gcm=usuario)
-            .values_list("viatura_id", flat=True)
-        )
-
-        escolas_ids = (
-            RondaVisita.objects
-            .filter(
-                missao_cartao__viatura_id__in=viaturas
-            )
-            .values_list("escola_id", flat=True)
-        )
-
-        escolas = escolas.filter(
-            pk__in=escolas_ids
-        )
-
     return escolas.order_by("nome")
 
 
@@ -284,9 +243,7 @@ def _escolas_disponiveis(request, polo=""):
 @login_required
 def relatorios(request):
 
-    # O GCM acessa diretamente o relatório de visitas.
-    if _perfil_usuario(request) == "GCM":
-        return relatorio_visitas(request)
+    _autorizar_relatorios(request)
 
     # Indicadores gerais
     total_usuarios = Usuario.objects.count()
@@ -374,6 +331,8 @@ def relatorios(request):
 
 @login_required
 def relatorio_problematicas(request):
+
+    _autorizar_relatorios(request)
 
     problematicas = (
         EscolaProblematica.objects
