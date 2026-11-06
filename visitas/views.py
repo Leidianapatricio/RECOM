@@ -475,7 +475,27 @@ def editar_visita(request, pk):
             usuario_logado=request.user,
         )
 
-        if form.is_valid():
+        # Os dois campos devem ser enviados pelo HTML, mesmo vazios.
+        # Sem essa proteção, um template incompleto pode apagar dados
+        # existentes e ainda exibir uma mensagem de sucesso.
+        campos_ausentes = [
+            campo
+            for campo in ("relato", "orientacoes")
+            if campo not in request.POST
+        ]
+
+        formulario_valido = form.is_valid()
+
+        if campos_ausentes:
+            form.add_error(
+                None,
+                "Não foi possível salvar: o formulário não enviou "
+                "os campos Relato e/ou Providências. "
+                "Atualize a página e tente novamente.",
+            )
+            formulario_valido = False
+
+        if formulario_valido:
 
             try:
 
@@ -524,12 +544,20 @@ def editar_visita(request, pk):
                             "já registrada."
                         )
 
-                    # Atualiza a instância bloqueada.
-                    form.instance = visita
+                    # O ModelForm aplicou cleaned_data à instância usada
+                    # durante is_valid(). Como buscamos outra instância
+                    # com select_for_update(), precisamos aplicar os dados
+                    # validados novamente antes de salvar.
+                    for campo in form._meta.fields:
+                        if campo in form.cleaned_data:
+                            setattr(
+                                visita,
+                                campo,
+                                form.cleaned_data[campo],
+                            )
 
-                    atualizada = form.save(
-                        commit=False
-                    )
+                    form.instance = visita
+                    atualizada = form.save(commit=False)
 
                     # Preserva a missão original.
                     atualizada.missao_cartao = missao
@@ -556,6 +584,7 @@ def editar_visita(request, pk):
                             )
 
                     atualizada.full_clean()
+
                     atualizada.save()
 
                     if (
