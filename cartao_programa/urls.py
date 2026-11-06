@@ -238,9 +238,9 @@ urlpatterns = [
     ),
     
     path(
-    "cartoes/<int:pk>/excluir/",
-    views.excluir_cartao,
-    name="excluir_cartao"
+        "cartoes/<int:pk>/excluir/",
+        views.excluir_cartao,
+        name="excluir_cartao"
     ),
 
 ]

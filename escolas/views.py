@@ -9,6 +9,12 @@ from usuarios.models import Usuario
 
 from .forms import EscolaForm, EscolaProblematicaForm
 from .models import Escola, EscolaProblematica
+from visitas.permissoes import (
+    gestor_de_visitas,
+    pode_editar_visita,
+    pode_excluir_visita,
+    usuario_recom_ativo,
+)
 
 
 # =========================================================
@@ -202,46 +208,77 @@ def cadastrar_escola(request):
 @login_required
 def detalhe_escola(request, pk):
 
+    # =====================================================
+    # IDENTIFICAR ESCOLA
+    # =====================================================
+
     escola = get_object_or_404(
         Escola,
         pk=pk
     )
 
-    # ==========================================
-    # IDENTIFICAR PERMISSÕES
-    # ==========================================
+    # =====================================================
+    # IDENTIFICAR USUÁRIO E PERMISSÕES
+    # =====================================================
 
-    usuario, pode_excluir_todas = (
-        obter_permissoes_visitas(request)
+    usuario = usuario_recom_ativo(request)
+
+    pode_excluir_todas = gestor_de_visitas(
+        request,
+        usuario
     )
 
-    # ==========================================
+    # =====================================================
     # HISTÓRICO DE VISITAS
-    # ==========================================
+    # =====================================================
 
     visitas = list(
         escola.visitas.select_related(
-            "registrado_por"
+            "registrado_por",
+            "missao_cartao",
+            "missao_cartao__cartao__plantao",
+            "missao_cartao__viatura__plantao",
         ).order_by(
             "-data_visita",
             "-horario"
         )
     )
 
-    # ==========================================
-    # PERMISSÕES INDIVIDUAIS
-    # ==========================================
+    # =====================================================
+    # PERMISSÕES INDIVIDUAIS DE CADA VISITA
+    # =====================================================
 
     for visita in visitas:
 
-        visita.pode_excluir = (
-            pode_excluir_todas
-            or (
-                usuario is not None
-                and usuario.perfil == "GCM"
-                and visita.registrado_por_id == usuario.pk
-            )
+        # ADMIN e COORDENADOR:
+        # Podem excluir qualquer visita.
+        #
+        # GCM:
+        # Pode excluir visitas antigas sem responsável
+        # ou visitas da equipe em que estava escalado.
+
+        visita.pode_excluir = pode_excluir_visita(
+            request,
+            visita,
+            usuario
         )
+
+        # ADMIN e COORDENADOR:
+        # Podem editar qualquer visita.
+        #
+        # GCM:
+        # Pode editar visitas da equipe escalada,
+        # inclusive na função de motorista.
+
+        visita.pode_editar = pode_editar_visita(
+            request,
+            visita,
+            usuario
+        )
+
+    # =====================================================
+    # CONTEXTO
+    # =====================================================
 
     contexto = {
         "escola": escola,
@@ -250,12 +287,15 @@ def detalhe_escola(request, pk):
         "pode_excluir_todas_visitas": pode_excluir_todas,
     }
 
+    # =====================================================
+    # RENDERIZAR PÁGINA
+    # =====================================================
+
     return render(
         request,
         "escolas/detalhe_escola.html",
         contexto
     )
-
 
 # =========================================================
 # CADASTRAR PROBLEMÁTICA

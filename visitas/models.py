@@ -76,6 +76,24 @@ class RondaVisita(models.Model):
     )
 
     # ==========================================
+    # VIATURA DO PLANTÃO
+    # ==========================================
+
+    viatura = models.ForeignKey(
+        "cartao_programa.ViaturaPlantao",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="visitas",
+        verbose_name="Viatura do plantão",
+        help_text=(
+            "Viatura responsável pela visita. "
+            "Nas visitas programadas, será definida "
+            "automaticamente pela missão."
+        ),
+    )
+
+    # ==========================================
     # RESPONSÁVEL PELO REGISTRO
     # ==========================================
 
@@ -206,9 +224,7 @@ class RondaVisita(models.Model):
 
             missao = self.missao_cartao
 
-            # Verifica se a missão possui escola.
             if not missao.escola_id:
-
                 erros["missao_cartao"] = (
                     "Esta missão não possui escola vinculada "
                     "para registro de visita."
@@ -218,21 +234,17 @@ class RondaVisita(models.Model):
                 self.escola_id
                 and self.escola_id != missao.escola_id
             ):
-
                 erros["escola"] = (
                     "A escola selecionada deve ser a mesma "
                     "escola da missão do Cartão Programa."
                 )
 
-            # Impede visitas em missões não realizadas.
             if missao.status_execucao == "NAO_REALIZADA":
-
                 erros["missao_cartao"] = (
                     "Esta missão foi marcada como não realizada. "
                     "Não é permitido registrar uma visita."
                 )
 
-            # Impede duplicidade de visita na missão.
             visita_existente = (
                 RondaVisita.objects.filter(
                     missao_cartao_id=self.missao_cartao_id
@@ -242,11 +254,40 @@ class RondaVisita(models.Model):
             )
 
             if visita_existente:
-
                 erros["missao_cartao"] = (
                     "Esta missão já possui uma visita registrada. "
                     "Consulte o Cartão Programa para visualizar "
                     "o registro realizado pela equipe."
+                )
+
+            # A viatura deve corresponder à missão.
+            if (
+                self.viatura_id
+                and self.viatura_id != missao.viatura_id
+            ):
+                erros["viatura"] = (
+                    "A viatura da visita deve ser a mesma "
+                    "viatura vinculada à missão."
+                )
+
+            # A data deve corresponder ao plantão.
+            if (
+                self.data_visita
+                and self.data_visita
+                != missao.viatura.plantao.data
+            ):
+                erros["data_visita"] = (
+                    "A data da visita deve corresponder "
+                    "à data do plantão da missão."
+                )
+
+        # Validação para qualquer visita com viatura.
+        if self.viatura_id and self.data_visita:
+
+            if self.data_visita != self.viatura.plantao.data:
+                erros["data_visita"] = (
+                    "A data da visita deve corresponder "
+                    "à data do plantão da viatura."
                 )
 
         if erros:

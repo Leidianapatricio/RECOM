@@ -117,15 +117,11 @@ Detalhes da Escola
 
                 <div class="col-md-8 mb-3">
                     <strong>Endereço</strong>
-
-                    <div>
-                        {{ escola.endereco }}
-                    </div>
+                    <div>{{ escola.endereco }}</div>
                 </div>
 
                 <div class="col-md-4 mb-3">
                     <strong>Bairro</strong>
-
                     <div>
                         {{ escola.bairro|default:"Não informado" }}
                     </div>
@@ -133,17 +129,13 @@ Detalhes da Escola
 
                 <div class="col-md-4 mb-3">
                     <strong>Polo</strong>
-
-                    <div>
-                        {{ escola.polo }}
-                    </div>
+                    <div>{{ escola.polo }}</div>
                 </div>
 
                 <div class="col-md-4 mb-3">
                     <strong>Situação</strong>
 
                     <div>
-
                         {% if escola.ativa %}
 
                             <span class="badge bg-success">
@@ -157,14 +149,11 @@ Detalhes da Escola
                             </span>
 
                         {% endif %}
-
                     </div>
-
                 </div>
 
                 <div class="col-md-8 mb-3">
                     <strong>Gestor</strong>
-
                     <div>
                         {{ escola.gestor|default:"Não informado" }}
                     </div>
@@ -172,7 +161,6 @@ Detalhes da Escola
 
                 <div class="col-md-4 mb-3">
                     <strong>Telefone</strong>
-
                     <div>
                         {{ escola.telefone|default:"Não informado" }}
                     </div>
@@ -182,7 +170,6 @@ Detalhes da Escola
                     <strong>Monitoramento</strong>
 
                     <div>
-
                         {% if escola.monitoramento %}
 
                             <span class="badge bg-success">
@@ -196,16 +183,13 @@ Detalhes da Escola
                             </span>
 
                         {% endif %}
-
                     </div>
-
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <strong>Botão do Pânico</strong>
 
                     <div>
-
                         {% if escola.botao_panico %}
 
                             <span class="badge bg-success">
@@ -219,14 +203,11 @@ Detalhes da Escola
                             </span>
 
                         {% endif %}
-
                     </div>
-
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <strong>Quantidade de alunos</strong>
-
                     <div>
                         {{ escola.quantidade_alunos }}
                     </div>
@@ -234,7 +215,6 @@ Detalhes da Escola
 
                 <div class="col-md-6 mb-3">
                     <strong>Alunos PCD</strong>
-
                     <div>
                         {{ escola.quantidade_alunos_pcd }}
                     </div>
@@ -242,7 +222,6 @@ Detalhes da Escola
 
                 <div class="col-md-12 mb-3">
                     <strong>Modalidade</strong>
-
                     <div>
                         {{ escola.modalidade|default:"Não informada" }}
                     </div>
@@ -250,7 +229,6 @@ Detalhes da Escola
 
                 <div class="col-md-12">
                     <strong>Observações</strong>
-
                     <div>
                         {{ escola.observacoes|default:"Nenhuma observação." }}
                     </div>
@@ -270,10 +248,7 @@ Detalhes da Escola
     <div class="card shadow-sm mt-4">
 
         <div class="card-header d-flex justify-content-between align-items-center">
-
-            <strong>
-                Problemáticas da Escola
-            </strong>
+            <strong>Problemáticas da Escola</strong>
 
             {% if escola.ativa %}
 
@@ -286,7 +261,6 @@ Detalhes da Escola
                 </a>
 
             {% endif %}
-
         </div>
 
         <div class="card-body">
@@ -298,35 +272,14 @@ Detalhes da Escola
                     <table class="table table-hover align-middle mb-0">
 
                         <thead>
-
                             <tr>
-
-                                <th>
-                                    Problemática
-                                </th>
-
-                                <th>
-                                    Situação
-                                </th>
-
-                                <th>
-                                    Data de Início
-                                </th>
-
-                                <th>
-                                    Última Atualização
-                                </th>
-
-                                <th>
-                                    Observações
-                                </th>
-
-                                <th class="text-center">
-                                    Ações
-                                </th>
-
+                                <th>Problemática</th>
+                                <th>Situação</th>
+                                <th>Data de Início</th>
+                                <th>Última Atualização</th>
+                                <th>Observações</th>
+                                <th class="text-center">Ações</th>
                             </tr>
-
                         </thead>
 
                         <tbody>
@@ -336,15 +289,12 @@ Detalhes da Escola
                                 <tr>
 
                                     <td>
-
                                         <strong>
                                             {{ problematica.tipo_problematica.nome }}
                                         </strong>
-
                                     </td>
 
                                     <td>
-
                                         {% if problematica.situacao == "ATIVA" %}
 
                                             <span class="badge bg-danger">
@@ -368,7 +318,6 @@ Detalhes da Escola
                                             {{ problematica.get_situacao_display }}
 
                                         {% endif %}
-
                                     </td>
 
                                     <td class="text-nowrap">
@@ -410,7 +359,6 @@ Detalhes da Escola
                                                     <i class="bi bi-trash me-1"></i>
                                                     Excluir
                                                 </button>
-
                                             </form>
 
                                         </div>
@@ -464,9 +412,7 @@ Detalhes da Escola
 
         <div class="card-header d-flex justify-content-between align-items-center">
 
-            <strong>
-                Histórico de Visitas
-            </strong>
+            <strong>Histórico de Visitas</strong>
 
             {% if escola.ativa %}
 
@@ -491,9 +437,7 @@ Detalhes da Escola
                     <table class="table table-hover align-middle mb-0">
 
                         <thead>
-
                             <tr>
-
                                 <th>Data</th>
                                 <th>Horário</th>
                                 <th>Equipe</th>
@@ -502,9 +446,7 @@ Detalhes da Escola
                                 <th>Relato</th>
                                 <th>Providências</th>
                                 <th class="text-center">Ações</th>
-
                             </tr>
-
                         </thead>
 
                         <tbody>
@@ -522,11 +464,9 @@ Detalhes da Escola
                                     </td>
 
                                     <td class="text-nowrap">
-
                                         <span class="badge bg-primary">
                                             {{ visita.get_equipe_display }}
                                         </span>
-
                                     </td>
 
                                     <td>
@@ -534,7 +474,6 @@ Detalhes da Escola
                                     </td>
 
                                     <td>
-
                                         {% if visita.situacao == "SEM_ALTERACAO" %}
 
                                             <span class="badge bg-success">
@@ -552,7 +491,6 @@ Detalhes da Escola
                                             {{ visita.get_situacao_display }}
 
                                         {% endif %}
-
                                     </td>
 
                                     <td>
@@ -563,22 +501,29 @@ Detalhes da Escola
                                         {{ visita.orientacoes|default:"-" }}
                                     </td>
 
+                                    <!-- ====================================== -->
+                                    <!-- AÇÕES COM CONTROLE DE PERMISSÃO -->
+                                    <!-- ====================================== -->
+
                                     <td class="text-center text-nowrap">
 
                                         <div class="d-flex justify-content-center gap-2">
 
                                             <!-- EDITAR VISITA -->
 
-                                            <a
-                                                href="{% url 'visitas:editar_visita' visita.pk %}"
-                                                class="btn btn-sm btn-outline-primary"
-                                            >
-                                                <i class="bi bi-pencil-square me-1"></i>
-                                                Editar
-                                            </a>
+                                            {% if visita.pode_editar %}
+
+                                                <a
+                                                    href="{% url 'visitas:editar_visita' visita.pk %}"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                >
+                                                    <i class="bi bi-pencil-square me-1"></i>
+                                                    Editar
+                                                </a>
+
+                                            {% endif %}
 
                                             <!-- EXCLUIR VISITA -->
-                                            <!-- Permissão definida em escolas/views.py -->
 
                                             {% if visita.pode_excluir %}
 
@@ -597,8 +542,17 @@ Detalhes da Escola
                                                         <i class="bi bi-trash me-1"></i>
                                                         Excluir
                                                     </button>
-
                                                 </form>
+
+                                            {% endif %}
+
+                                            <!-- SEM PERMISSÃO -->
+
+                                            {% if not visita.pode_editar and not visita.pode_excluir %}
+
+                                                <span class="text-muted small">
+                                                    Sem permissão
+                                                </span>
 
                                             {% endif %}
 

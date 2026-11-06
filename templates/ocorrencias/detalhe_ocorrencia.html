@@ -1,0 +1,490 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Detalhes da Ocorrência | RECOM
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet"
+      href="{% static 'css/detalhe_ocorrencia.css' %}">
+
+<div class="container py-4 ocorrencia-detalhe">
+
+    <!-- CABEÇALHO -->
+
+    <div class="detalhe-cabecalho mb-4">
+
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-exclamation-octagon me-2"></i>
+                Detalhes da Ocorrência
+            </h2>
+
+            <p class="mb-0">
+                Registro nº {{ ocorrencia.pk }}
+            </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a href="{% url 'ocorrencias:listar_ocorrencias' %}"
+               class="btn btn-voltar">
+                <i class="bi bi-arrow-left me-1"></i>
+                Voltar
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- INFORMAÇÕES GERAIS -->
+
+    <div class="card detalhe-card mb-4">
+
+        <div class="card-header">
+            <i class="bi bi-info-circle me-2"></i>
+            Informações Gerais
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-4">
+
+                <div class="col-md-3">
+                    <span class="campo-label">Data</span>
+                    <div class="campo-valor">
+                        {{ ocorrencia.data|date:"d/m/Y" }}
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <span class="campo-label">Horário</span>
+                    <div class="campo-valor">
+                        {{ ocorrencia.horario|time:"H:i" }}
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <span class="campo-label">Categoria</span>
+                    <div class="campo-valor">
+                        {{ ocorrencia.get_categoria_display|default:"Não informada" }}
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <span class="campo-label">Tipo de ocorrência</span>
+                    <div class="campo-valor">
+                        {{ ocorrencia.get_tipo_ocorrencia_display|default:"Não informado" }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <span class="campo-label">Local</span>
+                    <div class="campo-valor">
+                        {{ ocorrencia.local|default:"Não informado" }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <span class="campo-label">Bairro</span>
+                    <div class="campo-valor">
+                        {{ ocorrencia.bairro|default:"Não informado" }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <span class="campo-label">Natureza da atuação</span>
+                    <div class="campo-valor">
+                        {{ ocorrencia.get_natureza_atuacao_display }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <span class="campo-label">Acionamento CICC</span>
+                    <div class="campo-valor">
+                        {{ ocorrencia.acionamento_cicc|yesno:"Sim,Não" }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <span class="campo-label">Possui vítima</span>
+                    <div class="campo-valor">
+                        {{ ocorrencia.possui_vitima|yesno:"Sim,Não" }}
+                    </div>
+                </div>
+
+                {% if ocorrencia.equipe_apoiada %}
+
+                <div class="col-md-6">
+                    <span class="campo-label">Equipe apoiada</span>
+                    <div class="campo-valor">
+                        {{ ocorrencia.equipe_apoiada }}
+                    </div>
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- VIATURA E EFETIVO -->
+
+    <div class="card detalhe-card mb-4">
+
+        <div class="card-header">
+            <i class="bi bi-truck me-2"></i>
+            Viatura e Efetivo
+        </div>
+
+        <div class="card-body">
+
+            {% if ocorrencia.viatura %}
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-4">
+                        <span class="campo-label">Viatura</span>
+                        <div class="campo-valor">
+                            {{ ocorrencia.viatura.identificacao }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <span class="campo-label">Equipe</span>
+                        <div class="campo-valor">
+                            {% if ocorrencia.viatura.equipe %}
+                                {{ ocorrencia.viatura.equipe.nome }}
+                            {% else %}
+                                Extraordinária
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <span class="campo-label">Plantão</span>
+                        <div class="campo-valor">
+                            {{ ocorrencia.viatura.plantao.data|date:"d/m/Y" }}
+                        </div>
+                    </div>
+
+                </div>
+
+                <h6 class="secao-subtitulo">
+                    Efetivo escalado
+                </h6>
+
+                {% with integrantes=ocorrencia.viatura.efetivo.all %}
+
+                    {% if integrantes %}
+
+                        <div class="table-responsive">
+
+                            <table class="table table-bordered align-middle">
+
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>GCM</th>
+                                        <th>Função</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    {% for integrante in integrantes %}
+
+                                        <tr>
+                                            <td>
+                                                {{ integrante.gcm.nome }}
+                                            </td>
+                                            <td>
+                                                {{ integrante.get_funcao_display }}
+                                            </td>
+                                        </tr>
+
+                                    {% endfor %}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    {% else %}
+
+                        <p class="text-muted mb-0">
+                            Nenhum integrante encontrado.
+                        </p>
+
+                    {% endif %}
+
+                {% endwith %}
+
+            {% else %}
+
+                <p class="text-muted mb-0">
+                    Esta ocorrência não possui viatura vinculada.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- PESSOAS ENVOLVIDAS -->
+
+    <div class="card detalhe-card mb-4">
+
+        <div class="card-header">
+            <i class="bi bi-people me-2"></i>
+            Pessoas Envolvidas
+        </div>
+
+        <div class="card-body">
+
+            {% with pessoas=ocorrencia.pessoas_envolvidas.all %}
+
+                {% if pessoas %}
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered align-middle">
+
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Informações</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for pessoa in pessoas %}
+
+                                    <tr>
+
+                                        <td>
+                                            {{ pessoa.nome|default:"Não informado" }}
+                                        </td>
+
+                                        <td>
+                                            {% for campo, valor in pessoa.dados_exibicao %}
+                                                <div>
+                                                    <strong>{{ campo }}:</strong>
+                                                    {{ valor }}
+                                                </div>
+                                            {% empty %}
+                                                <span class="text-muted">
+                                                    Sem informações adicionais.
+                                                </span>
+                                            {% endfor %}
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <p class="text-muted mb-0">
+                        Nenhuma pessoa envolvida cadastrada.
+                    </p>
+
+                {% endif %}
+
+            {% endwith %}
+
+        </div>
+
+    </div>
+
+
+    <!-- VEÍCULOS ENVOLVIDOS -->
+
+    <div class="card detalhe-card mb-4">
+
+        <div class="card-header">
+            <i class="bi bi-car-front me-2"></i>
+            Veículos Envolvidos
+        </div>
+
+        <div class="card-body">
+
+            {% with veiculos=ocorrencia.veiculos_envolvidos.all %}
+
+                {% if veiculos %}
+
+                    <div class="table-responsive">
+
+                        <table class="table table-bordered align-middle">
+
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Placa</th>
+                                    <th>Informações</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for veiculo in veiculos %}
+
+                                    <tr>
+
+                                        <td>
+                                            {{ veiculo.placa|default:"Não informada" }}
+                                        </td>
+
+                                        <td>
+                                            {% for campo, valor in veiculo.dados_exibicao %}
+                                                <div>
+                                                    <strong>{{ campo }}:</strong>
+                                                    {{ valor }}
+                                                </div>
+                                            {% empty %}
+                                                <span class="text-muted">
+                                                    Sem informações adicionais.
+                                                </span>
+                                            {% endfor %}
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <p class="text-muted mb-0">
+                        Nenhum veículo envolvido cadastrado.
+                    </p>
+
+                {% endif %}
+
+            {% endwith %}
+
+        </div>
+
+    </div>
+
+
+    <!-- RELATO -->
+
+    <div class="card detalhe-card mb-4">
+
+        <div class="card-header">
+            <i class="bi bi-journal-text me-2"></i>
+            Relato da Ocorrência
+        </div>
+
+        <div class="card-body">
+
+            <div class="texto-registro">
+                {{ ocorrencia.relato|default:"Nenhum relato informado."|linebreaksbr }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- PROVIDÊNCIAS -->
+
+    <div class="card detalhe-card mb-4">
+
+        <div class="card-header">
+            <i class="bi bi-clipboard-check me-2"></i>
+            Providências Adotadas
+        </div>
+
+        <div class="card-body">
+
+            <div class="texto-registro">
+                {{ ocorrencia.providencias|default:"Nenhuma providência informada."|linebreaksbr }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ÓRGÃOS ACIONADOS -->
+
+    <div class="card detalhe-card mb-4">
+
+        <div class="card-header">
+            <i class="bi bi-telephone-forward me-2"></i>
+            Órgãos Acionados
+        </div>
+
+        <div class="card-body">
+
+            <div class="texto-registro">
+                {{ ocorrencia.orgaos_acionados|default:"Nenhum órgão informado."|linebreaksbr }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- RESPONSÁVEL -->
+
+    <div class="card detalhe-card mb-4">
+
+        <div class="card-header">
+            <i class="bi bi-person-check me-2"></i>
+            Informações do Registro
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <span class="campo-label">Registrado por</span>
+                    <div class="campo-valor">
+                        {% if ocorrencia.registrado_por %}
+                            {{ ocorrencia.registrado_por.nome|default:ocorrencia.registrado_por }}
+                        {% else %}
+                            Não informado
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <span class="campo-label">Número do registro</span>
+                    <div class="campo-valor">
+                        #{{ ocorrencia.pk }}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

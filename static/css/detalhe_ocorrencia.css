@@ -1,0 +1,140 @@
+
+/* ==========================================
+   RECOM - DETALHES DA OCORRÊNCIA
+========================================== */
+
+.ocorrencia-detalhe {
+    max-width: 1400px;
+}
+
+/* CABEÇALHO */
+
+.detalhe-cabecalho {
+    background: #092B49;
+    color: #ffffff;
+    padding: 24px;
+    border-radius: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.detalhe-cabecalho h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.detalhe-cabecalho p {
+    color: #D9E4ED;
+}
+
+.btn-voltar {
+    background: #ffffff;
+    color: #092B49;
+    border: 1px solid #ffffff;
+    font-weight: 600;
+}
+
+.btn-voltar:hover {
+    background: #f0f3f6;
+    color: #092B49;
+}
+
+/* CARDS */
+
+.detalhe-card {
+    border: 1px solid #e0e6ec;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: none;
+}
+
+.detalhe-card .card-header {
+    background: #ffffff;
+    color: #092B49;
+    border-bottom: 1px solid #e0e6ec;
+    padding: 17px 20px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.detalhe-card .card-body {
+    padding: 22px;
+}
+
+/* CAMPOS */
+
+.campo-label {
+    display: block;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: #697989;
+    margin-bottom: 5px;
+}
+
+.campo-valor {
+    color: #253e54;
+    font-size: 0.96rem;
+    overflow-wrap: anywhere;
+}
+
+/* SUBTÍTULOS */
+
+.secao-subtitulo {
+    color: #092B49;
+    font-weight: 700;
+    border-bottom: 2px solid #C59028;
+    padding-bottom: 9px;
+    margin-bottom: 16px;
+}
+
+/* TABELAS */
+
+.detalhe-card .table {
+    font-size: 0.9rem;
+}
+
+.detalhe-card .table th {
+    color: #092B49;
+    font-weight: 700;
+}
+
+.detalhe-card .table td {
+    color: #34475A;
+}
+
+/* TEXTOS */
+
+.texto-registro {
+    background: #F7F9FB;
+    border: 1px solid #E5EAF0;
+    border-radius: 7px;
+    padding: 18px;
+    color: #34475A;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 768px) {
+
+    .detalhe-cabecalho {
+        padding: 18px;
+    }
+
+    .detalhe-cabecalho h2 {
+        font-size: 1.25rem;
+    }
+
+    .detalhe-card .card-body {
+        padding: 16px;
+    }
+
+    .btn-voltar {
+        width: 100%;
+    }
+}

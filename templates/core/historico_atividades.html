@@ -1,0 +1,840 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Histórico de Atividades | RECOM
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet"
+      href="{% static 'css/historico_atividades.css' %}">
+
+<div class="container-fluid py-4 historico-container">
+
+    <!-- ========================================= -->
+    <!-- CABEÇALHO -->
+    <!-- ========================================= -->
+
+    <div class="historico-cabecalho mb-4">
+
+        <div>
+            <h2 class="historico-titulo mb-1">
+                <i class="bi bi-clock-history me-2"></i>
+                Histórico de Atividades
+            </h2>
+
+            <p class="historico-subtitulo mb-0">
+                Consulte visitas, ocorrências e missões
+                não realizadas pelas equipes da RECOM.
+            </p>
+        </div>
+
+        <div class="historico-exportacoes">
+
+            <a href="{% url 'core:exportar_historico_pdf' %}?{{ request.GET.urlencode }}"
+               class="btn btn-exportar-pdf">
+
+                <i class="bi bi-file-earmark-pdf me-1"></i>
+                Exportar PDF
+            </a>
+
+            <a href="{% url 'core:exportar_historico_csv' %}?{{ request.GET.urlencode }}"
+               class="btn btn-exportar-csv">
+
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i>
+                Exportar CSV
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- INDICADORES -->
+    <!-- ========================================= -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="historico-indicador">
+
+                <div class="indicador-icone icone-total">
+                    <i class="bi bi-list-check"></i>
+                </div>
+
+                <div>
+                    <span class="indicador-label">
+                        Total de atividades
+                    </span>
+
+                    <h3 class="indicador-numero">
+                        {{ total_atividades }}
+                    </h3>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="historico-indicador">
+
+                <div class="indicador-icone icone-visitas">
+                    <i class="bi bi-building-check"></i>
+                </div>
+
+                <div>
+                    <span class="indicador-label">
+                        Visitas realizadas
+                    </span>
+
+                    <h3 class="indicador-numero">
+                        {{ total_visitas }}
+                    </h3>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="historico-indicador">
+
+                <div class="indicador-icone icone-ocorrencias">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+
+                <div>
+                    <span class="indicador-label">
+                        Ocorrências
+                    </span>
+
+                    <h3 class="indicador-numero">
+                        {{ total_ocorrencias }}
+                    </h3>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="historico-indicador">
+
+                <div class="indicador-icone icone-pendencias">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+
+                <div>
+                    <span class="indicador-label">
+                        Missões não realizadas
+                    </span>
+
+                    <h3 class="indicador-numero">
+                        {{ total_nao_realizadas }}
+                    </h3>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- FILTROS -->
+    <!-- ========================================= -->
+
+    <div class="card historico-card mb-4">
+
+        <div class="card-header historico-card-header">
+
+            <h5 class="mb-0">
+                <i class="bi bi-funnel me-2"></i>
+                Filtrar atividades
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="get"
+                  action="{% url 'core:historico_atividades' %}">
+
+                <div class="row g-3">
+
+                    <!-- DATA INICIAL -->
+
+                    <div class="col-12 col-md-6 col-xl-2">
+
+                        <label for="data_inicio"
+                               class="form-label">
+                            Data inicial
+                        </label>
+
+                        <input type="date"
+                               id="data_inicio"
+                               name="data_inicio"
+                               class="form-control"
+                               value="{{ filtros.data_inicio }}">
+
+                    </div>
+
+
+                    <!-- DATA FINAL -->
+
+                    <div class="col-12 col-md-6 col-xl-2">
+
+                        <label for="data_fim"
+                               class="form-label">
+                            Data final
+                        </label>
+
+                        <input type="date"
+                               id="data_fim"
+                               name="data_fim"
+                               class="form-control"
+                               value="{{ filtros.data_fim }}">
+
+                    </div>
+
+
+                    <!-- EQUIPE -->
+
+                    <div class="col-12 col-md-6 col-xl-2">
+
+                        <label for="equipe"
+                               class="form-label">
+                            Equipe
+                        </label>
+
+                        <select name="equipe"
+                                id="equipe"
+                                class="form-select">
+
+                            <option value="">
+                                Todas
+                            </option>
+
+                            {% for equipe in equipes %}
+
+                                <option value="{{ equipe.pk }}"
+                                    {% if filtros.equipe == equipe.pk|stringformat:"s" %}
+                                        selected
+                                    {% endif %}>
+
+                                    {{ equipe.nome }}
+
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- VIATURA -->
+
+                    <div class="col-12 col-md-6 col-xl-3">
+
+                        <label for="viatura"
+                               class="form-label">
+                            Viatura
+                        </label>
+
+                        <select name="viatura"
+                                id="viatura"
+                                class="form-select">
+
+                            <option value="">
+                                Todas as viaturas
+                            </option>
+
+                            {% for viatura in viaturas %}
+
+                                <option value="{{ viatura.pk }}"
+                                    {% if filtros.viatura == viatura.pk|stringformat:"s" %}
+                                        selected
+                                    {% endif %}>
+
+                                    {{ viatura.identificacao }}
+                                    - {{ viatura.plantao.data|date:"d/m/Y" }}
+
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- TIPO DE ATIVIDADE -->
+
+                    <div class="col-12 col-md-6 col-xl-3">
+
+                        <label for="tipo"
+                               class="form-label">
+                            Tipo de atividade
+                        </label>
+
+                        <select name="tipo"
+                                id="tipo"
+                                class="form-select">
+
+                            <option value="">
+                                Todas as atividades
+                            </option>
+
+                            <option value="VISITA_PROGRAMADA"
+                                {% if filtros.tipo == "VISITA_PROGRAMADA" %}
+                                    selected
+                                {% endif %}>
+                                Visita programada
+                            </option>
+
+                            <option value="VISITA_AVULSA"
+                                {% if filtros.tipo == "VISITA_AVULSA" %}
+                                    selected
+                                {% endif %}>
+                                Visita avulsa
+                            </option>
+
+                            <option value="OCORRENCIA"
+                                {% if filtros.tipo == "OCORRENCIA" %}
+                                    selected
+                                {% endif %}>
+                                Ocorrência
+                            </option>
+
+                            <option value="MISSAO_NAO_REALIZADA"
+                                {% if filtros.tipo == "MISSAO_NAO_REALIZADA" %}
+                                    selected
+                                {% endif %}>
+                                Missão não realizada
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <!-- BOTÕES DOS FILTROS -->
+
+                <div class="d-flex flex-wrap gap-2 mt-4">
+
+                    <button type="submit"
+                            class="btn btn-filtrar">
+
+                        <i class="bi bi-search me-1"></i>
+                        Aplicar filtros
+
+                    </button>
+
+                    <a href="{% url 'core:historico_atividades' %}"
+                       class="btn btn-limpar">
+
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Limpar filtros
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- LISTAGEM -->
+    <!-- ========================================= -->
+
+    <div class="card historico-card">
+
+        <div class="card-header historico-card-header
+                    d-flex justify-content-between
+                    align-items-center flex-wrap gap-2">
+
+            <h5 class="mb-0">
+                <i class="bi bi-card-list me-2"></i>
+                Registros encontrados
+            </h5>
+
+            <span class="historico-contador">
+                {{ total_atividades }} registro(s)
+            </span>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            {% if page_obj %}
+
+                <div class="table-responsive">
+
+                    <table class="table historico-tabela
+                                  align-middle mb-0">
+
+                        <thead>
+
+                            <tr>
+                                <th>Data / Hora</th>
+                                <th>Atividade</th>
+                                <th>Local</th>
+                                <th>Equipe</th>
+                                <th>Viatura</th>
+                                <th>Responsável</th>
+                                <th class="text-center">
+                                    Detalhes
+                                </th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for atividade in page_obj %}
+
+                                <tr>
+
+                                    <!-- DATA -->
+
+                                    <td class="historico-data">
+
+                                        <strong>
+                                            {{ atividade.data|date:"d/m/Y" }}
+                                        </strong>
+
+                                        <small class="d-block text-muted">
+                                            {{ atividade.horario|time:"H:i"|default:"--:--" }}
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- ATIVIDADE -->
+
+                                    <td>
+
+                                        {% if atividade.tipo == "VISITA_PROGRAMADA" %}
+
+                                            <span class="badge badge-visita">
+                                                <i class="bi bi-calendar-check me-1"></i>
+                                                Visita programada
+                                            </span>
+
+                                        {% elif atividade.tipo == "VISITA_AVULSA" %}
+
+                                            <span class="badge badge-avulsa">
+                                                <i class="bi bi-building me-1"></i>
+                                                Visita avulsa
+                                            </span>
+
+                                        {% elif atividade.tipo == "OCORRENCIA" %}
+
+                                            <span class="badge badge-ocorrencia">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                                Ocorrência
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge badge-nao-realizada">
+                                                <i class="bi bi-x-circle me-1"></i>
+                                                Não realizada
+                                            </span>
+
+                                        {% endif %}
+
+                                        <small class="d-block mt-1 text-muted">
+                                            {{ atividade.descricao }}
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- LOCAL -->
+
+                                    <td>
+                                        {{ atividade.local|default:"-" }}
+                                    </td>
+
+
+                                    <!-- EQUIPE -->
+
+                                    <td>
+                                        {{ atividade.equipe }}
+                                    </td>
+
+
+                                    <!-- VIATURA -->
+
+                                    <td>
+                                        {{ atividade.viatura }}
+                                    </td>
+
+
+                                    <!-- RESPONSÁVEL -->
+
+                                    <td>
+                                        {{ atividade.responsavel }}
+                                    </td>
+
+
+                                    <!-- DETALHES -->
+
+                                    <td class="text-center">
+
+                                        <button type="button"
+                                                class="btn btn-detalhes"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalAtividade{{ forloop.counter }}">
+
+                                            <i class="bi bi-eye"></i>
+                                            <span class="visually-hidden">
+                                                Visualizar detalhes
+                                            </span>
+
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="historico-vazio">
+
+                    <i class="bi bi-inbox"></i>
+
+                    <h5>
+                        Nenhuma atividade encontrada
+                    </h5>
+
+                    <p>
+                        Não existem registros para os filtros
+                        selecionados.
+                    </p>
+
+                    <a href="{% url 'core:historico_atividades' %}"
+                       class="btn btn-limpar">
+                        Limpar filtros
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- ===================================== -->
+        <!-- PAGINAÇÃO -->
+        <!-- ===================================== -->
+
+        {% if page_obj.paginator.num_pages > 1 %}
+
+            <div class="card-footer bg-white">
+
+                <nav aria-label="Paginação do histórico">
+
+                    <ul class="pagination justify-content-center
+                               flex-wrap mb-0">
+
+                        {% if page_obj.has_previous %}
+
+                            <li class="page-item">
+
+                                <a class="page-link"
+                                   href="?page={{ page_obj.previous_page_number }}&amp;data_inicio={{ filtros.data_inicio|urlencode }}&amp;data_fim={{ filtros.data_fim|urlencode }}&amp;equipe={{ filtros.equipe|urlencode }}&amp;viatura={{ filtros.viatura|urlencode }}&amp;tipo={{ filtros.tipo|urlencode }}">
+
+                                    Anterior
+
+                                </a>
+
+                            </li>
+
+                        {% endif %}
+
+
+                        <li class="page-item disabled">
+
+                            <span class="page-link">
+
+                                Página {{ page_obj.number }}
+                                de {{ page_obj.paginator.num_pages }}
+
+                            </span>
+
+                        </li>
+
+
+                        {% if page_obj.has_next %}
+
+                            <li class="page-item">
+
+                                <a class="page-link"
+                                   href="?page={{ page_obj.next_page_number }}&amp;data_inicio={{ filtros.data_inicio|urlencode }}&amp;data_fim={{ filtros.data_fim|urlencode }}&amp;equipe={{ filtros.equipe|urlencode }}&amp;viatura={{ filtros.viatura|urlencode }}&amp;tipo={{ filtros.tipo|urlencode }}">
+
+                                    Próxima
+
+                                </a>
+
+                            </li>
+
+                        {% endif %}
+
+                    </ul>
+
+                </nav>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- ============================================= -->
+<!-- MODAIS DE DETALHES -->
+<!-- ============================================= -->
+
+{% for atividade in page_obj %}
+
+<div class="modal fade"
+     id="modalAtividade{{ forloop.counter }}"
+     tabindex="-1"
+     aria-labelledby="tituloAtividade{{ forloop.counter }}"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+
+        <div class="modal-content historico-modal">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title"
+                    id="tituloAtividade{{ forloop.counter }}">
+
+                    <i class="bi bi-journal-text me-2"></i>
+                    {{ atividade.tipo_label }}
+
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Fechar">
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <!-- INFORMAÇÕES GERAIS -->
+
+                <h6 class="historico-secao-titulo">
+                    Informações gerais
+                </h6>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-4">
+                        <strong>Data:</strong>
+                        <div>
+                            {{ atividade.data|date:"d/m/Y" }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <strong>Horário:</strong>
+                        <div>
+                            {{ atividade.horario|time:"H:i"|default:"Não informado" }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <strong>Situação:</strong>
+                        <div>
+                            {{ atividade.situacao }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <strong>Local:</strong>
+                        <div>
+                            {{ atividade.local|default:"-" }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <strong>Tipo de atividade:</strong>
+                        <div>
+                            {{ atividade.descricao }}
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- VIATURA -->
+
+                <h6 class="historico-secao-titulo">
+                    Viatura e equipe
+                </h6>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-4">
+                        <strong>Viatura:</strong>
+                        <div>{{ atividade.viatura }}</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <strong>Equipe:</strong>
+                        <div>{{ atividade.equipe }}</div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <strong>Registrado por:</strong>
+                        <div>{{ atividade.responsavel }}</div>
+                    </div>
+
+                </div>
+
+
+                <!-- EFETIVO -->
+
+                <h6 class="historico-secao-titulo">
+                    <i class="bi bi-people me-1"></i>
+                    Efetivo escalado
+                </h6>
+
+                {% if atividade.efetivo %}
+
+                    <div class="table-responsive mb-4">
+
+                        <table class="table table-sm
+                                      table-bordered mb-0">
+
+                            <thead class="table-light">
+
+                                <tr>
+                                    <th>GCM</th>
+                                    <th>Função</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for integrante in atividade.efetivo %}
+
+                                    <tr>
+
+                                        <td>
+                                            {{ integrante.nome }}
+                                        </td>
+
+                                        <td>
+                                            {{ integrante.funcao }}
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <p class="text-muted mb-4">
+                        Efetivo não identificado para
+                        este registro.
+                    </p>
+
+                {% endif %}
+
+
+                <!-- RELATO -->
+
+                <h6 class="historico-secao-titulo">
+                    Relato / Justificativa
+                </h6>
+
+                <div class="historico-texto mb-4">
+                    {{ atividade.relato|default:"Não informado."|linebreaksbr }}
+                </div>
+
+
+                <!-- PROVIDÊNCIAS -->
+
+                {% if atividade.providencias %}
+
+                    <h6 class="historico-secao-titulo">
+                        Orientações / Providências
+                    </h6>
+
+                    <div class="historico-texto">
+                        {{ atividade.providencias|linebreaksbr }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-limpar"
+                        data-bs-dismiss="modal">
+
+                    Fechar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endfor %}
+
+{% endblock %}

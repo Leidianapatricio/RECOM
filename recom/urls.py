@@ -43,4 +43,9 @@ urlpatterns = [
     "mediacao/",
     include("mediacao.urls")
     ),
+    
+    path(
+    "ocorrencias/",
+    include("ocorrencias.urls"),
+    ),
 ]

@@ -500,14 +500,14 @@ Relatório de Visitas - RECOM
         </div>
     </div>
 
+    
     <!-- ==========================================
-         VISITAS ENCONTRADAS
-         ========================================== -->
+     VISITAS ENCONTRADAS
+     ========================================== -->
 
     <div class="card relatorio-card">
 
         <div class="card-header d-flex justify-content-between align-items-center">
-
             <strong>
                 <i class="bi bi-list-check me-2"></i>
                 Visitas Encontradas
@@ -516,167 +516,114 @@ Relatório de Visitas - RECOM
             <span class="badge bg-light text-dark">
                 {{ total_visitas }}
             </span>
-
         </div>
 
         <div class="card-body p-0">
 
             {% if page_obj.object_list %}
 
-                {% for grupo in grupos_visitas %}
+                <div class="table-responsive">
 
-                    <!-- ==================================
-                         EFETIVO DESIGNADO
-                         VISÍVEL APENAS APÓS FILTRAR
-                         ================================== -->
+                    <table class="table table-hover tabela-relatorio mb-0">
 
-                    {% if consulta_realizada %}
+                        <!-- CABEÇALHO ÚNICO -->
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Escola</th>
+                                <th>Polo</th>
+                                <th>Equipe</th>
+                                <th>Tipo de visita</th>
+                                <th>Situação</th>
+                                <th>Relato</th>
+                                <th>Orientações / Providências</th>
+                            </tr>
+                        </thead>
 
-                        <div class="grupo-visitas">
+                        <tbody>
 
-                            <h6>
-                                <i class="bi bi-people me-2"></i>
-                                {{ grupo.titulo }}
-                            </h6>
+                            {% for visita in page_obj %}
 
-                            <p>
-                                <strong>Equipe:</strong>
-                                {{ grupo.equipe }}
-                            </p>
-
-                            <p>
-                                <strong>Efetivo:</strong>
-
-                                {% for integrante in grupo.efetivo %}
-                                    {{ integrante.funcao }}:
-                                    {{ integrante.gcm.nome }}
-
-                                    {% if not forloop.last %}
-                                        |
-                                    {% endif %}
-                                {% empty %}
-                                    Não identificado para estas visitas
-                                {% endfor %}
-                            </p>
-
-                        </div>
-
-                    {% endif %}
-
-                    <!-- ==================================
-                         TABELA DE VISITAS
-                         SEMPRE VISÍVEL
-                         ================================== -->
-
-                    <div class="table-responsive">
-
-                        <table class="table table-hover tabela-relatorio mb-0">
-
-                            <thead>
                                 <tr>
-                                    <th>Data</th>
-                                    <th>Horário</th>
-                                    <th>Escola</th>
-                                    <th>Polo</th>
-                                    <th>Equipe</th>
-                                    <th>Tipo de visita</th>
-                                    <th>Situação</th>
-                                    <th>Relato</th>
-                                    <th>Orientações / Providências</th>
+
+                                    <td class="text-nowrap">
+                                        {{ visita.data_visita|date:"d/m/Y" }}
+                                    </td>
+
+                                    <td class="text-nowrap">
+                                        {{ visita.horario|time:"H:i" }}
+                                    </td>
+
+                                    <td>
+                                        <a
+                                            href="{% url 'escolas:detalhe_escola' visita.escola.pk %}"
+                                            class="text-decoration-none"
+                                        >
+                                            {{ visita.escola.nome }}
+                                        </a>
+                                    </td>
+
+                                    <td class="text-nowrap">
+                                        Polo {{ visita.escola.polo }}
+                                    </td>
+
+                                    <td class="text-nowrap">
+                                        {{ visita.get_equipe_display }}
+                                    </td>
+
+                                    <td>
+                                        {{ visita.get_tipo_visita_display }}
+                                    </td>
+
+                                    <td>
+                                        {% if visita.situacao == "SEM_ALTERACAO" %}
+                                            <span class="badge bg-success">
+                                                Sem alteração
+                                            </span>
+
+                                        {% elif visita.situacao == "COM_ALTERACAO" %}
+                                            <span class="badge bg-warning text-dark">
+                                                Com alteração
+                                            </span>
+
+                                        {% else %}
+                                            {{ visita.get_situacao_display }}
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="coluna-texto">
+                                        {% if visita.relato %}
+                                            <div class="conteudo-texto">
+                                                {{ visita.relato }}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="coluna-texto">
+                                        {% if visita.orientacoes %}
+                                            <div class="conteudo-texto">
+                                                {{ visita.orientacoes }}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+
                                 </tr>
-                            </thead>
 
-                            <tbody>
+                            {% endfor %}
 
-                                {% for visita in grupo.visitas %}
+                        </tbody>
 
-                                    <tr>
+                    </table>
 
-                                        <!-- DATA -->
-                                        <td class="text-nowrap">
-                                            {{ visita.data_visita|date:"d/m/Y" }}
-                                        </td>
-
-                                        <!-- HORÁRIO -->
-                                        <td class="text-nowrap">
-                                            {{ visita.horario|time:"H:i" }}
-                                        </td>
-
-                                        <!-- ESCOLA -->
-                                        <td>
-                                            <a
-                                                href="{% url 'escolas:detalhe_escola' visita.escola.pk %}"
-                                                class="text-decoration-none"
-                                            >
-                                                {{ visita.escola.nome }}
-                                            </a>
-                                        </td>
-
-                                        <!-- POLO -->
-                                        <td class="text-nowrap">
-                                            Polo {{ visita.escola.polo }}
-                                        </td>
-
-                                        <!-- EQUIPE -->
-                                        <td class="text-nowrap">
-                                            {{ visita.get_equipe_display }}
-                                        </td>
-
-                                        <!-- TIPO DE VISITA -->
-                                        <td>
-                                            {{ visita.get_tipo_visita_display }}
-                                        </td>
-
-                                        <!-- SITUAÇÃO -->
-                                        <td>
-                                            {% if visita.situacao == "SEM_ALTERACAO" %}
-                                                <span class="badge bg-success">
-                                                    Sem alteração
-                                                </span>
-
-                                            {% elif visita.situacao == "COM_ALTERACAO" %}
-                                                <span class="badge bg-warning text-dark">
-                                                    Com alteração
-                                                </span>
-
-                                            {% else %}
-                                                {{ visita.get_situacao_display }}
-                                            {% endif %}
-                                        </td>
-
-                                        <!-- RELATO -->
-                                        <td class="coluna-texto">
-                                            {% if visita.relato %}
-                                                <div class="conteudo-texto">{{ visita.relato }}</div>
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-
-                                        <!-- ORIENTAÇÕES -->
-                                        <td class="coluna-texto">
-                                            {% if visita.orientacoes %}
-                                                <div class="conteudo-texto">{{ visita.orientacoes }}</div>
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-
-                                    </tr>
-
-                                {% endfor %}
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                {% endfor %}
+                </div>
 
             {% else %}
 
-                <!-- NENHUMA VISITA ENCONTRADA -->
                 <div class="text-center py-5">
 
                     <i class="bi bi-search fs-1 text-muted"></i>

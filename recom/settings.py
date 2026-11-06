@@ -362,3 +362,14 @@ if IS_VERCEL:
 # ============================================================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# =========================================================
+# RECOM - CONTROLE DE VISITAS ANTIGAS
+# =========================================================
+
+# Visitas anteriores à implantação da nova regra
+# poderão ser excluídas por qualquer GCM ativo,
+# desde que não possuam responsável identificado.
+
+RECOM_VISITAS_LEGADAS_ATE = "2026-11-05T00:00:00-03:00"

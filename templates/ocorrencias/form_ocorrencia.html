@@ -1,0 +1,1035 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} | RECOM{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/ocorrencias.css' %}">
+
+
+<div class="ocorrencia-container">
+
+    <!-- CABEÇALHO -->
+    <div class="ocorrencia-cabecalho">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+            <div>
+                <h2>{{ titulo }}</h2>
+                <p>
+                    Registro de ocorrências atendidas pela
+                    Ronda Escolar Comunitária.
+                </p>
+            </div>
+
+            <a href="{% url 'ocorrencias:listar_ocorrencias' %}"
+               class="btn btn-light">
+                Voltar
+            </a>
+
+        </div>
+    </div>
+
+    <form method="post" id="form-ocorrencia" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- DADOS GERAIS -->
+        <div class="ocorrencia-card">
+
+            <div class="ocorrencia-card-titulo">
+                1. Dados gerais da ocorrência
+            </div>
+
+            <div class="ocorrencia-card-corpo">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label for="{{ form.viatura.id_for_label }}" class="form-label">
+                            {{ form.viatura.label }}
+                        </label>
+
+                        {{ form.viatura }}
+
+                        {% for erro in form.viatura.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ erro }}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="{{ form.data.id_for_label }}">
+                            Data <span class="campo-obrigatorio">*</span>
+                        </label>
+                        {{ form.data }}
+                        {% for erro in form.data.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="{{ form.horario.id_for_label }}">
+                            Horário <span class="campo-obrigatorio">*</span>
+                        </label>
+                        {{ form.horario }}
+                        {% for erro in form.horario.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.local.id_for_label }}">
+                            Local da ocorrência
+                            <span class="campo-obrigatorio">*</span>
+                        </label>
+                        {{ form.local }}
+                        {% for erro in form.local.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.bairro.id_for_label }}">
+                            Bairro
+                        </label>
+                        {{ form.bairro }}
+                        {% for erro in form.bairro.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ACIONAMENTO E ATUAÇÃO -->
+        <div class="ocorrencia-card">
+
+            <div class="ocorrencia-card-titulo">
+                2. Acionamento e natureza da atuação
+            </div>
+
+            <div class="ocorrencia-card-corpo">
+
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+                        <label>
+                            Foi acionamento do CICC?
+                            <span class="campo-obrigatorio">*</span>
+                        </label>
+
+                        <div class="opcoes-radio">
+                            {% for radio in form.acionamento_cicc %}
+                                <div>
+                                    {{ radio.tag }}
+                                    <label for="{{ radio.id_for_label }}">
+                                        {{ radio.choice_label }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% for erro in form.acionamento_cicc.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>
+                            Natureza da atuação
+                            <span class="campo-obrigatorio">*</span>
+                        </label>
+
+                        <div class="opcoes-radio">
+                            {% for radio in form.natureza_atuacao %}
+                                <div>
+                                    {{ radio.tag }}
+                                    <label for="{{ radio.id_for_label }}">
+                                        {{ radio.choice_label }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% for erro in form.natureza_atuacao.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-12 campo-oculto"
+                         id="bloco-equipe-apoiada">
+
+                        <label for="{{ form.equipe_apoiada.id_for_label }}">
+                            Equipe apoiada
+                            <span class="campo-obrigatorio">*</span>
+                        </label>
+
+                        {{ form.equipe_apoiada }}
+
+                        <div class="form-text">
+                            Informe a equipe ou guarnição que recebeu
+                            o apoio da RECOM. Ex.: Tático 1.
+                        </div>
+
+                        {% for erro in form.equipe_apoiada.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CLASSIFICAÇÃO -->
+        <div class="ocorrencia-card">
+
+            <div class="ocorrencia-card-titulo">
+                3. Classificação da ocorrência
+            </div>
+
+            <div class="ocorrencia-card-corpo">
+
+                <div class="row g-4">
+
+                    <div class="col-md-12">
+                        <label>
+                            Categoria
+                            <span class="campo-obrigatorio">*</span>
+                        </label>
+
+                        <div class="opcoes-radio">
+                            {% for radio in form.categoria %}
+                                <div>
+                                    {{ radio.tag }}
+                                    <label for="{{ radio.id_for_label }}">
+                                        {{ radio.choice_label }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% for erro in form.categoria.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.tipo_ocorrencia.id_for_label }}">
+                            Tipo de ocorrência
+                            <span class="campo-obrigatorio">*</span>
+                        </label>
+
+                        {{ form.tipo_ocorrencia }}
+
+                        {% for erro in form.tipo_ocorrencia.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>
+                            Houve vítima?
+                            <span class="campo-obrigatorio">*</span>
+                        </label>
+
+                        <div class="opcoes-radio">
+                            {% for radio in form.possui_vitima %}
+                                <div>
+                                    {{ radio.tag }}
+                                    <label for="{{ radio.id_for_label }}">
+                                        {{ radio.choice_label }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        {% for erro in form.possui_vitima.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PESSOAS ENVOLVIDAS -->
+        <div class="ocorrencia-card" id="secao-pessoas">
+
+            <div class="ocorrencia-card-titulo">
+                4. Pessoas envolvidas
+            </div>
+
+            <div class="ocorrencia-card-corpo">
+
+                <p class="text-muted small">
+                    Cadastre vítimas, suspeitos, condutores,
+                    passageiros, testemunhas ou outros envolvidos,
+                    quando identificados.
+                </p>
+
+                {{ pessoas_formset.management_form }}
+
+                {% if pessoas_formset.non_form_errors %}
+                    <div class="alert alert-danger">
+                        {{ pessoas_formset.non_form_errors }}
+                    </div>
+                {% endif %}
+
+                <div id="lista-pessoas">
+
+                    {% for pessoa_form in pessoas_formset %}
+
+                        <div class="subform-card pessoa-form">
+
+                            {% for campo_oculto in pessoa_form.hidden_fields %}
+                                {{ campo_oculto }}
+                            {% endfor %}
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                <div class="subform-titulo mb-0">
+                                    Pessoa <span class="numero-pessoa">{{ forloop.counter }}</span>
+                                </div>
+
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger btn-remover-pessoa">
+                                    Remover
+                                </button>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+                                    <label>Nome</label>
+                                    {{ pessoa_form.nome }}
+                                    {{ pessoa_form.nome.errors }}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label>Papel na ocorrência</label>
+                                    {{ pessoa_form.papel }}
+                                    {{ pessoa_form.papel.errors }}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label>Idade</label>
+                                    {{ pessoa_form.idade }}
+                                    {{ pessoa_form.idade.errors }}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label>Sexo</label>
+                                    {{ pessoa_form.sexo }}
+                                    {{ pessoa_form.sexo.errors }}
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label>Documento</label>
+                                    {{ pessoa_form.documento }}
+                                    {{ pessoa_form.documento.errors }}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label>Observações</label>
+                                    {{ pessoa_form.observacoes }}
+                                    {{ pessoa_form.observacoes.errors }}
+                                </div>
+
+                            </div>
+
+                            <div class="campo-oculto">
+                                {{ pessoa_form.DELETE }}
+                            </div>
+
+                            {% if pessoa_form.non_field_errors %}
+                                <div class="erro-campo">
+                                    {{ pessoa_form.non_field_errors }}
+                                </div>
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <button type="button"
+                        id="btn-adicionar-pessoa"
+                        class="btn btn-adicionar">
+                    + Adicionar pessoa
+                </button>
+
+            </div>
+        </div>
+
+        <!-- VEÍCULOS -->
+        <div class="ocorrencia-card campo-oculto"
+             id="secao-veiculos">
+
+            <div class="ocorrencia-card-titulo">
+                5. Veículos envolvidos
+            </div>
+
+            <div class="ocorrencia-card-corpo">
+
+                <p class="text-muted small">
+                    Informe os veículos envolvidos no sinistro,
+                    mesmo quando não houver vítimas.
+                </p>
+
+                {{ veiculos_formset.management_form }}
+
+                {% if veiculos_formset.non_form_errors %}
+                    <div class="alert alert-danger">
+                        {{ veiculos_formset.non_form_errors }}
+                    </div>
+                {% endif %}
+
+                <div id="lista-veiculos">
+
+                    {% for veiculo_form in veiculos_formset %}
+
+                        <div class="subform-card veiculo-form">
+
+                            {% for campo_oculto in veiculo_form.hidden_fields %}
+                                {{ campo_oculto }}
+                            {% endfor %}
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                <div class="subform-titulo mb-0">
+                                    Veículo <span class="numero-veiculo">{{ forloop.counter }}</span>
+                                </div>
+
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-danger btn-remover-veiculo">
+                                    Remover
+                                </button>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-3">
+                                    <label>Placa</label>
+                                    {{ veiculo_form.placa }}
+                                    {{ veiculo_form.placa.errors }}
+                                </div>
+
+                                <div class="col-md-5">
+                                    <label>Marca / Modelo</label>
+                                    {{ veiculo_form.marca_modelo }}
+                                    {{ veiculo_form.marca_modelo.errors }}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>Cor</label>
+                                    {{ veiculo_form.cor }}
+                                    {{ veiculo_form.cor.errors }}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label>Condutor</label>
+                                    {{ veiculo_form.condutor }}
+                                    {{ veiculo_form.condutor.errors }}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label>Danos identificados</label>
+                                    {{ veiculo_form.danos }}
+                                    {{ veiculo_form.danos.errors }}
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label>Observações</label>
+                                    {{ veiculo_form.observacoes }}
+                                    {{ veiculo_form.observacoes.errors }}
+                                </div>
+
+                            </div>
+
+                            <div class="campo-oculto">
+                                {{ veiculo_form.DELETE }}
+                            </div>
+
+                            {% if veiculo_form.non_field_errors %}
+                                <div class="erro-campo">
+                                    {{ veiculo_form.non_field_errors }}
+                                </div>
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <button type="button"
+                        id="btn-adicionar-veiculo"
+                        class="btn btn-adicionar">
+                    + Adicionar veículo
+                </button>
+
+            </div>
+        </div>
+
+        <!-- RELATO -->
+        <div class="ocorrencia-card">
+
+            <div class="ocorrencia-card-titulo">
+                6. Relato e providências
+            </div>
+
+            <div class="ocorrencia-card-corpo">
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <label for="{{ form.relato.id_for_label }}">
+                            Relato da ocorrência
+                            <span class="campo-obrigatorio">*</span>
+                        </label>
+                        {{ form.relato }}
+                        {% for erro in form.relato.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-12">
+                        <label for="{{ form.providencias.id_for_label }}">
+                            Providências adotadas
+                        </label>
+                        {{ form.providencias }}
+                        {% for erro in form.providencias.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-12">
+                        <label for="{{ form.orgaos_acionados.id_for_label }}">
+                            Órgãos acionados
+                        </label>
+                        {{ form.orgaos_acionados }}
+                        {% for erro in form.orgaos_acionados.errors %}
+                            <div class="erro-campo">{{ erro }}</div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- AÇÕES -->
+        <div class="acoes-formulario">
+
+            <a href="{% url 'ocorrencias:listar_ocorrencias' %}"
+               class="btn btn-outline-secondary px-4">
+                Cancelar
+            </a>
+
+            <button type="submit" class="btn btn-recom px-4">
+                {% if modo_edicao %}
+                    Salvar alterações
+                {% else %}
+                    Cadastrar ocorrência
+                {% endif %}
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<!-- MODELO PARA NOVA PESSOA -->
+<template id="template-pessoa">
+
+    <div class="subform-card pessoa-form">
+
+        {% with pessoa_form=pessoas_formset.empty_form %}
+
+            {% for campo_oculto in pessoa_form.hidden_fields %}
+                {{ campo_oculto }}
+            {% endfor %}
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <div class="subform-titulo mb-0">
+                    Pessoa <span class="numero-pessoa"></span>
+                </div>
+
+                <button type="button"
+                        class="btn btn-sm btn-outline-danger btn-remover-pessoa">
+                    Remover
+                </button>
+
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label>Nome</label>
+                    {{ pessoa_form.nome }}
+                </div>
+
+                <div class="col-md-3">
+                    <label>Papel na ocorrência</label>
+                    {{ pessoa_form.papel }}
+                </div>
+
+                <div class="col-md-3">
+                    <label>Idade</label>
+                    {{ pessoa_form.idade }}
+                </div>
+
+                <div class="col-md-3">
+                    <label>Sexo</label>
+                    {{ pessoa_form.sexo }}
+                </div>
+
+                <div class="col-md-3">
+                    <label>Documento</label>
+                    {{ pessoa_form.documento }}
+                </div>
+
+                <div class="col-md-12">
+                    <label>Observações</label>
+                    {{ pessoa_form.observacoes }}
+                </div>
+
+            </div>
+
+            <div class="campo-oculto">
+                {{ pessoa_form.DELETE }}
+            </div>
+
+        {% endwith %}
+
+    </div>
+
+</template>
+
+<!-- MODELO PARA NOVO VEÍCULO -->
+<template id="template-veiculo">
+
+    <div class="subform-card veiculo-form">
+
+        {% with veiculo_form=veiculos_formset.empty_form %}
+
+            {% for campo_oculto in veiculo_form.hidden_fields %}
+                {{ campo_oculto }}
+            {% endfor %}
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <div class="subform-titulo mb-0">
+                    Veículo <span class="numero-veiculo"></span>
+                </div>
+
+                <button type="button"
+                        class="btn btn-sm btn-outline-danger btn-remover-veiculo">
+                    Remover
+                </button>
+
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label>Placa</label>
+                    {{ veiculo_form.placa }}
+                </div>
+
+                <div class="col-md-5">
+                    <label>Marca / Modelo</label>
+                    {{ veiculo_form.marca_modelo }}
+                </div>
+
+                <div class="col-md-4">
+                    <label>Cor</label>
+                    {{ veiculo_form.cor }}
+                </div>
+
+                <div class="col-md-6">
+                    <label>Condutor</label>
+                    {{ veiculo_form.condutor }}
+                </div>
+
+                <div class="col-md-12">
+                    <label>Danos identificados</label>
+                    {{ veiculo_form.danos }}
+                </div>
+
+                <div class="col-md-12">
+                    <label>Observações</label>
+                    {{ veiculo_form.observacoes }}
+                </div>
+
+            </div>
+
+            <div class="campo-oculto">
+                {{ veiculo_form.DELETE }}
+            </div>
+
+        {% endwith %}
+
+    </div>
+
+</template>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const naturezaInputs = document.querySelectorAll(
+        'input[name="natureza_atuacao"]'
+    );
+
+    const categoriaInputs = document.querySelectorAll(
+        'input[name="categoria"]'
+    );
+
+    const blocoEquipeApoiada = document.getElementById(
+        "bloco-equipe-apoiada"
+    );
+
+    const campoEquipeApoiada = document.getElementById(
+        "id_equipe_apoiada"
+    );
+
+    const tipoOcorrencia = document.getElementById(
+        "id_tipo_ocorrencia"
+    );
+
+    const secaoVeiculos = document.getElementById(
+        "secao-veiculos"
+    );
+
+    const tiposPorCategoria = {
+        TRANSITO: [
+            "SINISTRO"
+        ],
+        VIOLENCIA: [
+            "FURTO",
+            "ROUBO",
+            "AMEACA",
+            "AGRESSAO"
+        ]
+    };
+
+    const opcoesOriginais = Array.from(
+        tipoOcorrencia.options
+    ).map(option => ({
+        value: option.value,
+        text: option.text
+    }));
+
+    function obterRadioSelecionado(nome) {
+        const selecionado = document.querySelector(
+            `input[name="${nome}"]:checked`
+        );
+
+        return selecionado ? selecionado.value : "";
+    }
+
+    function atualizarNatureza() {
+
+        const natureza = obterRadioSelecionado(
+            "natureza_atuacao"
+        );
+
+        const apoio = natureza === "APOIO";
+
+        blocoEquipeApoiada.classList.toggle(
+            "campo-oculto",
+            !apoio
+        );
+
+        campoEquipeApoiada.required = apoio;
+
+        if (!apoio) {
+            campoEquipeApoiada.value = "";
+        }
+    }
+
+    function atualizarCategoria() {
+
+        const categoria = obterRadioSelecionado(
+            "categoria"
+        );
+
+        const valorAtual = tipoOcorrencia.value;
+
+        const tiposPermitidos = (
+            tiposPorCategoria[categoria] || []
+        );
+
+        tipoOcorrencia.innerHTML = "";
+
+        const opcaoInicial = document.createElement(
+            "option"
+        );
+
+        opcaoInicial.value = "";
+        opcaoInicial.textContent = (
+            "Selecione o tipo de ocorrência"
+        );
+
+        tipoOcorrencia.appendChild(opcaoInicial);
+
+        opcoesOriginais.forEach(opcao => {
+
+            if (
+                opcao.value &&
+                tiposPermitidos.includes(opcao.value)
+            ) {
+                const option = document.createElement(
+                    "option"
+                );
+
+                option.value = opcao.value;
+                option.textContent = opcao.text;
+
+                tipoOcorrencia.appendChild(option);
+            }
+        });
+
+        if (tiposPermitidos.includes(valorAtual)) {
+            tipoOcorrencia.value = valorAtual;
+        }
+
+        const transito = categoria === "TRANSITO";
+
+        secaoVeiculos.classList.toggle(
+            "campo-oculto",
+            !transito
+        );
+    }
+
+    naturezaInputs.forEach(input => {
+        input.addEventListener(
+            "change",
+            atualizarNatureza
+        );
+    });
+
+    categoriaInputs.forEach(input => {
+        input.addEventListener(
+            "change",
+            atualizarCategoria
+        );
+    });
+
+    atualizarNatureza();
+    atualizarCategoria();
+
+    // ============================================
+    // FORMSET DE PESSOAS
+    // ============================================
+
+    const listaPessoas = document.getElementById(
+        "lista-pessoas"
+    );
+
+    const totalPessoas = document.getElementById(
+        "id_pessoas-TOTAL_FORMS"
+    );
+
+    const templatePessoa = document.getElementById(
+        "template-pessoa"
+    );
+
+    function atualizarNumeracaoPessoas() {
+
+        let numero = 1;
+
+        listaPessoas.querySelectorAll(
+            ".pessoa-form"
+        ).forEach(formulario => {
+
+            if (
+                formulario.classList.contains(
+                    "campo-oculto"
+                )
+            ) {
+                return;
+            }
+
+            formulario.querySelector(
+                ".numero-pessoa"
+            ).textContent = numero++;
+
+        });
+    }
+
+    document.getElementById(
+        "btn-adicionar-pessoa"
+    ).addEventListener("click", function () {
+
+        const indice = parseInt(
+            totalPessoas.value,
+            10
+        );
+
+        const html = templatePessoa.innerHTML.replace(
+            /__prefix__/g,
+            indice
+        );
+
+        listaPessoas.insertAdjacentHTML(
+            "beforeend",
+            html
+        );
+
+        totalPessoas.value = indice + 1;
+
+        atualizarNumeracaoPessoas();
+    });
+
+    listaPessoas.addEventListener(
+        "click",
+        function (event) {
+
+            const botao = event.target.closest(
+                ".btn-remover-pessoa"
+            );
+
+            if (!botao) {
+                return;
+            }
+
+            const formulario = botao.closest(
+                ".pessoa-form"
+            );
+
+            const campoDelete = formulario.querySelector(
+                'input[name$="-DELETE"]'
+            );
+
+            if (campoDelete) {
+                campoDelete.checked = true;
+            }
+
+            formulario.classList.add(
+                "campo-oculto"
+            );
+
+            atualizarNumeracaoPessoas();
+        }
+    );
+
+    atualizarNumeracaoPessoas();
+
+    // ============================================
+    // FORMSET DE VEÍCULOS
+    // ============================================
+
+    const listaVeiculos = document.getElementById(
+        "lista-veiculos"
+    );
+
+    const totalVeiculos = document.getElementById(
+        "id_veiculos-TOTAL_FORMS"
+    );
+
+    const templateVeiculo = document.getElementById(
+        "template-veiculo"
+    );
+
+    function atualizarNumeracaoVeiculos() {
+
+        let numero = 1;
+
+        listaVeiculos.querySelectorAll(
+            ".veiculo-form"
+        ).forEach(formulario => {
+
+            if (
+                formulario.classList.contains(
+                    "campo-oculto"
+                )
+            ) {
+                return;
+            }
+
+            formulario.querySelector(
+                ".numero-veiculo"
+            ).textContent = numero++;
+
+        });
+    }
+
+    document.getElementById(
+        "btn-adicionar-veiculo"
+    ).addEventListener("click", function () {
+
+        const indice = parseInt(
+            totalVeiculos.value,
+            10
+        );
+
+        const html = templateVeiculo.innerHTML.replace(
+            /__prefix__/g,
+            indice
+        );
+
+        listaVeiculos.insertAdjacentHTML(
+            "beforeend",
+            html
+        );
+
+        totalVeiculos.value = indice + 1;
+
+        atualizarNumeracaoVeiculos();
+    });
+
+    listaVeiculos.addEventListener(
+        "click",
+        function (event) {
+
+            const botao = event.target.closest(
+                ".btn-remover-veiculo"
+            );
+
+            if (!botao) {
+                return;
+            }
+
+            const formulario = botao.closest(
+                ".veiculo-form"
+            );
+
+            const campoDelete = formulario.querySelector(
+                'input[name$="-DELETE"]'
+            );
+
+            if (campoDelete) {
+                campoDelete.checked = true;
+            }
+
+            formulario.classList.add(
+                "campo-oculto"
+            );
+
+            atualizarNumeracaoVeiculos();
+        }
+    );
+
+    atualizarNumeracaoVeiculos();
+
+});
+</script>
+
+{% endblock %}

@@ -2,7 +2,11 @@
 {% extends "base.html" %}
 
 {% block title %}
-    {% if modo_edicao %}Editar Visita{% else %}Registrar Visita{% endif %}
+    {% if modo_edicao %}
+        Editar Visita
+    {% else %}
+        Registrar Visita
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -45,16 +49,30 @@
         border-color: #12436b;
         color: white;
     }
+
+    .visita-campo-automatico {
+        background-color: #f5f8fb;
+        cursor: not-allowed;
+    }
+
+    .visita-ajuda {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
 </style>
 
 <div class="container mt-4 mb-5">
     <div class="row justify-content-center">
         <div class="col-lg-9">
 
+            <!-- ====================================== -->
             <!-- TÍTULO -->
+            <!-- ====================================== -->
+
             <div class="mb-4">
                 <h2 class="fw-bold visita-titulo">
                     <i class="bi bi-clipboard-check me-2"></i>
+
                     {% if modo_edicao %}
                         Editar Visita Escolar
                     {% else %}
@@ -64,22 +82,30 @@
 
                 <p class="text-muted mb-0">
                     {% if modo_edicao %}
-                        Atualize os dados da visita realizada pela equipe da RECOM.
+                        Atualize os dados da visita realizada
+                        pela equipe da RECOM.
                     {% else %}
-                        Preencha os dados da visita realizada pela equipe da RECOM.
+                        Preencha os dados da visita realizada
+                        pela equipe da RECOM.
                     {% endif %}
                 </p>
             </div>
 
+            <!-- ====================================== -->
             <!-- INFORMAÇÕES DO CARTÃO PROGRAMA -->
+            <!-- ====================================== -->
+
             {% if missao_cartao %}
+
                 <div class="visita-info-missao p-3 mb-4">
+
                     <h6 class="fw-bold mb-3">
                         <i class="bi bi-card-checklist me-2"></i>
                         Visita vinculada ao Cartão Programa
                     </h6>
 
                     <div class="row g-3 small">
+
                         <div class="col-md-6">
                             <strong>Escola:</strong>
                             {{ missao_cartao.escola.nome }}
@@ -97,6 +123,7 @@
 
                         <div class="col-md-6">
                             <strong>Equipe:</strong>
+
                             {% if missao_cartao.viatura.equipe %}
                                 {{ missao_cartao.viatura.equipe.nome }}
                             {% else %}
@@ -118,107 +145,113 @@
                             <strong>Tipo de missão:</strong>
                             {{ missao_cartao.get_tipo_missao_display }}
                         </div>
+
                     </div>
 
                     <p class="text-muted small mt-3 mb-0">
                         <i class="bi bi-lock-fill me-1"></i>
-                        Escola, equipe, data e tipo de missão foram
-                        definidos pelo Cartão Programa e não podem
-                        ser alterados neste registro.
+                        Escola, viatura, equipe, data e tipo
+                        de visita foram definidos pelo
+                        Cartão Programa e não podem ser
+                        alterados neste registro.
                     </p>
+
                 </div>
+
             {% endif %}
 
+            <!-- ====================================== -->
             <!-- FORMULÁRIO -->
+            <!-- ====================================== -->
+
             <div class="card visita-card shadow-sm">
+
                 <div class="visita-card-header"></div>
 
                 <div class="card-body p-4">
-                    <form method="post">
+
+                    <form method="post" id="form-visita">
+
                         {% csrf_token %}
 
+                        <!-- IDENTIFICAÇÃO DA MISSÃO -->
+
                         {% if missao_cartao_id and not modo_edicao %}
+
                             <input
                                 type="hidden"
                                 name="missao_cartao_id"
                                 value="{{ missao_cartao_id }}"
                             >
+
                         {% endif %}
 
+                        <!-- ================================== -->
                         <!-- ERROS GERAIS -->
+                        <!-- ================================== -->
+
                         {% if form.non_field_errors %}
+
                             <div class="alert alert-danger">
                                 {{ form.non_field_errors }}
                             </div>
+
                         {% endif %}
 
-                        <!-- CAMPOS DEFINIDOS PELA MISSÃO -->
+                        <!-- ================================== -->
+                        <!-- VISITA PROGRAMADA -->
+                        <!-- ================================== -->
+
                         {% if missao_cartao %}
-                            {# Renderiza os campos bloqueados sem duplicar a interface. #}
+
+                            <!-- CAMPOS AUTOMÁTICOS -->
+
                             <div class="d-none">
+
                                 {{ form.escola }}
+                                {{ form.viatura }}
                                 {{ form.equipe }}
                                 {{ form.data_visita }}
                                 {{ form.tipo_visita }}
+
                             </div>
 
                             {% for campo in form.hidden_fields %}
                                 {{ campo }}
                             {% endfor %}
 
-                            {% if form.escola.errors or form.equipe.errors or form.data_visita.errors or form.tipo_visita.errors %}
+                            <!-- ERROS DOS CAMPOS AUTOMÁTICOS -->
+
+                            {% if form.escola.errors or form.viatura.errors or form.equipe.errors or form.data_visita.errors or form.tipo_visita.errors %}
+
                                 <div class="alert alert-danger">
+
                                     {{ form.escola.errors }}
+                                    {{ form.viatura.errors }}
                                     {{ form.equipe.errors }}
                                     {{ form.data_visita.errors }}
                                     {{ form.tipo_visita.errors }}
+
                                 </div>
+
                             {% endif %}
+
                         {% else %}
 
-                            <!-- ESCOLA - VISITA AVULSA -->
+                            <!-- ================================== -->
+                            <!-- VISITA AVULSA -->
+                            <!-- ================================== -->
+
+                            <!-- DATA DA VISITA -->
+
                             <div class="mb-3">
-                                <label
-                                    for="{{ form.escola.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    Escola
-                                </label>
 
-                                {{ form.escola }}
-
-                                {% for erro in form.escola.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ erro }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                            <!-- EQUIPE - VISITA AVULSA -->
-                            <div class="mb-3">
-                                <label
-                                    for="{{ form.equipe.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    Equipe responsável
-                                </label>
-
-                                {{ form.equipe }}
-
-                                {% for erro in form.equipe.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ erro }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-
-                            <!-- DATA - VISITA AVULSA -->
-                            <div class="mb-3">
                                 <label
                                     for="{{ form.data_visita.id_for_label }}"
                                     class="form-label fw-semibold"
                                 >
                                     Data da visita
+                                    <span class="text-danger">*</span>
                                 </label>
 
                                 {{ form.data_visita }}
@@ -228,15 +261,101 @@
                                         {{ erro }}
                                     </div>
                                 {% endfor %}
+
                             </div>
 
-                            <!-- TIPO - VISITA AVULSA -->
+                            <!-- VIATURA DO PLANTÃO -->
+
                             <div class="mb-3">
+
+                                <label
+                                    for="{{ form.viatura.id_for_label }}"
+                                    class="form-label fw-semibold"
+                                >
+                                    Viatura do plantão
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                {{ form.viatura }}
+
+                                <div class="form-text">
+                                    Selecione a viatura em que você
+                                    estava escalado na data informada.
+                                </div>
+
+                                {% for erro in form.viatura.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ erro }}
+                                    </div>
+                                {% endfor %}
+
+                                <div
+                                    id="aviso-viatura"
+                                    class="alert alert-warning small mt-2 d-none"
+                                    role="alert"
+                                ></div>
+
+                            </div>
+
+                            <!-- EQUIPE RESPONSÁVEL -->
+
+                            <div class="mb-3">
+
+                                <label
+                                    for="{{ form.equipe.id_for_label }}"
+                                    class="form-label fw-semibold"
+                                >
+                                    Equipe responsável
+                                </label>
+
+                                {{ form.equipe }}
+
+                                <div class="form-text">
+                                    A equipe é identificada
+                                    automaticamente pela viatura
+                                    selecionada.
+                                </div>
+
+                                {% for erro in form.equipe.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ erro }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+                            <!-- ESCOLA -->
+
+                            <div class="mb-3">
+
+                                <label
+                                    for="{{ form.escola.id_for_label }}"
+                                    class="form-label fw-semibold"
+                                >
+                                    Escola
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                {{ form.escola }}
+
+                                {% for erro in form.escola.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ erro }}
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+
+                            <!-- TIPO DE VISITA -->
+
+                            <div class="mb-3">
+
                                 <label
                                     for="{{ form.tipo_visita.id_for_label }}"
                                     class="form-label fw-semibold"
                                 >
                                     Tipo de visita
+                                    <span class="text-danger">*</span>
                                 </label>
 
                                 {{ form.tipo_visita }}
@@ -246,16 +365,23 @@
                                         {{ erro }}
                                     </div>
                                 {% endfor %}
+
                             </div>
+
                         {% endif %}
 
+                        <!-- ================================== -->
                         <!-- HORÁRIO -->
+                        <!-- ================================== -->
+
                         <div class="mb-3">
+
                             <label
                                 for="{{ form.horario.id_for_label }}"
                                 class="form-label fw-semibold"
                             >
                                 Horário da visita
+                                <span class="text-danger">*</span>
                             </label>
 
                             {{ form.horario }}
@@ -265,15 +391,21 @@
                                     {{ erro }}
                                 </div>
                             {% endfor %}
+
                         </div>
 
+                        <!-- ================================== -->
                         <!-- SITUAÇÃO -->
+                        <!-- ================================== -->
+
                         <div class="mb-3">
+
                             <label
                                 for="{{ form.situacao.id_for_label }}"
                                 class="form-label fw-semibold"
                             >
                                 Situação encontrada
+                                <span class="text-danger">*</span>
                             </label>
 
                             {{ form.situacao }}
@@ -283,10 +415,15 @@
                                     {{ erro }}
                                 </div>
                             {% endfor %}
+
                         </div>
 
+                        <!-- ================================== -->
                         <!-- RELATO -->
+                        <!-- ================================== -->
+
                         <div class="mb-3">
+
                             <label
                                 for="{{ form.relato.id_for_label }}"
                                 class="form-label fw-semibold"
@@ -301,10 +438,15 @@
                                     {{ erro }}
                                 </div>
                             {% endfor %}
+
                         </div>
 
+                        <!-- ================================== -->
                         <!-- ORIENTAÇÕES -->
+                        <!-- ================================== -->
+
                         <div class="mb-4">
+
                             <label
                                 for="{{ form.orientacoes.id_for_label }}"
                                 class="form-label fw-semibold"
@@ -319,12 +461,17 @@
                                     {{ erro }}
                                 </div>
                             {% endfor %}
+
                         </div>
 
+                        <!-- ================================== -->
                         <!-- BOTÕES -->
+                        <!-- ================================== -->
+
                         <div class="d-flex flex-wrap justify-content-between gap-2">
 
                             {% if missao_cartao and usuario and usuario.perfil == "GCM" %}
+
                                 <a
                                     href="{% url 'cartao_programa:meu_cartao_programa' %}"
                                     class="btn btn-outline-secondary"
@@ -332,7 +479,9 @@
                                     <i class="bi bi-arrow-left me-1"></i>
                                     Voltar ao Cartão Programa
                                 </a>
+
                             {% else %}
+
                                 <a
                                     href="{% url 'escolas:listar_escolas' %}"
                                     class="btn btn-outline-secondary"
@@ -340,12 +489,15 @@
                                     <i class="bi bi-arrow-left me-1"></i>
                                     Cancelar
                                 </a>
+
                             {% endif %}
 
                             <button
                                 type="submit"
                                 class="btn btn-visita-salvar"
+                                id="btn-salvar-visita"
                             >
+
                                 <i class="bi bi-check-circle me-1"></i>
 
                                 {% if modo_edicao %}
@@ -353,11 +505,15 @@
                                 {% else %}
                                     Registrar Visita
                                 {% endif %}
+
                             </button>
+
                         </div>
 
                     </form>
+
                 </div>
+
             </div>
 
         </div>
@@ -366,32 +522,269 @@
 
 {% endblock %}
 
+
 {% block scripts %}
 
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+
+    // ==============================================
+    // PESQUISA DE ESCOLAS
+    // ==============================================
+
     const campoEscola = document.getElementById("id_escola");
 
-    if (!campoEscola || campoEscola.disabled) {
-        return;
-    }
+    if (
+        campoEscola &&
+        !campoEscola.disabled &&
+        typeof TomSelect !== "undefined"
+    ) {
 
-    if (typeof TomSelect !== "undefined") {
         new TomSelect(campoEscola, {
+
             create: false,
             allowEmptyOption: true,
             placeholder: "Digite o nome da escola...",
             searchField: ["text"],
+
             sortField: {
                 field: "text",
                 direction: "asc"
             },
+
             maxOptions: null,
             closeAfterSelect: true
+
         });
+
     }
+
+    // ==============================================
+    // CAMPOS DA VISITA AVULSA
+    // ==============================================
+
+    const campoData = document.getElementById(
+        "id_data_visita"
+    );
+
+    const campoViatura = document.getElementById(
+        "id_viatura"
+    );
+
+    const campoEquipe = document.getElementById(
+        "id_equipe"
+    );
+
+    const avisoViatura = document.getElementById(
+        "aviso-viatura"
+    );
+
+    if (
+        !campoData ||
+        !campoViatura ||
+        !campoEquipe ||
+        campoData.disabled
+    ) {
+        return;
+    }
+
+    // ==============================================
+    // AVISOS
+    // ==============================================
+
+    function mostrarAviso(mensagem) {
+
+        if (!avisoViatura) {
+            return;
+        }
+
+        avisoViatura.textContent = mensagem;
+        avisoViatura.classList.remove("d-none");
+
+    }
+
+    function ocultarAviso() {
+
+        if (!avisoViatura) {
+            return;
+        }
+
+        avisoViatura.textContent = "";
+        avisoViatura.classList.add("d-none");
+
+    }
+
+    // ==============================================
+    // LIMPAR EQUIPE
+    // ==============================================
+
+    function limparEquipe() {
+
+        campoEquipe.value = "";
+
+    }
+
+    
+    // ==============================================
+    // CONSULTAR VIATURAS POR DATA
+    // ==============================================
+
+    const urlViaturas = "{% url 'visitas:consultar_viaturas_visita' %}";
+
+    let consultaAtual = null;
+
+    async function carregarViaturas() {
+
+        const dataSelecionada = campoData.value;
+
+        if (consultaAtual) {
+            consultaAtual.abort();
+        }
+
+        consultaAtual = new AbortController();
+
+        campoViatura.innerHTML = "";
+
+        const opcaoInicial = new Option(
+            "Selecione a viatura",
+            ""
+        );
+
+        campoViatura.add(opcaoInicial);
+
+        limparEquipe();
+        ocultarAviso();
+
+        if (!dataSelecionada) {
+
+            mostrarAviso(
+                "Informe a data da visita para consultar as viaturas."
+            );
+
+            return;
+        }
+
+        campoViatura.disabled = true;
+
+        try {
+
+            const url = new URL(
+                urlViaturas,
+                window.location.origin
+            );
+
+            url.searchParams.set(
+                "data",
+                dataSelecionada
+            );
+
+            const resposta = await fetch(
+                url.toString(),
+                {
+                    method: "GET",
+                    credentials: "same-origin",
+                    signal: consultaAtual.signal
+                }
+            );
+
+            if (!resposta.ok) {
+                throw new Error(
+                    "Não foi possível consultar as viaturas."
+                );
+            }
+
+            const dados = await resposta.json();
+
+            dados.viaturas.forEach(function (viatura) {
+
+                const opcao = new Option(
+                    viatura.identificacao +
+                    " - " +
+                    viatura.nome_equipe,
+                    viatura.id
+                );
+
+                opcao.dataset.equipe = viatura.equipe;
+
+                campoViatura.add(opcao);
+
+            });
+
+            if (dados.viaturas.length === 0) {
+
+                mostrarAviso(
+                    dados.mensagem ||
+                    "Nenhuma viatura disponível nesta data."
+                );
+
+            }
+
+        } catch (erro) {
+
+            if (erro.name === "AbortError") {
+                return;
+            }
+
+            mostrarAviso(
+                "Não foi possível carregar as viaturas. " +
+                "Tente novamente."
+            );
+
+        } finally {
+
+            if (!consultaAtual.signal.aborted) {
+                campoViatura.disabled = false;
+            }
+
+        }
+
+    }
+
+    // ==============================================
+    // ALTERAÇÃO DA DATA
+    // ==============================================
+
+    campoData.addEventListener(
+        "change",
+        carregarViaturas
+    );
+
+    // ==============================================
+    // ALTERAÇÃO DA VIATURA
+    // ==============================================
+
+    campoViatura.addEventListener(
+        "change",
+        function () {
+
+            ocultarAviso();
+
+            const opcao = campoViatura.selectedOptions[0];
+
+            campoEquipe.value = (
+                opcao && opcao.dataset.equipe
+            ) || "";
+
+        }
+    );
+
+
+    // ==============================================
+    // ALTERAÇÃO DA VIATURA
+    // ==============================================
+
+    campoViatura.addEventListener("change", function () {
+
+        limparEquipe();
+        ocultarAviso();
+
+        // O código da equipe é definido no servidor
+        // a partir da viatura selecionada.
+
+    });
+
 });
 </script>
 

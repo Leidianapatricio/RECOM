@@ -1,0 +1,478 @@
+
+/* ==========================================================
+   RECOM - MÓDULO DE OCORRÊNCIAS
+   Arquivo: static/css/ocorrencias.css
+   ========================================================== */
+
+
+/* ==========================================================
+   1. CONTAINER PRINCIPAL
+   ========================================================== */
+
+.ocorrencia-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 12px 50px;
+}
+
+
+/* ==========================================================
+   2. CABEÇALHO
+   ========================================================== */
+
+.ocorrencia-cabecalho {
+    background-color: #092b49;
+    color: #ffffff;
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-bottom: 24px;
+}
+
+.ocorrencia-cabecalho h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.ocorrencia-cabecalho p {
+    margin: 6px 0 0;
+    color: #d9e5ee;
+    font-size: 0.92rem;
+}
+
+.ocorrencia-cabecalho .btn-light {
+    background-color: #ffffff;
+    color: #092b49;
+    border: 1px solid #ffffff;
+    font-weight: 500;
+}
+
+.ocorrencia-cabecalho .btn-light:hover {
+    background-color: #edf3f7;
+    color: #092b49;
+}
+
+
+/* ==========================================================
+   3. CARDS
+   ========================================================== */
+
+.ocorrencia-card {
+    background-color: #ffffff;
+    border: 1px solid #dce3e9;
+    border-radius: 10px;
+    margin-bottom: 22px;
+    overflow: hidden;
+    box-shadow: none;
+}
+
+.ocorrencia-card-titulo {
+    background-color: #f4f7fa;
+    border-bottom: 1px solid #dce3e9;
+    padding: 15px 20px;
+    font-weight: 600;
+    color: #092b49;
+}
+
+.ocorrencia-card-corpo {
+    padding: 22px;
+}
+
+
+/* ==========================================================
+   4. CAMPOS DOS FORMULÁRIOS
+   ========================================================== */
+
+.ocorrencia-card label {
+    font-weight: 500;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.ocorrencia-card .form-control,
+.ocorrencia-card .form-select {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #334155;
+}
+
+.ocorrencia-card .form-control:focus,
+.ocorrencia-card .form-select:focus {
+    border-color: #3475a7;
+    box-shadow: 0 0 0 0.15rem rgba(52, 117, 167, 0.12);
+    outline: none;
+}
+
+.ocorrencia-card textarea.form-control {
+    resize: vertical;
+}
+
+.ocorrencia-card .form-text {
+    color: #64748b;
+    font-size: 0.82rem;
+    margin-top: 5px;
+}
+
+.ocorrencia-card .form-control::placeholder {
+    color: #94a3b8;
+}
+
+
+/* ==========================================================
+   5. RADIO BUTTONS
+   ========================================================== */
+
+.opcoes-radio {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding-top: 5px;
+}
+
+.opcoes-radio > div {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.opcoes-radio label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: 400;
+}
+
+.opcoes-radio input[type="radio"] {
+    cursor: pointer;
+    accent-color: #092b49;
+}
+
+.opcoes-radio input[type="radio"]:checked {
+    background-color: #092b49;
+    border-color: #092b49;
+}
+
+
+/* ==========================================================
+   6. FORMULÁRIOS DE PESSOAS E VEÍCULOS
+   ========================================================== */
+
+.subform-card {
+    border: 1px solid #dce3e9;
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 15px;
+    background-color: #fafbfd;
+}
+
+.subform-titulo {
+    color: #092b49;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+.subform-card .form-control,
+.subform-card .form-select {
+    background-color: #ffffff;
+}
+
+.subform-card .btn-outline-danger {
+    font-size: 0.82rem;
+    padding: 5px 12px;
+}
+
+
+/* ==========================================================
+   7. BOTÕES
+   ========================================================== */
+
+.btn-recom {
+    background-color: #092b49;
+    border: 1px solid #092b49;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.btn-recom:hover,
+.btn-recom:focus {
+    background-color: #16486f;
+    border-color: #16486f;
+    color: #ffffff;
+}
+
+.btn-adicionar {
+    border: 1px solid #092b49;
+    color: #092b49;
+    background-color: #ffffff;
+    font-weight: 500;
+}
+
+.btn-adicionar:hover,
+.btn-adicionar:focus {
+    background-color: #eef4f8;
+    border-color: #092b49;
+    color: #092b49;
+}
+
+.acoes-formulario {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+}
+
+
+/* ==========================================================
+   8. CAMPOS OBRIGATÓRIOS E ERROS
+   ========================================================== */
+
+.campo-obrigatorio {
+    color: #dc3545;
+}
+
+.erro-campo {
+    color: #b42318;
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+.ocorrencia-card .errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0;
+    color: #b42318;
+    font-size: 0.85rem;
+}
+
+.ocorrencia-card .is-invalid {
+    border-color: #dc3545;
+}
+
+
+/* ==========================================================
+   9. EXIBIÇÃO DINÂMICA
+   ========================================================== */
+
+.campo-oculto {
+    display: none !important;
+}
+
+
+/* ==========================================================
+   10. LISTAGEM DE OCORRÊNCIAS
+   ========================================================== */
+
+.ocorrencia-filtros {
+    background-color: #ffffff;
+    border: 1px solid #dce3e9;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 22px;
+}
+
+.ocorrencia-filtros label {
+    font-weight: 500;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.ocorrencia-tabela {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ocorrencia-tabela thead th {
+    background-color: #092b49;
+    color: #ffffff;
+    font-weight: 500;
+    padding: 13px 15px;
+    white-space: nowrap;
+}
+
+.ocorrencia-tabela tbody td {
+    padding: 13px 15px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.ocorrencia-tabela tbody tr:hover {
+    background-color: #f4f7fa;
+}
+
+.ocorrencia-tabela .btn {
+    white-space: nowrap;
+}
+
+
+/* ==========================================================
+   11. BADGES DE CLASSIFICAÇÃO
+   ========================================================== */
+
+.ocorrencia-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.ocorrencia-badge-transito {
+    background-color: #e8f3ff;
+    color: #175b96;
+}
+
+.ocorrencia-badge-violencia {
+    background-color: #fff0ed;
+    color: #a33124;
+}
+
+.ocorrencia-badge-apoio {
+    background-color: #fff4da;
+    color: #805600;
+}
+
+.ocorrencia-badge-direto {
+    background-color: #e8f5ee;
+    color: #17653d;
+}
+
+
+/* ==========================================================
+   12. DETALHES DA OCORRÊNCIA
+   ========================================================== */
+
+.ocorrencia-detalhe-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.ocorrencia-detalhe-valor {
+    font-size: 0.95rem;
+    color: #1e293b;
+    margin-bottom: 16px;
+    overflow-wrap: anywhere;
+}
+
+.ocorrencia-relato {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    color: #334155;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+
+/* ==========================================================
+   13. PAGINAÇÃO
+   ========================================================== */
+
+.ocorrencia-paginacao {
+    display: flex;
+    justify-content: center;
+    margin-top: 24px;
+}
+
+.ocorrencia-paginacao .page-link {
+    color: #092b49;
+    border-color: #dce3e9;
+}
+
+.ocorrencia-paginacao .page-item.active .page-link {
+    background-color: #092b49;
+    border-color: #092b49;
+    color: #ffffff;
+}
+
+
+/* ==========================================================
+   14. CONFIRMAÇÃO DE EXCLUSÃO
+   ========================================================== */
+
+.ocorrencia-exclusao {
+    max-width: 650px;
+    margin: 30px auto;
+}
+
+.ocorrencia-exclusao .alert {
+    border-radius: 8px;
+}
+
+.ocorrencia-exclusao .acoes-formulario {
+    margin-top: 22px;
+}
+
+
+/* ==========================================================
+   15. RESPONSIVIDADE
+   ========================================================== */
+
+@media (max-width: 768px) {
+
+    .ocorrencia-container {
+        padding: 16px 10px 35px;
+    }
+
+    .ocorrencia-cabecalho {
+        padding: 18px;
+    }
+
+    .ocorrencia-cabecalho h2 {
+        font-size: 1.3rem;
+    }
+
+    .ocorrencia-card-corpo {
+        padding: 16px;
+    }
+
+    .ocorrencia-card-titulo {
+        padding: 13px 16px;
+    }
+
+    .subform-card {
+        padding: 14px;
+    }
+
+    .opcoes-radio {
+        gap: 12px;
+    }
+
+    .ocorrencia-filtros {
+        padding: 15px;
+    }
+
+    .ocorrencia-tabela {
+        font-size: 0.88rem;
+    }
+
+    .ocorrencia-tabela thead th,
+    .ocorrencia-tabela tbody td {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+
+    .ocorrencia-cabecalho .btn-light {
+        width: 100%;
+    }
+
+    .acoes-formulario {
+        flex-direction: column-reverse;
+    }
+
+    .acoes-formulario .btn {
+        width: 100%;
+    }
+
+    .opcoes-radio {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}

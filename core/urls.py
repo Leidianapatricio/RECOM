@@ -3,6 +3,7 @@ from django.urls import path
 
 from . import views
 from . import views_relatorios
+from . import views_historico
 
 
 app_name = "core"
@@ -74,7 +75,6 @@ urlpatterns = [
     # RELATÓRIOS
     # =========================================================
 
-    # Página principal dos relatórios
     path(
         "relatorios/",
         views_relatorios.relatorios,
@@ -99,18 +99,40 @@ urlpatterns = [
     # EXPORTAÇÃO DE RELATÓRIOS DE VISITAS
     # =========================================================
 
-    # Exportar todas as visitas filtradas para PDF
     path(
         "relatorios/visitas/pdf/",
         views_relatorios.exportar_visitas_pdf,
         name="exportar_visitas_pdf"
     ),
 
-    # Exportar todas as visitas filtradas para CSV
     path(
         "relatorios/visitas/csv/",
         views_relatorios.exportar_visitas_csv,
         name="exportar_visitas_csv"
+    ),
+
+    # =========================================================
+    # HISTÓRICO DE ATIVIDADES
+    # =========================================================
+
+    path(
+        "historico/",
+        views_historico.historico_atividades,
+        name="historico_atividades"
+    ),
+
+    # Exportar histórico para PDF
+    path(
+        "historico/pdf/",
+        views_historico.exportar_historico_pdf,
+        name="exportar_historico_pdf"
+    ),
+
+    # Exportar histórico para CSV
+    path(
+        "historico/csv/",
+        views_historico.exportar_historico_csv,
+        name="exportar_historico_csv"
     ),
 
 ]

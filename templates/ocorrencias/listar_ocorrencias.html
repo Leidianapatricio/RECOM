@@ -1,0 +1,389 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ocorrências | RECOM{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/ocorrencias.css' %}">
+
+<div class="ocorrencia-container">
+
+    <!-- CABEÇALHO -->
+    <div class="ocorrencia-cabecalho">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+            <div>
+                <h2>Ocorrências</h2>
+                <p>
+                    Consulta e gerenciamento das ocorrências
+                    registradas pela Ronda Escolar Comunitária.
+                </p>
+            </div>
+
+            {% if pode_cadastrar %}
+                <a href="{% url 'ocorrencias:cadastrar_ocorrencia' %}"
+                   class="btn btn-light">
+                    + Nova Ocorrência
+                </a>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="ocorrencia-filtros">
+
+        <form method="get"
+              action="{% url 'ocorrencias:listar_ocorrencias' %}">
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-lg-4 col-md-6">
+                    <label for="busca" class="form-label">
+                        Buscar ocorrência
+                    </label>
+
+                    <input
+                        type="text"
+                        name="busca"
+                        id="busca"
+                        class="form-control"
+                        value="{{ busca }}"
+                        placeholder="Local, bairro, relato ou equipe apoiada">
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <label for="categoria" class="form-label">
+                        Categoria
+                    </label>
+
+                    <select name="categoria"
+                            id="categoria"
+                            class="form-select">
+
+                        <option value="">
+                            Todas as categorias
+                        </option>
+
+                        {% for valor, descricao in categorias %}
+                            <option value="{{ valor }}"
+                                {% if categoria_selecionada == valor %}selected{% endif %}>
+                                {{ descricao }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <label for="natureza" class="form-label">
+                        Natureza da atuação
+                    </label>
+
+                    <select name="natureza"
+                            id="natureza"
+                            class="form-select">
+
+                        <option value="">
+                            Todas as atuações
+                        </option>
+
+                        {% for valor, descricao in naturezas %}
+                            <option value="{{ valor }}"
+                                {% if natureza_selecionada == valor %}selected{% endif %}>
+                                {{ descricao }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label for="data_inicio" class="form-label">
+                        Data inicial
+                    </label>
+
+                    <input
+                        type="date"
+                        name="data_inicio"
+                        id="data_inicio"
+                        class="form-control"
+                        value="{{ data_inicio }}">
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label for="data_fim" class="form-label">
+                        Data final
+                    </label>
+
+                    <input
+                        type="date"
+                        name="data_fim"
+                        id="data_fim"
+                        class="form-control"
+                        value="{{ data_fim }}">
+                </div>
+
+                <div class="col-lg-6 col-md-12">
+                    <div class="d-flex gap-2 flex-wrap">
+
+                        <button type="submit"
+                                class="btn btn-recom px-4">
+                            Filtrar
+                        </button>
+
+                        <a href="{% url 'ocorrencias:listar_ocorrencias' %}"
+                           class="btn btn-outline-secondary px-4">
+                            Limpar filtros
+                        </a>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+    <!-- LISTAGEM -->
+    <div class="ocorrencia-card">
+
+        <div class="ocorrencia-card-titulo d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+            <span>Ocorrências encontradas</span>
+
+            <span class="text-muted small">
+                {{ page_obj.paginator.count }}
+                registro{{ page_obj.paginator.count|pluralize }}
+            </span>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="ocorrencia-tabela">
+
+                <thead>
+                    <tr>
+                        <th>Data / Horário</th>
+                        <th>Categoria</th>
+                        <th>Tipo</th>
+                        <th>Natureza da atuação</th>
+                        <th>Local</th>
+                        <th>Equipe apoiada</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for ocorrencia in ocorrencias %}
+
+                        <tr>
+
+                            <td>
+                                <div class="fw-semibold">
+                                    {{ ocorrencia.data|date:"d/m/Y" }}
+                                </div>
+
+                                <small class="text-muted">
+                                    {{ ocorrencia.horario|time:"H:i" }}
+                                </small>
+                            </td>
+
+                            <td>
+
+                                {% if ocorrencia.categoria == "TRANSITO" %}
+
+                                    <span class="ocorrencia-badge ocorrencia-badge-transito">
+                                        Trânsito
+                                    </span>
+
+                                {% elif ocorrencia.categoria == "VIOLENCIA" %}
+
+                                    <span class="ocorrencia-badge ocorrencia-badge-violencia">
+                                        Violência e Criminalidade
+                                    </span>
+
+                                {% else %}
+
+                                    {{ ocorrencia.get_categoria_display }}
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                {{ ocorrencia.get_tipo_ocorrencia_display }}
+                            </td>
+
+                            <td>
+
+                                {% if ocorrencia.natureza_atuacao == "APOIO" %}
+
+                                    <span class="ocorrencia-badge ocorrencia-badge-apoio">
+                                        Apoio a outra equipe
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="ocorrencia-badge ocorrencia-badge-direto">
+                                        Atendimento direto
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">
+                                    {{ ocorrencia.local }}
+                                </div>
+
+                                {% if ocorrencia.bairro %}
+                                    <small class="text-muted">
+                                        {{ ocorrencia.bairro }}
+                                    </small>
+                                {% endif %}
+                            </td>
+
+                            <td>
+
+                                {% if ocorrencia.natureza_atuacao == "APOIO" %}
+
+                                    {{ ocorrencia.equipe_apoiada|default:"Não informada" }}
+
+                                {% else %}
+
+                                    <span class="text-muted">—</span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+
+                                    <a href="{% url 'ocorrencias:detalhe_ocorrencia' ocorrencia.pk %}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Visualizar ocorrência">
+                                        Visualizar
+                                    </a>
+
+                                   {% if ocorrencia.pode_editar_usuario %}
+                                        <a href="{% url 'ocorrencias:editar_ocorrencia' ocorrencia.pk %}"
+                                        class="btn btn-sm btn-outline-primary">
+                                            Editar
+                                        </a>
+                                    {% endif %}
+
+                                    {% if ocorrencia.pode_excluir_usuario %}
+                                        <a href="{% url 'ocorrencias:excluir_ocorrencia' ocorrencia.pk %}"
+                                        class="btn btn-sm btn-outline-danger">
+                                            Excluir
+                                        </a>
+                                    {% endif %}
+
+                                    {% if pode_gerenciar %}
+
+                                        <a href="{% url 'ocorrencias:excluir_ocorrencia' ocorrencia.pk %}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           title="Excluir ocorrência">
+                                            Excluir
+                                        </a>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="7"
+                                class="text-center text-muted py-5">
+
+                                Nenhuma ocorrência encontrada
+                                para os filtros informados.
+
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- PAGINAÇÃO -->
+    {% if page_obj.has_other_pages %}
+
+        <nav class="ocorrencia-paginacao"
+             aria-label="Paginação de ocorrências">
+
+            <ul class="pagination flex-wrap">
+
+                {% if page_obj.has_previous %}
+
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page=1&busca={{ busca|urlencode }}&categoria={{ categoria_selecionada|urlencode }}&natureza={{ natureza_selecionada|urlencode }}&data_inicio={{ data_inicio|urlencode }}&data_fim={{ data_fim|urlencode }}">
+                            Primeira
+                        </a>
+                    </li>
+
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.previous_page_number }}&busca={{ busca|urlencode }}&categoria={{ categoria_selecionada|urlencode }}&natureza={{ natureza_selecionada|urlencode }}&data_inicio={{ data_inicio|urlencode }}&data_fim={{ data_fim|urlencode }}">
+                            Anterior
+                        </a>
+                    </li>
+
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        {{ page_obj.number }}
+                        de
+                        {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.next_page_number }}&busca={{ busca|urlencode }}&categoria={{ categoria_selecionada|urlencode }}&natureza={{ natureza_selecionada|urlencode }}&data_inicio={{ data_inicio|urlencode }}&data_fim={{ data_fim|urlencode }}">
+                            Próxima
+                        </a>
+                    </li>
+
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.paginator.num_pages }}&busca={{ busca|urlencode }}&categoria={{ categoria_selecionada|urlencode }}&natureza={{ natureza_selecionada|urlencode }}&data_inicio={{ data_inicio|urlencode }}&data_fim={{ data_fim|urlencode }}">
+                            Última
+                        </a>
+                    </li>
+
+                {% endif %}
+
+            </ul>
+
+        </nav>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
