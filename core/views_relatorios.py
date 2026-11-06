@@ -245,6 +245,12 @@ def relatorios(request):
 
     _autorizar_relatorios(request)
 
+    # GCM acessa diretamente o Relatório de Visitas.
+    # A consulta continua abrangendo todas as equipes e visitas avulsas.
+    if _perfil_usuario(request) == "GCM":
+        return relatorio_visitas(request)
+
+    # ADMIN e COORDENADOR permanecem na página gerencial.
     # Indicadores gerais
     total_usuarios = Usuario.objects.count()
 
