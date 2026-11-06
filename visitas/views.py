@@ -533,6 +533,10 @@ def editar_visita(request, pk):
 
                     # Preserva a missão original.
                     atualizada.missao_cartao = missao
+                    # Visitas sem missão não devem ficar vinculadas
+                    # a uma viatura do plantão.
+                    if missao is None:
+                        atualizada.viatura = None
 
                     # Preserva o autor original.
                     atualizada.registrado_por_id = (

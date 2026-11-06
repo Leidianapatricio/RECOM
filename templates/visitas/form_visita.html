@@ -239,7 +239,7 @@
                         {% else %}
 
                             <!-- ================================== -->
-                            <!-- VISITA AVULSA -->
+                            <!-- VISITA LEGADA OU AVULSA -->
                             <!-- ================================== -->
 
                             <!-- DATA DA VISITA -->
@@ -264,39 +264,6 @@
 
                             </div>
 
-                            <!-- VIATURA DO PLANTÃO -->
-
-                            <div class="mb-3">
-
-                                <label
-                                    for="{{ form.viatura.id_for_label }}"
-                                    class="form-label fw-semibold"
-                                >
-                                    Viatura do plantão
-                                    <span class="text-danger">*</span>
-                                </label>
-
-                                {{ form.viatura }}
-
-                                <div class="form-text">
-                                    Selecione a viatura em que você
-                                    estava escalado na data informada.
-                                </div>
-
-                                {% for erro in form.viatura.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ erro }}
-                                    </div>
-                                {% endfor %}
-
-                                <div
-                                    id="aviso-viatura"
-                                    class="alert alert-warning small mt-2 d-none"
-                                    role="alert"
-                                ></div>
-
-                            </div>
-
                             <!-- EQUIPE RESPONSÁVEL -->
 
                             <div class="mb-3">
@@ -306,14 +273,14 @@
                                     class="form-label fw-semibold"
                                 >
                                     Equipe responsável
+                                    <span class="text-danger">*</span>
                                 </label>
 
                                 {{ form.equipe }}
 
                                 <div class="form-text">
-                                    A equipe é identificada
-                                    automaticamente pela viatura
-                                    selecionada.
+                                    Selecione a equipe responsável
+                                    pela realização da visita.
                                 </div>
 
                                 {% for erro in form.equipe.errors %}
@@ -562,228 +529,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==============================================
-    // CAMPOS DA VISITA AVULSA
+    // VISITAS LEGADAS E AVULSAS
     // ==============================================
 
-    const campoData = document.getElementById(
-        "id_data_visita"
-    );
-
-    const campoViatura = document.getElementById(
-        "id_viatura"
-    );
-
-    const campoEquipe = document.getElementById(
-        "id_equipe"
-    );
-
-    const avisoViatura = document.getElementById(
-        "aviso-viatura"
-    );
-
-    if (
-        !campoData ||
-        !campoViatura ||
-        !campoEquipe ||
-        campoData.disabled
-    ) {
-        return;
-    }
-
-    // ==============================================
-    // AVISOS
-    // ==============================================
-
-    function mostrarAviso(mensagem) {
-
-        if (!avisoViatura) {
-            return;
-        }
-
-        avisoViatura.textContent = mensagem;
-        avisoViatura.classList.remove("d-none");
-
-    }
-
-    function ocultarAviso() {
-
-        if (!avisoViatura) {
-            return;
-        }
-
-        avisoViatura.textContent = "";
-        avisoViatura.classList.add("d-none");
-
-    }
-
-    // ==============================================
-    // LIMPAR EQUIPE
-    // ==============================================
-
-    function limparEquipe() {
-
-        campoEquipe.value = "";
-
-    }
-
-    
-    // ==============================================
-    // CONSULTAR VIATURAS POR DATA
-    // ==============================================
-
-    const urlViaturas = "{% url 'visitas:consultar_viaturas_visita' %}";
-
-    let consultaAtual = null;
-
-    async function carregarViaturas() {
-
-        const dataSelecionada = campoData.value;
-
-        if (consultaAtual) {
-            consultaAtual.abort();
-        }
-
-        consultaAtual = new AbortController();
-
-        campoViatura.innerHTML = "";
-
-        const opcaoInicial = new Option(
-            "Selecione a viatura",
-            ""
-        );
-
-        campoViatura.add(opcaoInicial);
-
-        limparEquipe();
-        ocultarAviso();
-
-        if (!dataSelecionada) {
-
-            mostrarAviso(
-                "Informe a data da visita para consultar as viaturas."
-            );
-
-            return;
-        }
-
-        campoViatura.disabled = true;
-
-        try {
-
-            const url = new URL(
-                urlViaturas,
-                window.location.origin
-            );
-
-            url.searchParams.set(
-                "data",
-                dataSelecionada
-            );
-
-            const resposta = await fetch(
-                url.toString(),
-                {
-                    method: "GET",
-                    credentials: "same-origin",
-                    signal: consultaAtual.signal
-                }
-            );
-
-            if (!resposta.ok) {
-                throw new Error(
-                    "Não foi possível consultar as viaturas."
-                );
-            }
-
-            const dados = await resposta.json();
-
-            dados.viaturas.forEach(function (viatura) {
-
-                const opcao = new Option(
-                    viatura.identificacao +
-                    " - " +
-                    viatura.nome_equipe,
-                    viatura.id
-                );
-
-                opcao.dataset.equipe = viatura.equipe;
-
-                campoViatura.add(opcao);
-
-            });
-
-            if (dados.viaturas.length === 0) {
-
-                mostrarAviso(
-                    dados.mensagem ||
-                    "Nenhuma viatura disponível nesta data."
-                );
-
-            }
-
-        } catch (erro) {
-
-            if (erro.name === "AbortError") {
-                return;
-            }
-
-            mostrarAviso(
-                "Não foi possível carregar as viaturas. " +
-                "Tente novamente."
-            );
-
-        } finally {
-
-            if (!consultaAtual.signal.aborted) {
-                campoViatura.disabled = false;
-            }
-
-        }
-
-    }
-
-    // ==============================================
-    // ALTERAÇÃO DA DATA
-    // ==============================================
-
-    campoData.addEventListener(
-        "change",
-        carregarViaturas
-    );
-
-    // ==============================================
-    // ALTERAÇÃO DA VIATURA
-    // ==============================================
-
-    campoViatura.addEventListener(
-        "change",
-        function () {
-
-            ocultarAviso();
-
-            const opcao = campoViatura.selectedOptions[0];
-
-            campoEquipe.value = (
-                opcao && opcao.dataset.equipe
-            ) || "";
-
-        }
-    );
-
-
-    // ==============================================
-    // ALTERAÇÃO DA VIATURA
-    // ==============================================
-
-    campoViatura.addEventListener("change", function () {
-
-        limparEquipe();
-        ocultarAviso();
-
-        // O código da equipe é definido no servidor
-        // a partir da viatura selecionada.
-
-    });
+    // A equipe é selecionada diretamente pelo usuário.
+    // Não existe consulta automática de viaturas.
+    // A viatura das visitas programadas permanece
+    // definida pelo Cartão Programa no servidor.
 
 });
 </script>

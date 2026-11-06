@@ -348,272 +348,47 @@ class RondaVisitaForm(forms.ModelForm):
         # CAMPOS OBRIGATÓRIOS
         # ==============================================
 
-        campos_obrigatorios = [
-            "escola",
-            "data_visita",
-            "viatura",
-            "equipe",
-            "horario",
-            "tipo_visita",
-            "situacao",
-        ]
-
-        for campo in campos_obrigatorios:
+        for campo in (
+            "escola", "data_visita", "equipe", "horario",
+            "tipo_visita", "situacao",
+        ):
             self.fields[campo].required = True
 
-        # ==============================================
-        # VISITA PROGRAMADA
-        # ==============================================
+        # A viatura só é obrigatória quando a visita
+        # pertence a uma missão do Cartão Programa.
+        self.fields["viatura"].required = missao is not None
 
         if missao is not None:
-
+            # VISITA PROGRAMADA: preserva os dados da missão.
             dados = dados_da_missao(missao)
-
             self.fields["escola"].queryset = (
-                self.fields["escola"]
-                .queryset.model.objects.filter(
+                self.fields["escola"].queryset.model.objects.filter(
                     pk=missao.escola_id
                 )
             )
-
             self.fields["viatura"].queryset = (
-                ViaturaPlantao.objects.filter(
-                    pk=missao.viatura_id
-                )
+                ViaturaPlantao.objects.filter(pk=missao.viatura_id)
             )
-
             for campo, valor in dados.items():
-
                 self.fields[campo].initial = valor
                 self.fields[campo].disabled = True
-
             self.fields["escola"].help_text = (
-                "Escola definida pela missão "
-                "do Cartão Programa."
+                "Escola definida pela missão do Cartão Programa."
             )
-
             self.fields["viatura"].help_text = (
-                "Viatura definida automaticamente "
-                "pela missão."
+                "Viatura definida automaticamente pela missão."
             )
-
-        # ==============================================
-        # VISITA AVULSA
-        # ==============================================
-
         else:
-
-            self.fields["equipe"].disabled = True
-
+            # VISITAS LEGADAS E AVULSAS: não possuem viatura.
+            # A equipe é informada diretamente, sem depender de escala.
+            self.fields["viatura"].queryset = ViaturaPlantao.objects.none()
+            self.fields["viatura"].widget = forms.HiddenInput()
+            self.fields["viatura"].required = False
+            self.fields["equipe"].disabled = False
+            self.fields["equipe"].required = True
             self.fields["equipe"].help_text = (
-                "A equipe será identificada "
-                "automaticamente pela viatura."
+                "Selecione a equipe responsável pela visita."
             )
-
-            self.fields["viatura"].help_text = (
-                "Selecione a viatura correspondente "
-                "à data da visita."
-            )
-
-            data_selecionada = None
-
-            if self.is_bound:
-
-                data_informada = self.data.get(
-                    self.add_prefix("data_visita"),
-                    "",
-                )
-
-                try:
-                    data_selecionada = (
-                        date.fromisoformat(data_informada)
-                    )
-                except (ValueError, TypeError):
-                    pass
-
-            elif self.initial.get("data_visita"):
-
-                data_inicial = self.initial[
-                    "data_visita"
-                ]
-
-                if isinstance(data_inicial, date):
-                    data_selecionada = data_inicial
-
-                elif isinstance(data_inicial, str):
-                    try:
-                        data_selecionada = (
-                            date.fromisoformat(
-                                data_inicial
-                            )
-                        )
-                    except ValueError:
-                        pass
-
-            elif self.instance.pk:
-
-                data_selecionada = (
-                    self.instance.data_visita
-                )
-
-            # ==========================================
-            # VIATURAS AUTORIZADAS
-            # ==========================================
-
-            viaturas = (
-                ViaturaPlantao.objects
-                .select_related(
-                    "plantao",
-                    "equipe",
-                )
-                .none()
-            )
-
-            usuario = usuario_logado
-
-            if (
-                usuario is not None
-                and usuario.is_authenticated
-                and usuario.is_active
-            ):
-
-                usuario_recom = (
-                    getattr(
-                        usuario,
-                        "usuario",
-                        None,
-                    )
-                )
-
-                if usuario.is_superuser or (
-                    usuario_recom is not None
-                    and usuario_recom.ativo
-                    and usuario_recom.perfil in (
-                        "ADMIN",
-                        "COORDENADOR",
-                    )
-                ):
-
-                    viaturas = (
-                        ViaturaPlantao.objects
-                        .select_related(
-                            "plantao",
-                            "equipe",
-                        )
-                        .all()
-                    )
-
-                elif (
-                    usuario_recom is not None
-                    and usuario_recom.ativo
-                    and usuario_recom.perfil == "GCM"
-                ):
-
-                    # Mantém as funções autorizadas
-                    # a cadastrar visitas.
-                    ids_viaturas = (
-                        EfetivoViatura.objects.filter(
-                            gcm=usuario_recom,
-                            funcao__in=(
-                                "C",
-                                "P1",
-                                "P2",
-                            ),
-                        ).values_list(
-                            "viatura_id",
-                            flat=True,
-                        )
-                    )
-
-                    viaturas = (
-                        ViaturaPlantao.objects
-                        .select_related(
-                            "plantao",
-                            "equipe",
-                        )
-                        .filter(
-                            pk__in=ids_viaturas
-                        )
-                    )
-
-            if data_selecionada is not None:
-
-                viaturas = viaturas.filter(
-                    plantao__data=data_selecionada
-                )
-
-            else:
-
-                viaturas = viaturas.none()
-
-            # Preserva a viatura da visita em edição
-            # apenas se ainda estiver autorizada.
-            self.fields["viatura"].queryset = (
-                viaturas.distinct().order_by(
-                    "identificacao",
-                    "pk",
-                )
-            )
-
-            self.fields["viatura"].empty_label = (
-                "Selecione a viatura"
-            )
-
-            # ==========================================
-            # EQUIPE AUTOMÁTICA
-            # ==========================================
-
-            viatura_selecionada = None
-
-            if self.is_bound:
-
-                viatura_id = self.data.get(
-                    self.add_prefix("viatura")
-                )
-
-                if viatura_id:
-
-                    viatura_selecionada = (
-                        self.fields["viatura"]
-                        .queryset
-                        .filter(pk=viatura_id)
-                        .first()
-                    )
-
-            elif (
-                self.instance.pk
-                and self.instance.viatura_id
-            ):
-
-                viatura_selecionada = (
-                    self.fields["viatura"]
-                    .queryset
-                    .filter(
-                        pk=self.instance.viatura_id
-                    )
-                    .first()
-                )
-
-            if viatura_selecionada:
-
-                try:
-
-                    codigo_equipe = (
-                        obter_codigo_equipe_viatura(
-                            viatura_selecionada
-                        )
-                    )
-
-                    self.fields["equipe"].initial = (
-                        codigo_equipe
-                    )
-
-                except ValidationError:
-                    pass
-
-            # O campo desabilitado não precisa
-            # ser enviado pelo navegador.
-            self.fields["equipe"].required = False
 
     # =====================================================
     # VALIDAÇÃO
@@ -639,51 +414,8 @@ class RondaVisitaForm(forms.ModelForm):
 
             return cleaned_data
 
-        # ==============================================
-        # VISITA AVULSA
-        # ==============================================
-
-        viatura = cleaned_data.get(
-            "viatura"
-        )
-
-        data_visita = cleaned_data.get(
-            "data_visita"
-        )
-
-        if viatura is None:
-            return cleaned_data
-
-        if (
-            data_visita is not None
-            and viatura.plantao.data != data_visita
-        ):
-
-            self.add_error(
-                "viatura",
-                "A viatura selecionada não pertence "
-                "à data informada.",
-            )
-
-            return cleaned_data
-
-        try:
-
-            codigo_equipe = (
-                obter_codigo_equipe_viatura(
-                    viatura
-                )
-            )
-
-            cleaned_data["equipe"] = (
-                codigo_equipe
-            )
-
-        except ValidationError as erro:
-
-            self.add_error(
-                "viatura",
-                erro,
-            )
-
+        # Visitas sem missão (legadas e avulsas) não podem
+        # receber vínculo com viatura, mesmo se um valor
+        # for enviado manualmente na requisição.
+        cleaned_data["viatura"] = None
         return cleaned_data
