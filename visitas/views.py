@@ -154,8 +154,8 @@ def validar_edicao_visita(request, visita):
         Editam qualquer visita.
 
     GCM:
-        Edita visitas da equipe escalada
-        na data do registro.
+        Edita qualquer visita legada ou visitas da equipe
+        escalada na data da visita.
     """
 
     if not pode_editar_visita(request, visita):
@@ -172,8 +172,8 @@ def validar_exclusao_visita(request, visita):
         Excluem qualquer visita.
 
     GCM:
-        Exclui visitas antigas sem responsável
-        ou visitas da equipe escalada na data.
+        Exclui qualquer visita legada ou visitas da equipe
+        escalada na data da visita.
 
     A missão nunca é excluída.
     """
@@ -981,5 +981,4 @@ def consultar_viaturas_visita(request):
                  "para sua escala nesta data."
         ),
     })
-
 
