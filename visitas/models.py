@@ -57,6 +57,24 @@ class RondaVisita(models.Model):
         related_name="visitas",
         verbose_name="Escola",
     )
+    
+    # ==========================================
+    # CARTÃO PROGRAMA RESPONSÁVEL
+    # ==========================================
+
+    cartao_programa = models.ForeignKey(
+        "cartao_programa.CartaoPrograma",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="visitas",
+        verbose_name="Cartão Programa",
+        help_text=(
+            "Cartão Programa responsável pela visita. "
+            "Nas visitas avulsas, identifica o efetivo "
+            "autorizado a visualizar, editar e excluir."
+        ),
+    )
 
     # ==========================================
     # MISSÃO DO CARTÃO PROGRAMA
@@ -288,6 +306,23 @@ class RondaVisita(models.Model):
                 erros["data_visita"] = (
                     "A data da visita deve corresponder "
                     "à data do plantão da viatura."
+                )
+        # ==========================================
+        # VALIDAÇÃO DO CARTÃO PROGRAMA
+        # ==========================================
+
+        if self.cartao_programa_id and self.data_visita:
+            if self.cartao_programa.plantao.data != self.data_visita:
+                erros["cartao_programa"] = (
+                    "O Cartão Programa selecionado deve "
+                    "corresponder à data da visita."
+                )
+
+        if self.missao_cartao_id and self.cartao_programa_id:
+            if self.missao_cartao.cartao_id != self.cartao_programa_id:
+                erros["cartao_programa"] = (
+                    "O Cartão Programa deve ser o mesmo "
+                    "da missão vinculada à visita."
                 )
 
         if erros:

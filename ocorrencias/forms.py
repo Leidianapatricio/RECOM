@@ -1,12 +1,11 @@
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.forms import inlineformset_factory
 
-from cartao_programa.models import (
-    EfetivoViatura,
-    ViaturaPlantao,
-)
+from cartao_programa.models import CartaoPrograma
+from escolas.models import Escola
 from usuarios.models import Usuario
 
 from .models import (
@@ -22,7 +21,7 @@ from .models import (
 
 class BootstrapModelForm(forms.ModelForm):
     """
-    Aplica automaticamente as classes do Bootstrap
+    Aplica automaticamente as classes Bootstrap
     aos campos dos formulários.
     """
 
@@ -32,12 +31,15 @@ class BootstrapModelForm(forms.ModelForm):
         for nome, campo in self.fields.items():
             widget = campo.widget
 
+            if isinstance(widget, forms.HiddenInput):
+                continue
+
             if isinstance(widget, forms.CheckboxInput):
                 widget.attrs["class"] = "form-check-input"
 
             elif isinstance(
                 widget,
-                (forms.RadioSelect, forms.CheckboxSelectMultiple)
+                (forms.RadioSelect, forms.CheckboxSelectMultiple),
             ):
                 widget.attrs["class"] = "form-check-input"
 
@@ -46,9 +48,6 @@ class BootstrapModelForm(forms.ModelForm):
 
             else:
                 widget.attrs["class"] = "form-control"
-
-            if campo.required:
-                widget.attrs["required"] = "required"
 
 
 # ==========================================================
@@ -59,14 +58,33 @@ class OcorrenciaForm(BootstrapModelForm):
     """
     Formulário para cadastrar e editar ocorrências.
 
-    A seleção de viaturas depende do usuário:
+    ADMIN e COORDENADOR:
+        Podem vincular ocorrências a qualquer Cartão Programa.
 
-    - ADMIN e COORDENADOR: todas as viaturas.
-    - GCM C e P1: viaturas em que estiver escalado.
-    - GCM M e P2: nenhuma viatura autorizada.
+    GCM:
+        Pode registrar ocorrências independentemente
+        da função exercida na escala.
 
-    As permissões de acesso às views também devem
-    ser verificadas no servidor.
+        Quando estiver escalado, a ocorrência poderá
+        ser vinculada ao respectivo Cartão Programa.
+
+        Quando não estiver escalado, poderá registrar
+        uma ocorrência sem vínculo com um cartão.
+
+    EDIÇÃO:
+        O vínculo original com o Cartão Programa
+        não poderá ser alterado.
+
+    ESCOLA:
+        O vínculo é opcional.
+        A lista apresenta as escolas ativas,
+        ordenadas alfabeticamente.
+
+        Na edição, preserva a escola vinculada,
+        mesmo que esteja desativada.
+
+    As permissões também devem ser verificadas
+    nas views.
     """
 
     SIM_NAO = (
@@ -90,13 +108,18 @@ class OcorrenciaForm(BootstrapModelForm):
         required=True,
     )
 
+    # ======================================================
+    # CONFIGURAÇÃO DO MODELFORM
+    # ======================================================
+
     class Meta:
         model = Ocorrencia
 
         fields = [
-            "viatura",
+            "cartao_programa",
             "data",
             "horario",
+            "escola",
             "local",
             "bairro",
             "acionamento_cicc",
@@ -111,9 +134,10 @@ class OcorrenciaForm(BootstrapModelForm):
         ]
 
         labels = {
-            "viatura": "Viatura responsável",
+            "cartao_programa": "Cartão Programa",
             "data": "Data da ocorrência",
             "horario": "Horário",
+            "escola": "Escola",
             "local": "Local da ocorrência",
             "bairro": "Bairro",
             "natureza_atuacao": "Natureza da atuação",
@@ -126,7 +150,7 @@ class OcorrenciaForm(BootstrapModelForm):
         }
 
         widgets = {
-            "viatura": forms.Select(),
+            "cartao_programa": forms.Select(),
 
             "data": forms.DateInput(
                 attrs={"type": "date"},
@@ -138,17 +162,31 @@ class OcorrenciaForm(BootstrapModelForm):
                 format="%H:%M",
             ),
 
+            # Lista suspensa preparada para Select2.
+            # A pesquisa será exibida dentro da lista.
+
+            "escola": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "data-control": "select2-escola",
+                    "data-placeholder": (
+                        "Selecione ou pesquise uma escola"
+                    ),
+                    "style": "width: 100%;",
+                }
+            ),
+
             "local": forms.TextInput(
                 attrs={
                     "placeholder": (
                         "Informe o endereço ou local da ocorrência"
-                    )
+                    ),
                 }
             ),
 
             "bairro": forms.TextInput(
                 attrs={
-                    "placeholder": "Informe o bairro"
+                    "placeholder": "Informe o bairro",
                 }
             ),
 
@@ -158,7 +196,7 @@ class OcorrenciaForm(BootstrapModelForm):
                 attrs={
                     "placeholder": (
                         "Ex.: Tático 1, Preventivo, ROCAM, PRF"
-                    )
+                    ),
                 }
             ),
 
@@ -205,59 +243,210 @@ class OcorrenciaForm(BootstrapModelForm):
 
         usuario_logado = kwargs.pop(
             "usuario_logado",
-            None
+            None,
         )
 
         super().__init__(*args, **kwargs)
 
         self.usuario_logado = usuario_logado
+        self.usuario_recom = None
+        self.gestor = False
+        self.modo_edicao = bool(self.instance.pk)
+
+        # --------------------------------------------------
+        # IDENTIFICAR USUÁRIO AUTENTICADO
+        # --------------------------------------------------
+
+        if (
+            usuario_logado is not None
+            and usuario_logado.is_authenticated
+            and usuario_logado.is_active
+        ):
+
+            self.usuario_recom = Usuario.objects.filter(
+                user=usuario_logado,
+                ativo=True,
+            ).first()
+
+            self.gestor = (
+                usuario_logado.is_superuser
+                or (
+                    self.usuario_recom is not None
+                    and self.usuario_recom.perfil in (
+                        "ADMIN",
+                        "COORDENADOR",
+                    )
+                )
+            )
 
         # --------------------------------------------------
         # CONFIGURAÇÃO DOS CAMPOS
         # --------------------------------------------------
 
-        self.fields["viatura"].required = True
+        self.fields["cartao_programa"].required = False
 
-        self.fields["viatura"].empty_label = (
-            "Selecione a viatura responsável"
+        self.fields["cartao_programa"].empty_label = (
+            "Sem Cartão Programa"
+        )
+
+        self.fields["cartao_programa"].help_text = (
+            "Quando houver vínculo com um Cartão Programa, "
+            "a ocorrência será compartilhada com todos "
+            "os GCMs nele escalados."
         )
 
         self.fields["equipe_apoiada"].required = False
+
+        # --------------------------------------------------
+        # ESCOLAS
+        # --------------------------------------------------
+
+        self.fields["escola"].required = False
+
+        # Apresenta somente escolas ativas em novos
+        # cadastros.
+        #
+        # Na edição, mantém a escola vinculada
+        # mesmo que tenha sido desativada.
+
+        filtro_escolas = Q(ativa=True)
+
+        if (
+            self.modo_edicao
+            and self.instance.escola_id
+        ):
+            filtro_escolas |= Q(
+                pk=self.instance.escola_id
+            )
+
+        self.fields["escola"].queryset = (
+            Escola.objects.filter(filtro_escolas)
+            .order_by("nome", "pk")
+            .distinct()
+        )
+
+        # A primeira opção é apenas um placeholder.
+        # O campo continua opcional.
+
+        self.fields["escola"].empty_label = (
+            "Selecione ou pesquise uma escola"
+        )
+
+        self.fields["escola"].help_text = ""
+
+        # Identificador usado pelo JavaScript
+        # para ativar a pesquisa dentro da lista.
+
+        self.fields["escola"].widget.attrs.update({
+            "id": "id_escola",
+            "data-control": "select2-escola",
+            "data-placeholder": (
+                "Selecione ou pesquise uma escola"
+            ),
+        })
+
+        # --------------------------------------------------
+        # TIPO DE OCORRÊNCIA
+        # --------------------------------------------------
 
         self.fields["tipo_ocorrencia"].choices = [
             ("", "Selecione o tipo de ocorrência"),
             *Ocorrencia.TipoOcorrencia.choices,
         ]
 
-        self.fields["tipo_ocorrencia"].widget.attrs[
-            "data-categoria"
-        ] = "tipo-ocorrencia"
+        self.fields[
+            "tipo_ocorrencia"
+        ].widget.attrs["data-categoria"] = (
+            "tipo-ocorrencia"
+        )
 
         # --------------------------------------------------
         # CAMPOS SIM / NÃO
         # --------------------------------------------------
 
-        self.fields["acionamento_cicc"].initial = (
+        self.initial["acionamento_cicc"] = (
             "sim"
-            if self.instance.pk
-            and self.instance.acionamento_cicc
+            if (
+                self.instance.pk
+                and self.instance.acionamento_cicc
+            )
             else "nao"
         )
 
-        self.fields["possui_vitima"].initial = (
+        self.initial["possui_vitima"] = (
             "sim"
-            if self.instance.pk
-            and self.instance.possui_vitima
+            if (
+                self.instance.pk
+                and self.instance.possui_vitima
+            )
             else "nao"
         )
 
         # --------------------------------------------------
-        # VIATURAS AUTORIZADAS
+        # CARTÕES PROGRAMA AUTORIZADOS
         # --------------------------------------------------
 
-        self.fields["viatura"].queryset = (
-            self.obter_viaturas_autorizadas()
+        self.fields["cartao_programa"].queryset = (
+            self.obter_cartoes_autorizados()
         )
+
+        self.fields[
+            "cartao_programa"
+        ].label_from_instance = (
+            self.descricao_cartao_programa
+        )
+
+        # --------------------------------------------------
+        # EDIÇÃO DE OCORRÊNCIA
+        # --------------------------------------------------
+
+        if self.modo_edicao:
+
+            if self.instance.cartao_programa_id:
+
+                self.fields[
+                    "cartao_programa"
+                ].queryset = (
+                    CartaoPrograma.objects.filter(
+                        pk=self.instance.cartao_programa_id
+                    ).select_related("plantao")
+                )
+
+                self.initial["cartao_programa"] = (
+                    self.instance.cartao_programa_id
+                )
+
+            else:
+
+                self.initial["cartao_programa"] = None
+
+                self.fields[
+                    "cartao_programa"
+                ].queryset = (
+                    CartaoPrograma.objects.none()
+                )
+
+            # Impede alterações no vínculo original.
+
+            self.fields[
+                "cartao_programa"
+            ].disabled = True
+
+            self.fields[
+                "cartao_programa"
+            ].help_text = (
+                "O vínculo original com o Cartão Programa "
+                "não pode ser alterado durante a edição."
+            )
+
+            # Preserva a data quando existe vínculo
+            # com Cartão Programa ou viatura.
+
+            if (
+                self.instance.cartao_programa_id
+                or self.instance.viatura_id
+            ):
+                self.fields["data"].disabled = True
 
         # --------------------------------------------------
         # FORMATAÇÃO DA DATA
@@ -278,83 +467,93 @@ class OcorrenciaForm(BootstrapModelForm):
         ]
 
     # ======================================================
-    # IDENTIFICAR VIATURAS AUTORIZADAS
+    # IDENTIFICAR CARTÕES PROGRAMA AUTORIZADOS
     # ======================================================
 
-    def obter_viaturas_autorizadas(self):
+    def obter_cartoes_autorizados(self, data=None):
         """
-        Retorna somente as viaturas que o usuário
-        autenticado pode utilizar no formulário.
+        Retorna os cartões disponíveis para o
+        usuário autenticado.
+
+        Não restringe pela função C, M, P1 ou P2.
         """
 
-        viaturas = ViaturaPlantao.objects.none()
+        cartoes = CartaoPrograma.objects.none()
 
         usuario_logado = self.usuario_logado
 
-        if usuario_logado is None:
-            return viaturas
-
-        if not usuario_logado.is_active:
-            return viaturas
-
-        usuario_recom = Usuario.objects.filter(
-            user=usuario_logado,
-            ativo=True,
-        ).first()
+        if (
+            usuario_logado is None
+            or not usuario_logado.is_authenticated
+            or not usuario_logado.is_active
+        ):
+            return cartoes
 
         # --------------------------------------------------
-        # ADMINISTRADOR DO DJANGO
+        # ADMINISTRADOR E COORDENADOR
         # --------------------------------------------------
 
-        if usuario_logado.is_superuser:
+        if self.gestor:
 
-            viaturas = ViaturaPlantao.objects.all()
+            cartoes = CartaoPrograma.objects.all()
 
         # --------------------------------------------------
-        # ADMIN E COORDENADOR
+        # GCM - TODAS AS FUNÇÕES
         # --------------------------------------------------
 
         elif (
-            usuario_recom is not None
-            and usuario_recom.perfil in [
-                "ADMIN",
-                "COORDENADOR",
-            ]
+            self.usuario_recom is not None
+            and self.usuario_recom.perfil == "GCM"
         ):
 
-            viaturas = ViaturaPlantao.objects.all()
-
-        # --------------------------------------------------
-        # GCM - COMANDANTE OU PATRULHEIRO 1
-        # --------------------------------------------------
-
-        elif (
-            usuario_recom is not None
-            and usuario_recom.perfil == "GCM"
-        ):
-
-            viaturas = ViaturaPlantao.objects.filter(
-                efetivo__gcm=usuario_recom,
-                efetivo__funcao__in=[
-                    "C",
-                    "P1",
-                ],
+            cartoes = CartaoPrograma.objects.filter(
+                plantao__viaturas__efetivo__gcm=(
+                    self.usuario_recom
+                )
             ).distinct()
+
+        # --------------------------------------------------
+        # FILTRO PELA DATA
+        # --------------------------------------------------
+
+        if data is not None:
+
+            cartoes = cartoes.filter(
+                plantao__data=data
+            )
 
         # --------------------------------------------------
         # ORDENAÇÃO
         # --------------------------------------------------
 
         return (
-            viaturas
-            .select_related(
-                "plantao",
-                "equipe",
-            )
+            cartoes
+            .select_related("plantao")
             .order_by(
                 "-plantao__data",
-                "identificacao",
+                "-pk",
             )
+        )
+
+    # ======================================================
+    # DESCRIÇÃO DO CARTÃO PROGRAMA
+    # ======================================================
+
+    @staticmethod
+    def descricao_cartao_programa(cartao):
+
+        data = cartao.plantao.data.strftime(
+            "%d/%m/%Y"
+        )
+
+        tipo_servico = (
+            cartao.plantao.get_tipo_servico_display()
+        )
+
+        return (
+            f"CP {cartao.pk} - "
+            f"{data} - "
+            f"{tipo_servico}"
         )
 
     # ======================================================
@@ -365,9 +564,11 @@ class OcorrenciaForm(BootstrapModelForm):
 
         cleaned_data = super().clean()
 
-        viatura = cleaned_data.get("viatura")
+        cartao_programa = cleaned_data.get(
+            "cartao_programa"
+        )
+
         data = cleaned_data.get("data")
-        horario = cleaned_data.get("horario")
 
         natureza = cleaned_data.get(
             "natureza_atuacao"
@@ -378,60 +579,131 @@ class OcorrenciaForm(BootstrapModelForm):
         ).strip()
 
         categoria = cleaned_data.get("categoria")
+
         tipo = cleaned_data.get("tipo_ocorrencia")
 
         # --------------------------------------------------
-        # VIATURA OBRIGATÓRIA
+        # VALIDAR USUÁRIO
         # --------------------------------------------------
 
-        if not viatura:
+        usuario_logado = self.usuario_logado
 
-            if "viatura" not in self.errors:
-                self.add_error(
-                    "viatura",
-                    "Selecione a viatura responsável."
-                )
-
-        # --------------------------------------------------
-        # DATA DA OCORRÊNCIA
-        # --------------------------------------------------
-
-        if viatura and data:
-
-            if viatura.plantao.data != data:
-
-                self.add_error(
-                    "data",
-                    "A data da ocorrência deve corresponder "
-                    "à data do plantão da viatura."
-                )
-
-        # --------------------------------------------------
-        # DUPLICIDADE DE OCORRÊNCIA
-        # --------------------------------------------------
-
-        if viatura and data and horario:
-
-            ocorrencia_existente = (
-                Ocorrencia.objects.filter(
-                    viatura=viatura,
-                    data=data,
-                    horario=horario,
-                )
-                .exclude(
-                    pk=self.instance.pk
-                )
-                .first()
+        if (
+            usuario_logado is None
+            or not usuario_logado.is_authenticated
+            or not usuario_logado.is_active
+        ):
+            raise ValidationError(
+                "Usuário não autenticado ou inativo."
             )
 
-            if ocorrencia_existente:
+        if not self.gestor:
 
-                self.add_error(
-                    "horario",
-                    "Já existe uma ocorrência registrada "
-                    "para esta viatura, nesta data e horário. "
-                    "Consulte o registro existente antes "
-                    "de realizar outro cadastro."
+            if (
+                self.usuario_recom is None
+                or self.usuario_recom.perfil != "GCM"
+            ):
+                raise ValidationError(
+                    "Você não possui permissão "
+                    "para registrar ocorrências."
+                )
+
+        # --------------------------------------------------
+        # CADASTRO DE NOVA OCORRÊNCIA
+        # --------------------------------------------------
+
+        if not self.modo_edicao:
+
+            # Novos registros não possuem vínculo
+            # direto com viatura.
+
+            self.instance.viatura = None
+
+            if (
+                data
+                and "cartao_programa" not in self.errors
+            ):
+
+                cartoes_disponiveis = (
+                    self.obter_cartoes_autorizados(
+                        data=data
+                    )
+                )
+
+                # Cartão Programa informado.
+
+                if cartao_programa:
+
+                    if (
+                        cartao_programa.plantao.data
+                        != data
+                    ):
+
+                        self.add_error(
+                            "cartao_programa",
+                            "A data do Cartão Programa deve "
+                            "corresponder à data da ocorrência.",
+                        )
+
+                    elif not cartoes_disponiveis.filter(
+                        pk=cartao_programa.pk
+                    ).exists():
+
+                        self.add_error(
+                            "cartao_programa",
+                            "Você não possui autorização "
+                            "para utilizar este Cartão Programa.",
+                        )
+
+                # Cartão Programa não informado.
+
+                elif not self.gestor:
+
+                    quantidade = (
+                        cartoes_disponiveis.count()
+                    )
+
+                    if quantidade == 1:
+
+                        cartao_programa = (
+                            cartoes_disponiveis.first()
+                        )
+
+                        cleaned_data[
+                            "cartao_programa"
+                        ] = cartao_programa
+
+                    elif quantidade > 1:
+
+                        self.add_error(
+                            "cartao_programa",
+                            "Selecione o Cartão Programa "
+                            "correspondente à sua escala.",
+                        )
+
+                    else:
+
+                        cleaned_data[
+                            "cartao_programa"
+                        ] = None
+
+        # --------------------------------------------------
+        # EDIÇÃO DE OCORRÊNCIA
+        # --------------------------------------------------
+
+        else:
+
+            cleaned_data["cartao_programa"] = (
+                self.instance.cartao_programa
+            )
+
+            if (
+                self.instance.cartao_programa_id
+                or self.instance.viatura_id
+            ):
+
+                cleaned_data["data"] = (
+                    self.instance.data
                 )
 
         # --------------------------------------------------
@@ -444,15 +716,21 @@ class OcorrenciaForm(BootstrapModelForm):
 
                 self.add_error(
                     "equipe_apoiada",
-                    "Informe qual equipe recebeu o apoio."
+                    "Informe qual equipe recebeu o apoio.",
                 )
+
+            else:
+
+                cleaned_data[
+                    "equipe_apoiada"
+                ] = equipe_apoiada
 
         else:
 
             cleaned_data["equipe_apoiada"] = ""
 
         # --------------------------------------------------
-        # CATEGORIA E TIPO DE OCORRÊNCIA
+        # CATEGORIA E TIPO
         # --------------------------------------------------
 
         tipos_por_categoria = {
@@ -466,6 +744,7 @@ class OcorrenciaForm(BootstrapModelForm):
                 Ocorrencia.TipoOcorrencia.ROUBO,
                 Ocorrencia.TipoOcorrencia.AMEACA,
                 Ocorrencia.TipoOcorrencia.AGRESSAO,
+                Ocorrencia.TipoOcorrencia.OUTRA,
             },
         }
 
@@ -474,14 +753,14 @@ class OcorrenciaForm(BootstrapModelForm):
             and tipo
             and tipo not in tipos_por_categoria.get(
                 categoria,
-                set()
+                set(),
             )
         ):
 
             self.add_error(
                 "tipo_ocorrencia",
                 "O tipo selecionado não pertence "
-                "à categoria informada."
+                "à categoria informada.",
             )
 
         return cleaned_data
@@ -498,6 +777,7 @@ class PessoaEnvolvidaForm(BootstrapModelForm):
     """
 
     class Meta:
+
         model = PessoaEnvolvida
 
         fields = [
@@ -515,7 +795,7 @@ class PessoaEnvolvidaForm(BootstrapModelForm):
                 attrs={
                     "placeholder": (
                         "Nome da pessoa envolvida"
-                    )
+                    ),
                 }
             ),
 
@@ -532,7 +812,9 @@ class PessoaEnvolvidaForm(BootstrapModelForm):
 
             "documento": forms.TextInput(
                 attrs={
-                    "placeholder": "CPF ou outro documento"
+                    "placeholder": (
+                        "CPF ou outro documento"
+                    ),
                 }
             ),
 
@@ -546,12 +828,18 @@ class PessoaEnvolvidaForm(BootstrapModelForm):
             ),
         }
 
+    # ======================================================
+    # VALIDAR IDADE
+    # ======================================================
+
     def clean_idade(self):
 
         idade = self.cleaned_data.get("idade")
 
-        if idade is not None and idade > 120:
-
+        if (
+            idade is not None
+            and idade > 120
+        ):
             raise ValidationError(
                 "Informe uma idade válida."
             )
@@ -571,6 +859,7 @@ class VeiculoEnvolvidoForm(BootstrapModelForm):
     """
 
     class Meta:
+
         model = VeiculoEnvolvido
 
         fields = [
@@ -588,19 +877,21 @@ class VeiculoEnvolvidoForm(BootstrapModelForm):
                 attrs={
                     "placeholder": "Ex.: ABC1D23",
                     "maxlength": 10,
-                    "style": "text-transform: uppercase;",
+                    "style": (
+                        "text-transform: uppercase;"
+                    ),
                 }
             ),
 
             "marca_modelo": forms.TextInput(
                 attrs={
-                    "placeholder": "Ex.: Fiat Argo"
+                    "placeholder": "Ex.: Fiat Argo",
                 }
             ),
 
             "cor": forms.TextInput(
                 attrs={
-                    "placeholder": "Cor do veículo"
+                    "placeholder": "Cor do veículo",
                 }
             ),
 
@@ -633,7 +924,7 @@ class VeiculoEnvolvidoForm(BootstrapModelForm):
 
         ocorrencia = kwargs.pop(
             "ocorrencia",
-            None
+            None,
         )
 
         super().__init__(*args, **kwargs)

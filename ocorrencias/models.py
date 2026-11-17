@@ -26,6 +26,24 @@ class Ocorrencia(models.Model):
         ROUBO = "ROUBO", "Roubo"
         AMEACA = "AMEACA", "Ameaça"
         AGRESSAO = "AGRESSAO", "Agressão"
+        OUTRA = "OUTRA", "Outra"
+    
+    # ==========================================
+    # CARTÃO PROGRAMA RESPONSÁVEL
+    # ==========================================
+
+    cartao_programa = models.ForeignKey(
+        "cartao_programa.CartaoPrograma",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ocorrencias",
+        verbose_name="Cartão Programa",
+        help_text=(
+            "Identifica o Cartão Programa responsável "
+            "pela ocorrência e seu efetivo."
+        ),
+    )
 
     # ------------------------------------------------------
     # IDENTIFICAÇÃO DA EQUIPE RESPONSÁVEL
@@ -54,6 +72,19 @@ class Ocorrencia(models.Model):
 
     horario = models.TimeField(
         "Horário"
+    )
+    
+    escola = models.ForeignKey(
+        "escolas.Escola",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="ocorrencias",
+        verbose_name="Escola",
+        help_text=(
+            "Selecione a escola quando a ocorrência "
+            "acontecer em uma unidade escolar."
+        ),
     )
 
     local = models.CharField(
@@ -255,6 +286,26 @@ class Ocorrencia(models.Model):
                     "Já existe uma ocorrência registrada "
                     "para esta viatura, nesta data e horário. "
                     "Consulte o registro existente."
+                )
+        # ==========================================
+        # VALIDAR CARTÃO PROGRAMA
+        # ==========================================
+
+        if self.cartao_programa_id and self.data:
+            if self.cartao_programa.plantao.data != self.data:
+                erros["cartao_programa"] = (
+                    "A data da ocorrência deve corresponder "
+                    "à data do Cartão Programa."
+                )
+
+        if self.cartao_programa_id and self.viatura_id:
+            if (
+                self.viatura.plantao_id
+                != self.cartao_programa.plantao_id
+            ):
+                erros["viatura"] = (
+                    "A viatura deve pertencer ao mesmo "
+                    "plantão do Cartão Programa."
                 )
 
         if erros:

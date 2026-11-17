@@ -4,25 +4,33 @@ from datetime import date
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_POST
-from django.core.paginator import Paginator
-from django.db.models import Q
-from django.views.decorators.http import require_GET
+from django.utils.http import urlencode
+from django.views.decorators.http import require_GET, require_POST
 
-
-from cartao_programa.models import EfetivoViatura, MissaoCartao, ViaturaPlantao
+from cartao_programa.models import (
+    EfetivoViatura,
+    MissaoCartao,
+    ViaturaPlantao,
+)
 from usuarios.models import Usuario
-from .forms import obter_codigo_equipe_viatura
 
-from .forms import RondaVisitaForm, dados_da_missao
+from .forms import (
+    RondaVisitaForm,
+    dados_da_missao,
+    obter_codigo_equipe_viatura,
+)
 from .models import RondaVisita
 from .permissoes import (
     pode_editar_visita,
     pode_excluir_visita,
+    cartoes_disponiveis,
 )
 
 
@@ -31,9 +39,7 @@ from .permissoes import (
 # =========================================================
 
 def obter_usuario_recom(request):
-    """
-    Identifica o usuário autenticado no RECOM.
-    """
+    """Identifica o usuário autenticado no RECOM."""
 
     if (
         not request.user.is_authenticated
@@ -44,11 +50,11 @@ def obter_usuario_recom(request):
         )
 
     usuario = Usuario.objects.filter(
-        user=request.user
+        user=request.user,
+        ativo=True,
     ).first()
 
-    if usuario is None or not usuario.ativo:
-
+    if usuario is None:
         if request.user.is_superuser:
             return None
 
@@ -59,11 +65,12 @@ def obter_usuario_recom(request):
     return usuario
 
 
+# =========================================================
+# PERMISSÃO DE GESTÃO
+# =========================================================
+
 def pode_gerenciar_visitas(request):
-    """
-    ADMIN e COORDENADOR podem gerenciar todas
-    as visitas.
-    """
+    """ADMIN e COORDENADOR gerenciam todas as visitas."""
 
     usuario = obter_usuario_recom(request)
 
@@ -71,27 +78,40 @@ def pode_gerenciar_visitas(request):
         request.user.is_superuser
         or (
             usuario is not None
-            and usuario.perfil in (
-                "ADMIN",
-                "COORDENADOR",
-            )
+            and usuario.perfil in ("ADMIN", "COORDENADOR")
         )
     )
 
 
+# =========================================================
+# VALIDAR CADASTRO
+# =========================================================
+
+def validar_cadastro_visita(request):
+
+    if pode_gerenciar_visitas(request):
+        return
+
+    usuario = obter_usuario_recom(request)
+
+    if usuario is None or usuario.perfil != "GCM":
+        raise PermissionDenied(
+            "Você não possui permissão para registrar visitas."
+        )
+
+
+# =========================================================
+# VALIDAR ACESSO À MISSÃO
+# =========================================================
+
 def validar_acesso_missao(request, missao):
     """
-    Verifica se o GCM pode registrar uma visita
-    vinculada à missão do Cartão Programa.
-
-    C, P1 e P2 podem registrar.
-    M não pode registrar novas visitas.
+    C, P1 e P2 podem registrar visitas programadas.
+    M não pode registrar novas visitas programadas.
+    ADMIN e COORDENADOR possuem acesso integral.
     """
 
-    if (
-        missao.cartao.plantao_id
-        != missao.viatura.plantao_id
-    ):
+    if missao.cartao.plantao_id != missao.viatura.plantao_id:
         raise PermissionDenied(
             "A missão não corresponde ao plantão da viatura."
         )
@@ -124,15 +144,18 @@ def validar_acesso_missao(request, missao):
         )
 
 
+# =========================================================
+# OBTER MISSÃO AUTORIZADA
+# =========================================================
+
 def obter_missao_autorizada(request, missao_id):
-    """
-    Recupera a missão e verifica o acesso.
-    """
 
     missao = get_object_or_404(
         MissaoCartao.objects.select_related(
             "escola",
             "viatura",
+            "viatura__plantao",
+            "viatura__equipe",
             "cartao__plantao",
         ),
         pk=missao_id,
@@ -148,53 +171,96 @@ def obter_missao_autorizada(request, missao_id):
     return missao
 
 
-def validar_edicao_visita(request, visita):
-    """
-    ADMIN / COORDENADOR:
-        Editam qualquer visita.
+# =========================================================
+# VALIDAR EDIÇÃO
+# =========================================================
 
-    GCM:
-        Edita qualquer visita legada ou visitas da equipe
-        escalada na data da visita.
-    """
+def validar_edicao_visita(request, visita):
 
     if not pode_editar_visita(request, visita):
         raise PermissionDenied(
-            "Você não integra a equipe escalada "
-            "nesta data e não possui permissão "
-            "para editar esta visita."
+            "Você não possui permissão para editar esta visita."
         )
 
 
+# =========================================================
+# VALIDAR EXCLUSÃO
+# =========================================================
+
 def validar_exclusao_visita(request, visita):
-    """
-    ADMIN / COORDENADOR:
-        Excluem qualquer visita.
-
-    GCM:
-        Exclui qualquer visita legada ou visitas da equipe
-        escalada na data da visita.
-
-    A missão nunca é excluída.
-    """
 
     if not pode_excluir_visita(request, visita):
         raise PermissionDenied(
-            "Você não possui permissão para "
-            "excluir esta visita."
+            "Você não possui permissão para excluir esta visita."
         )
 
 
+# =========================================================
+# IDENTIFICAR CARTÃO DA VISITA AVULSA
+# =========================================================
+
+def definir_cartao_visita_avulsa(request, visita, usuario):
+    """
+    Vincula a visita ao Cartão Programa autorizado.
+
+    Sem escala, permite visita avulsa sem cartão.
+    A viatura não define o compartilhamento.
+    """
+
+    visita.viatura = None
+
+    cartoes = cartoes_disponiveis(
+        request.user
+    ).filter(
+        plantao__data=visita.data_visita
+    )
+
+    if visita.cartao_programa_id:
+
+        if not cartoes.filter(
+            pk=visita.cartao_programa_id
+        ).exists():
+            raise ValidationError(
+                "O Cartão Programa informado não está "
+                "disponível para sua escala nesta data."
+            )
+
+        return
+
+    if pode_gerenciar_visitas(request):
+        return
+
+    if usuario is None or usuario.perfil != "GCM":
+        raise PermissionDenied(
+            "Você não possui permissão para registrar visitas."
+        )
+
+    opcoes = list(
+        cartoes.order_by("pk")[:2]
+    )
+
+    if len(opcoes) == 1:
+        visita.cartao_programa = opcoes[0]
+        return
+
+    if len(opcoes) > 1:
+        raise ValidationError(
+            "Selecione o Cartão Programa "
+            "correspondente à sua escala nesta data."
+        )
+
+    visita.cartao_programa = None
+
+
+# =========================================================
+# ADICIONAR ERROS DO MODELO
+# =========================================================
+
 def adicionar_erros_modelo(form, erro):
-    """
-    Adiciona ao formulário os erros de validação
-    retornados pelo modelo.
-    """
 
     if hasattr(erro, "error_dict"):
 
         for campo, erros in erro.error_dict.items():
-
             form.add_error(
                 campo if campo in form.fields else None,
                 erros,
@@ -204,16 +270,11 @@ def adicionar_erros_modelo(form, erro):
         form.add_error(None, erro)
 
 
+# =========================================================
+# REDIRECIONAR APÓS CADASTRO OU EDIÇÃO
+# =========================================================
+
 def redirecionar_apos_visita(request, visita):
-    """
-    Após registrar ou editar:
-
-    GCM em missão:
-        Retorna ao seu Cartão Programa.
-
-    Demais casos:
-        Retorna aos detalhes da escola.
-    """
 
     usuario = obter_usuario_recom(request)
 
@@ -241,14 +302,12 @@ def cadastrar_visita(request):
 
     usuario = obter_usuario_recom(request)
 
+    validar_cadastro_visita(request)
+
     missao_id = (
-        request.POST.get(
-            "missao_cartao_id", ""
-        ).strip()
+        request.POST.get("missao_cartao_id", "").strip()
         if request.method == "POST"
-        else request.GET.get(
-            "missao", ""
-        ).strip()
+        else request.GET.get("missao", "").strip()
     )
 
     missao = (
@@ -256,10 +315,6 @@ def cadastrar_visita(request):
         if missao_id
         else None
     )
-
-    # -----------------------------------------------------
-    # VERIFICAR SE A MISSÃO JÁ FOI EXECUTADA
-    # -----------------------------------------------------
 
     if missao is not None and (
         missao.status_execucao != "PENDENTE"
@@ -283,10 +338,6 @@ def cadastrar_visita(request):
             "cartao_programa:meu_cartao_programa"
         )
 
-    # -----------------------------------------------------
-    # SALVAR VISITA
-    # -----------------------------------------------------
-
     if request.method == "POST":
 
         form = RondaVisitaForm(
@@ -298,7 +349,6 @@ def cadastrar_visita(request):
         if form.is_valid():
 
             try:
-
                 with transaction.atomic():
 
                     if missao is not None:
@@ -308,10 +358,7 @@ def cadastrar_visita(request):
                             pk=missao.pk,
                         )
 
-                        validar_acesso_missao(
-                            request,
-                            missao,
-                        )
+                        validar_acesso_missao(request, missao)
 
                         if missao.status_execucao != "PENDENTE":
                             raise ValidationError(
@@ -330,33 +377,34 @@ def cadastrar_visita(request):
                     visita = form.save(commit=False)
 
                     visita.missao_cartao = missao
-
-                    # Identifica quem cadastrou a visita.
                     visita.registrado_por = usuario
 
                     if missao is not None:
 
+                        visita.cartao_programa = missao.cartao
+
                         for campo, valor in dados_da_missao(
                             missao
                         ).items():
-                            setattr(
-                                visita,
-                                campo,
-                                valor,
-                            )
+                            setattr(visita, campo, valor)
+
+                    else:
+
+                        definir_cartao_visita_avulsa(
+                            request,
+                            visita,
+                            usuario,
+                        )
 
                     visita.full_clean()
                     visita.save()
 
-                    # Atualiza a execução da missão.
                     if missao is not None:
 
                         missao.status_execucao = "REALIZADA"
                         missao.motivo_nao_realizacao = ""
                         missao.registrado_por = usuario
-                        missao.atualizado_execucao_em = (
-                            timezone.now()
-                        )
+                        missao.atualizado_execucao_em = timezone.now()
 
                         missao.save(
                             update_fields=[
@@ -368,22 +416,17 @@ def cadastrar_visita(request):
                         )
 
             except ValidationError as erro:
-
-                adicionar_erros_modelo(
-                    form,
-                    erro,
-                )
+                adicionar_erros_modelo(form, erro)
 
             except IntegrityError:
-
                 form.add_error(
                     None,
-                    "Esta missão já possui uma visita "
-                    "ou ocorreu um conflito ao salvar."
+                    "Não foi possível registrar a visita. "
+                    "Verifique se existe um registro duplicado "
+                    "ou um conflito de dados."
                 )
 
             else:
-
                 messages.success(
                     request,
                     "Visita registrada com sucesso."
@@ -401,15 +444,32 @@ def cadastrar_visita(request):
         if missao is not None:
 
             initial["escola"] = missao.escola_id
-            initial["data_visita"] = (
-                missao.cartao.plantao.data
-            )
+            initial["data_visita"] = missao.cartao.plantao.data
+            initial["cartao_programa"] = missao.cartao_id
 
-        elif request.GET.get("escola"):
+        else:
 
-            initial["escola"] = (
-                request.GET["escola"]
-            )
+            initial["data_visita"] = timezone.localdate()
+
+            if request.GET.get("escola"):
+                initial["escola"] = request.GET["escola"]
+
+            if (
+                usuario is not None
+                and usuario.perfil == "GCM"
+                and not request.user.is_superuser
+            ):
+
+                cartoes = list(
+                    cartoes_disponiveis(
+                        request.user
+                    ).filter(
+                        plantao__data=timezone.localdate()
+                    ).order_by("pk")[:2]
+                )
+
+                if len(cartoes) == 1:
+                    initial["cartao_programa"] = cartoes[0].pk
 
         form = RondaVisitaForm(
             initial=initial,
@@ -422,9 +482,7 @@ def cadastrar_visita(request):
         "modo_edicao": False,
         "missao_cartao": missao,
         "missao_cartao_id": (
-            missao.pk
-            if missao is not None
-            else None
+            missao.pk if missao is not None else None
         ),
         "usuario": usuario,
     }
@@ -448,6 +506,8 @@ def editar_visita(request, pk):
     visita = get_object_or_404(
         RondaVisita.objects.select_related(
             "escola",
+            "registrado_por",
+            "cartao_programa__plantao",
             "missao_cartao",
             "missao_cartao__viatura__plantao",
             "missao_cartao__cartao__plantao",
@@ -455,16 +515,13 @@ def editar_visita(request, pk):
         pk=pk,
     )
 
-    # -----------------------------------------------------
-    # VERIFICAR PERMISSÃO DE EDIÇÃO
-    # -----------------------------------------------------
-
-    validar_edicao_visita(
-        request,
-        visita,
-    )
+    validar_edicao_visita(request, visita)
 
     missao = visita.missao_cartao
+
+    missao_original_id = visita.missao_cartao_id
+    cartao_original_id = visita.cartao_programa_id
+    autor_original_id = visita.registrado_por_id
 
     if request.method == "POST":
 
@@ -475,9 +532,6 @@ def editar_visita(request, pk):
             usuario_logado=request.user,
         )
 
-        # Os dois campos devem ser enviados pelo HTML, mesmo vazios.
-        # Sem essa proteção, um template incompleto pode apagar dados
-        # existentes e ainda exibir uma mensagem de sucesso.
         campos_ausentes = [
             campo
             for campo in ("relato", "orientacoes")
@@ -487,68 +541,70 @@ def editar_visita(request, pk):
         formulario_valido = form.is_valid()
 
         if campos_ausentes:
+
             form.add_error(
                 None,
-                "Não foi possível salvar: o formulário não enviou "
-                "os campos Relato e/ou Providências. "
+                "Não foi possível salvar: o formulário "
+                "não enviou os campos Relato e/ou Providências. "
                 "Atualize a página e tente novamente.",
             )
+
             formulario_valido = False
 
         if formulario_valido:
 
             try:
-
                 with transaction.atomic():
 
-                    # Bloqueia o registro para edição.
+                    missao = None
+
+                    if missao_original_id is not None:
+
+                        missao = get_object_or_404(
+                            MissaoCartao.objects.select_for_update(),
+                            pk=missao_original_id,
+                        )
+
                     visita = get_object_or_404(
                         RondaVisita.objects.select_for_update(),
                         pk=pk,
                     )
 
-                    # Verifica novamente a permissão.
-                    validar_edicao_visita(
-                        request,
-                        visita,
-                    )
+                    validar_edicao_visita(request, visita)
 
-                    missao = visita.missao_cartao
-
-                    if missao is not None:
-
-                        missao = get_object_or_404(
-                            MissaoCartao.objects.select_for_update(),
-                            pk=missao.pk,
-                        )
-
-                        if (
-                            missao.status_execucao
-                            == "NAO_REALIZADA"
-                        ):
-                            raise ValidationError(
-                                "Esta missão está marcada "
-                                "como não realizada."
-                            )
-
-                    # Impede trocar a viatura de uma visita já registrada.
-                    # O histórico deve preservar o plantão original.
-                    viatura_nova = form.cleaned_data.get("viatura")
                     if (
-                        visita.viatura_id is not None
-                        and viatura_nova is not None
-                        and viatura_nova.pk != visita.viatura_id
+                        visita.missao_cartao_id != missao_original_id
+                        or visita.cartao_programa_id != cartao_original_id
+                        or visita.registrado_por_id != autor_original_id
                     ):
                         raise ValidationError(
-                            "Não é permitido alterar a viatura de uma visita "
-                            "já registrada."
+                            "Os vínculos da visita foram alterados. "
+                            "Atualize a página e tente novamente."
                         )
 
-                    # O ModelForm aplicou cleaned_data à instância usada
-                    # durante is_valid(). Como buscamos outra instância
-                    # com select_for_update(), precisamos aplicar os dados
-                    # validados novamente antes de salvar.
+                    if (
+                        missao is not None
+                        and missao.status_execucao == "NAO_REALIZADA"
+                    ):
+                        raise ValidationError(
+                            "Esta missão está marcada "
+                            "como não realizada."
+                        )
+
                     for campo in form._meta.fields:
+
+                        if campo in (
+                            "cartao_programa",
+                            "viatura",
+                        ):
+                            continue
+
+                        if (
+                            cartao_original_id is not None
+                            and campo in ("data_visita", "equipe")
+                        ):
+                            continue
+
                         if campo in form.cleaned_data:
                             setattr(
                                 visita,
@@ -559,38 +615,28 @@ def editar_visita(request, pk):
                     form.instance = visita
                     atualizada = form.save(commit=False)
 
-                    # Preserva a missão original.
                     atualizada.missao_cartao = missao
-                    # Visitas sem missão não devem ficar vinculadas
-                    # a uma viatura do plantão.
-                    if missao is None:
-                        atualizada.viatura = None
-
-                    # Preserva o autor original.
-                    atualizada.registrado_por_id = (
-                        visita.registrado_por_id
-                    )
+                    atualizada.cartao_programa_id = cartao_original_id
+                    atualizada.registrado_por_id = autor_original_id
 
                     if missao is not None:
+
+                        atualizada.cartao_programa = missao.cartao
 
                         for campo, valor in dados_da_missao(
                             missao
                         ).items():
+                            setattr(atualizada, campo, valor)
 
-                            setattr(
-                                atualizada,
-                                campo,
-                                valor,
-                            )
+                    else:
+                        atualizada.viatura = None
 
                     atualizada.full_clean()
-
                     atualizada.save()
 
                     if (
                         missao is not None
-                        and missao.status_execucao
-                        != "REALIZADA"
+                        and missao.status_execucao != "REALIZADA"
                     ):
 
                         missao.status_execucao = "REALIZADA"
@@ -604,14 +650,9 @@ def editar_visita(request, pk):
                         )
 
             except ValidationError as erro:
-
-                adicionar_erros_modelo(
-                    form,
-                    erro,
-                )
+                adicionar_erros_modelo(form, erro)
 
             except IntegrityError:
-
                 form.add_error(
                     None,
                     "Não foi possível salvar a visita "
@@ -644,9 +685,7 @@ def editar_visita(request, pk):
         "modo_edicao": True,
         "missao_cartao": missao,
         "missao_cartao_id": (
-            missao.pk
-            if missao is not None
-            else None
+            missao.pk if missao is not None else None
         ),
         "usuario": usuario,
     }
@@ -660,18 +699,22 @@ def editar_visita(request, pk):
 
 # =========================================================
 # EXCLUIR VISITA
+# REDIRECIONAMENTO CONFORME A ORIGEM
 # =========================================================
 
 @login_required
 @require_POST
 def excluir_visita(request, pk):
     """
-    Exclui uma visita autorizada.
+    Exclui a visita respeitando as permissões.
 
-    Se estiver vinculada a uma missão:
-    - Exclui somente a visita.
-    - Mantém a missão no Cartão Programa.
-    - Retorna a execução para PENDENTE.
+    Se a exclusão for iniciada no Histórico de Atividades,
+    retorna ao histórico com os filtros anteriores.
+
+    Nos demais casos, retorna à página da escola.
+
+    Ao excluir visita programada, a missão volta
+    para o status PENDENTE.
     """
 
     obter_usuario_recom(request)
@@ -681,20 +724,18 @@ def excluir_visita(request, pk):
         pk=pk,
     )
 
-    # Primeira validação de permissão.
-    validar_exclusao_visita(
-        request,
-        referencia,
-    )
+    validar_exclusao_visita(request, referencia)
 
     missao_id = referencia.missao_cartao_id
+
+    # Identificar a origem antes da exclusão.
+    origem = request.POST.get("origem", "").strip()
 
     with transaction.atomic():
 
         missao = None
 
         if missao_id is not None:
-
             missao = get_object_or_404(
                 MissaoCartao.objects.select_for_update(),
                 pk=missao_id,
@@ -711,18 +752,12 @@ def excluir_visita(request, pk):
                 "Atualize a página."
             )
 
-        # Revalida a permissão dentro da transação.
-        validar_exclusao_visita(
-            request,
-            visita,
-        )
+        validar_exclusao_visita(request, visita)
 
         escola_id = visita.escola_id
 
-        # Exclui somente a visita.
         visita.delete()
 
-        # Reabre a missão sem excluí-la.
         if missao is not None:
 
             existe_outra_visita = (
@@ -752,13 +787,40 @@ def excluir_visita(request, pk):
         "Visita excluída com sucesso."
     )
 
+    # Retornar ao Histórico de Atividades.
+    if origem == "historico":
+
+        url = reverse("core:historico_atividades")
+
+        campos_permitidos = (
+            "data_inicio",
+            "data_fim",
+            "equipe",
+            "viatura",
+            "tipo",
+            "page",
+        )
+
+        parametros = {
+            campo: request.POST.get(campo, "")
+            for campo in campos_permitidos
+            if request.POST.get(campo)
+        }
+
+        if parametros:
+            url = f"{url}?{urlencode(parametros)}"
+
+        return redirect(url)
+
+    # Comportamento original para outras páginas.
     return redirect(
         "escolas:detalhe_escola",
         pk=escola_id,
     )
 
+
 # =========================================================
-# LISTAR VISITAS - ADMINISTRADOR E COORDENADOR
+# LISTAR VISITAS - ADMIN E COORDENADOR
 # =========================================================
 
 @login_required
@@ -766,45 +828,27 @@ def listar_visitas(request):
 
     usuario = obter_usuario_recom(request)
 
-    # Somente ADMIN, COORDENADOR e superusuário.
     if not pode_gerenciar_visitas(request):
         raise PermissionDenied(
             "Você não possui permissão para acessar "
             "a gestão de visitas."
         )
 
-    # =====================================================
-    # CONSULTAR VISITAS
-    # =====================================================
-
     visitas = RondaVisita.objects.select_related(
         "escola",
         "registrado_por",
+        "cartao_programa__plantao",
         "missao_cartao",
     ).order_by(
         "-data_visita",
         "-horario",
+        "-pk",
     )
 
-    # =====================================================
-    # FILTROS
-    # =====================================================
-
-    busca = request.GET.get(
-        "busca", ""
-    ).strip()
-
-    equipe = request.GET.get(
-        "equipe", ""
-    ).strip()
-
-    data_inicio = request.GET.get(
-        "data_inicio", ""
-    ).strip()
-
-    data_fim = request.GET.get(
-        "data_fim", ""
-    ).strip()
+    busca = request.GET.get("busca", "").strip()
+    equipe = request.GET.get("equipe", "").strip()
+    data_inicio = request.GET.get("data_inicio", "").strip()
+    data_fim = request.GET.get("data_fim", "").strip()
 
     if busca:
         visitas = visitas.filter(
@@ -813,62 +857,37 @@ def listar_visitas(request):
         )
 
     if equipe:
-        visitas = visitas.filter(
-            equipe=equipe
-        )
-
-    # Valida datas antes de aplicá-las ao banco.
-    from datetime import date
+        visitas = visitas.filter(equipe=equipe)
 
     try:
         inicio = (
             date.fromisoformat(data_inicio)
-            if data_inicio
-            else None
+            if data_inicio else None
         )
     except ValueError:
         inicio = None
-        messages.warning(
-            request,
-            "Data inicial inválida."
-        )
+        messages.warning(request, "Data inicial inválida.")
 
     try:
         fim = (
             date.fromisoformat(data_fim)
-            if data_fim
-            else None
+            if data_fim else None
         )
     except ValueError:
         fim = None
-        messages.warning(
-            request,
-            "Data final inválida."
-        )
+        messages.warning(request, "Data final inválida.")
 
     if inicio:
-        visitas = visitas.filter(
-            data_visita__gte=inicio
-        )
+        visitas = visitas.filter(data_visita__gte=inicio)
 
     if fim:
-        visitas = visitas.filter(
-            data_visita__lte=fim
-        )
-
-    # =====================================================
-    # PAGINAÇÃO
-    # =====================================================
+        visitas = visitas.filter(data_visita__lte=fim)
 
     paginator = Paginator(visitas, 15)
 
     page_obj = paginator.get_page(
         request.GET.get("page")
     )
-
-    # =====================================================
-    # CONTEXTO
-    # =====================================================
 
     contexto = {
         "page_obj": page_obj,
@@ -885,8 +904,76 @@ def listar_visitas(request):
         contexto,
     )
 
+
 # =========================================================
-# CONSULTAR VIATURAS DISPONÍVEIS PARA VISITA AVULSA
+# CONSULTAR CARTÕES PROGRAMA DISPONÍVEIS
+# =========================================================
+
+@login_required
+@require_GET
+def consultar_cartoes_visita(request):
+
+    obter_usuario_recom(request)
+    validar_cadastro_visita(request)
+
+    data_informada = request.GET.get(
+        "data", ""
+    ).strip()
+
+    if not data_informada:
+        return JsonResponse({
+            "cartoes": [],
+            "mensagem": "Informe a data da visita.",
+        })
+
+    try:
+        data_visita = date.fromisoformat(
+            data_informada
+        )
+    except ValueError:
+        return JsonResponse(
+            {
+                "cartoes": [],
+                "mensagem": "Data inválida.",
+            },
+            status=400,
+        )
+
+    cartoes = cartoes_disponiveis(
+        request.user
+    ).filter(
+        plantao__data=data_visita
+    ).order_by("pk")
+
+    resultado = []
+
+    for cartao in cartoes:
+        resultado.append({
+            "id": cartao.pk,
+            "data": cartao.plantao.data.isoformat(),
+            "tipo_servico": cartao.plantao.tipo_servico,
+            "descricao": (
+                f"CP {cartao.pk} - "
+                f"{cartao.plantao.data:%d/%m/%Y} - "
+                f"{cartao.plantao.get_tipo_servico_display()}"
+            ),
+        })
+
+    return JsonResponse({
+        "cartoes": resultado,
+        "mensagem": (
+            ""
+            if resultado
+            else "Nenhum Cartão Programa disponível nesta data. "
+                 "Você poderá registrar a visita avulsa "
+                 "sem vínculo com um cartão."
+        ),
+    })
+
+
+# =========================================================
+# CONSULTAR VIATURAS
+# COMPATIBILIDADE COM ROTAS EXISTENTES
 # =========================================================
 
 @login_required
@@ -894,17 +981,13 @@ def listar_visitas(request):
 def consultar_viaturas_visita(request):
 
     usuario = obter_usuario_recom(request)
+    validar_cadastro_visita(request)
 
     data_informada = request.GET.get(
         "data", ""
     ).strip()
 
-    # ==============================================
-    # VALIDAR DATA
-    # ==============================================
-
     if not data_informada:
-
         return JsonResponse({
             "viaturas": [],
             "mensagem": "Informe a data da visita.",
@@ -914,9 +997,7 @@ def consultar_viaturas_visita(request):
         data_visita = date.fromisoformat(
             data_informada
         )
-
     except ValueError:
-
         return JsonResponse(
             {
                 "viaturas": [],
@@ -925,32 +1006,16 @@ def consultar_viaturas_visita(request):
             status=400,
         )
 
-    # ==============================================
-    # CONSULTAR VIATURAS DO PLANTÃO
-    # ==============================================
-
-    viaturas = (
-        ViaturaPlantao.objects
-        .select_related(
-            "plantao",
-            "equipe",
-        )
-        .filter(
-            plantao__data=data_visita
-        )
+    viaturas = ViaturaPlantao.objects.select_related(
+        "plantao",
+        "equipe",
+    ).filter(
+        plantao__data=data_visita
     )
-
-    # ==============================================
-    # FILTRAR PERMISSÕES
-    # ==============================================
 
     if not pode_gerenciar_visitas(request):
 
-        if (
-            usuario is None
-            or usuario.perfil != "GCM"
-        ):
-
+        if usuario is None or usuario.perfil != "GCM":
             raise PermissionDenied(
                 "Você não possui permissão "
                 "para consultar essas viaturas."
@@ -958,11 +1023,6 @@ def consultar_viaturas_visita(request):
 
         viaturas = viaturas.filter(
             efetivo__gcm=usuario,
-            efetivo__funcao__in=[
-                "C",
-                "P1",
-                "P2",
-            ],
         )
 
     viaturas = viaturas.distinct().order_by(
@@ -970,26 +1030,15 @@ def consultar_viaturas_visita(request):
         "pk",
     )
 
-    # ==============================================
-    # PREPARAR RESPOSTA
-    # ==============================================
-
     resultado = []
 
     for viatura in viaturas:
 
         try:
-
-            codigo_equipe = (
-                obter_codigo_equipe_viatura(
-                    viatura
-                )
+            codigo_equipe = obter_codigo_equipe_viatura(
+                viatura
             )
-
         except ValidationError:
-
-            # Não apresentar viaturas cuja equipe
-            # não possa ser identificada.
             continue
 
         nome_equipe = (
@@ -1014,4 +1063,3 @@ def consultar_viaturas_visita(request):
                  "para sua escala nesta data."
         ),
     })
-

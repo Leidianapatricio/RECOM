@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Confirmar Exclusão | RECOM
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet"
+      href="{% static 'css/detalhe_ocorrencia.css' %}">
+
+<div class="container py-4 ocorrencia-detalhe">
+
+    <!-- CABEÇALHO -->
+
+    <div class="detalhe-cabecalho mb-4">
+
+        <div>
+
+            <h2 class="mb-1">
+                <i class="bi bi-trash me-2"></i>
+                Excluir Ocorrência
+            </h2>
+
+            <p class="mb-0">
+                Confirmação de exclusão do registro
+            </p>
+
+        </div>
+
+        <a href="{% url 'ocorrencias:detalhe_ocorrencia' ocorrencia.pk %}"
+           class="btn btn-voltar">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            Voltar
+
+        </a>
+
+    </div>
+
+
+    <!-- CONFIRMAÇÃO DE EXCLUSÃO -->
+
+    <div class="card detalhe-card mb-4">
+
+        <div class="card-header">
+
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Confirmar exclusão
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-danger">
+
+                <h5 class="alert-heading">
+                    Atenção!
+                </h5>
+
+                <p class="mb-0">
+                    Tem certeza de que deseja excluir esta ocorrência?
+                    Esta ação é definitiva e não poderá ser desfeita.
+                </p>
+
+            </div>
+
+
+            <!-- INFORMAÇÕES DA OCORRÊNCIA -->
+
+            <div class="row g-4 mb-4">
+
+                <div class="col-md-3">
+
+                    <span class="campo-label">
+                        Número do registro
+                    </span>
+
+                    <div class="campo-valor">
+                        #{{ ocorrencia.pk }}
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <span class="campo-label">
+                        Data
+                    </span>
+
+                    <div class="campo-valor">
+                        {{ ocorrencia.data|date:"d/m/Y" }}
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <span class="campo-label">
+                        Horário
+                    </span>
+
+                    <div class="campo-valor">
+                        {{ ocorrencia.horario|time:"H:i" }}
+                    </div>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <span class="campo-label">
+                        Cartão Programa
+                    </span>
+
+                    <div class="campo-valor">
+
+                        {% if ocorrencia.cartao_programa_id %}
+
+                            CP nº {{ ocorrencia.cartao_programa_id }}
+
+                        {% else %}
+
+                            Não vinculado
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <span class="campo-label">
+                        Categoria
+                    </span>
+
+                    <div class="campo-valor">
+                        {{ ocorrencia.get_categoria_display }}
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <span class="campo-label">
+                        Tipo de ocorrência
+                    </span>
+
+                    <div class="campo-valor">
+                        {{ ocorrencia.get_tipo_ocorrencia_display }}
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <span class="campo-label">
+                        Local
+                    </span>
+
+                    <div class="campo-valor">
+                        {{ ocorrencia.local|default:"Não informado" }}
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <span class="campo-label">
+                        Bairro
+                    </span>
+
+                    <div class="campo-valor">
+                        {{ ocorrencia.bairro|default:"Não informado" }}
+                    </div>
+
+                </div>
+
+                <div class="col-md-12">
+
+                    <span class="campo-label">
+                        Registrado por
+                    </span>
+
+                    <div class="campo-valor">
+
+                        {% if ocorrencia.registrado_por %}
+
+                            {{ ocorrencia.registrado_por.nome|default:ocorrencia.registrado_por }}
+
+                        {% else %}
+
+                            Não informado
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ALERTA DE COMPARTILHAMENTO -->
+
+            {% if ocorrencia.cartao_programa_id %}
+
+                <div class="alert alert-warning">
+
+                    <h6>
+                        <i class="bi bi-people-fill me-2"></i>
+                        Ocorrência compartilhada
+                    </h6>
+
+                    <p class="mb-0">
+
+                        Esta ocorrência está vinculada ao Cartão Programa
+                        nº {{ ocorrencia.cartao_programa_id }}.
+
+                        Sua exclusão também removerá o registro do
+                        histórico de atividades de todos os GCMs
+                        vinculados a este Cartão Programa.
+
+                    </p>
+
+                </div>
+
+            {% elif ocorrencia.viatura_id %}
+
+                <div class="alert alert-warning">
+
+                    <h6>
+                        <i class="bi bi-info-circle me-2"></i>
+                        Registro anterior
+                    </h6>
+
+                    <p class="mb-0">
+
+                        Esta ocorrência possui vínculo com a viatura
+                        {{ ocorrencia.viatura.identificacao }}.
+
+                        Sua exclusão removerá o registro de todos
+                        os históricos em que estiver disponível.
+
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- CONSEQUÊNCIAS DA EXCLUSÃO -->
+
+            <div class="alert alert-light border">
+
+                <strong>
+                    Ao confirmar a exclusão, serão removidos:
+                </strong>
+
+                <ul class="mt-2 mb-0">
+
+                    <li>O registro da ocorrência;</li>
+
+                    <li>Os registros das pessoas envolvidas;</li>
+
+                    <li>Os registros dos veículos envolvidos;</li>
+
+                    <li>O relato e as providências adotadas;</li>
+
+                    <li>As referências à ocorrência nos históricos
+                        e relatórios gerados pelo sistema.</li>
+
+                </ul>
+
+            </div>
+
+            <hr>
+
+
+            <!-- BOTÕES DE AÇÃO -->
+
+            <form method="post"
+                  action="{% url 'ocorrencias:excluir_ocorrencia' ocorrencia.pk %}">
+
+                {% csrf_token %}
+
+                <div class="d-flex justify-content-end flex-wrap gap-2">
+
+                    <a href="{% url 'ocorrencias:detalhe_ocorrencia' ocorrencia.pk %}"
+                       class="btn btn-outline-secondary px-4">
+
+                        <i class="bi bi-x-circle me-1"></i>
+
+                        Cancelar
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-danger px-4">
+
+                        <i class="bi bi-trash me-1"></i>
+
+                        Confirmar exclusão
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

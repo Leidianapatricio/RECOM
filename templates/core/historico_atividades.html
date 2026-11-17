@@ -26,8 +26,13 @@ Histórico de Atividades | RECOM
             </h2>
 
             <p class="historico-subtitulo mb-0">
-                Consulte visitas, ocorrências e missões
-                não realizadas pelas equipes da RECOM.
+                {% if gestor %}
+                    Consulte visitas, ocorrências e missões
+                    não realizadas pelas equipes da RECOM.
+                {% else %}
+                    Consulte suas atividades e os registros
+                    compartilhados aos quais você possui acesso.
+                {% endif %}
             </p>
         </div>
 
@@ -35,14 +40,12 @@ Histórico de Atividades | RECOM
 
             <a href="{% url 'core:exportar_historico_pdf' %}?{{ request.GET.urlencode }}"
                class="btn btn-exportar-pdf">
-
                 <i class="bi bi-file-earmark-pdf me-1"></i>
                 Exportar PDF
             </a>
 
             <a href="{% url 'core:exportar_historico_csv' %}?{{ request.GET.urlencode }}"
                class="btn btn-exportar-csv">
-
                 <i class="bi bi-file-earmark-spreadsheet me-1"></i>
                 Exportar CSV
             </a>
@@ -51,7 +54,6 @@ Histórico de Atividades | RECOM
 
     </div>
 
-
     <!-- ========================================= -->
     <!-- INDICADORES -->
     <!-- ========================================= -->
@@ -59,98 +61,70 @@ Histórico de Atividades | RECOM
     <div class="row g-3 mb-4">
 
         <div class="col-12 col-sm-6 col-xl-3">
-
             <div class="historico-indicador">
-
                 <div class="indicador-icone icone-total">
                     <i class="bi bi-list-check"></i>
                 </div>
-
                 <div>
                     <span class="indicador-label">
                         Total de atividades
                     </span>
-
                     <h3 class="indicador-numero">
                         {{ total_atividades }}
                     </h3>
                 </div>
-
             </div>
-
         </div>
 
-
         <div class="col-12 col-sm-6 col-xl-3">
-
             <div class="historico-indicador">
-
                 <div class="indicador-icone icone-visitas">
                     <i class="bi bi-building-check"></i>
                 </div>
-
                 <div>
                     <span class="indicador-label">
                         Visitas realizadas
                     </span>
-
                     <h3 class="indicador-numero">
                         {{ total_visitas }}
                     </h3>
                 </div>
-
             </div>
-
         </div>
 
-
         <div class="col-12 col-sm-6 col-xl-3">
-
             <div class="historico-indicador">
-
                 <div class="indicador-icone icone-ocorrencias">
                     <i class="bi bi-exclamation-triangle"></i>
                 </div>
-
                 <div>
                     <span class="indicador-label">
                         Ocorrências
                     </span>
-
                     <h3 class="indicador-numero">
                         {{ total_ocorrencias }}
                     </h3>
                 </div>
-
             </div>
-
         </div>
 
-
         <div class="col-12 col-sm-6 col-xl-3">
-
             <div class="historico-indicador">
-
                 <div class="indicador-icone icone-pendencias">
                     <i class="bi bi-x-circle"></i>
                 </div>
-
                 <div>
                     <span class="indicador-label">
                         Missões não realizadas
                     </span>
-
                     <h3 class="indicador-numero">
                         {{ total_nao_realizadas }}
                     </h3>
                 </div>
-
             </div>
-
         </div>
 
     </div>
-
 
     <!-- ========================================= -->
     <!-- FILTROS -->
@@ -159,12 +133,10 @@ Histórico de Atividades | RECOM
     <div class="card historico-card mb-4">
 
         <div class="card-header historico-card-header">
-
             <h5 class="mb-0">
                 <i class="bi bi-funnel me-2"></i>
                 Filtrar atividades
             </h5>
-
         </div>
 
         <div class="card-body">
@@ -174,12 +146,8 @@ Histórico de Atividades | RECOM
 
                 <div class="row g-3">
 
-                    <!-- DATA INICIAL -->
-
                     <div class="col-12 col-md-6 col-xl-2">
-
-                        <label for="data_inicio"
-                               class="form-label">
+                        <label for="data_inicio" class="form-label">
                             Data inicial
                         </label>
 
@@ -188,16 +156,10 @@ Histórico de Atividades | RECOM
                                name="data_inicio"
                                class="form-control"
                                value="{{ filtros.data_inicio }}">
-
                     </div>
 
-
-                    <!-- DATA FINAL -->
-
                     <div class="col-12 col-md-6 col-xl-2">
-
-                        <label for="data_fim"
-                               class="form-label">
+                        <label for="data_fim" class="form-label">
                             Data final
                         </label>
 
@@ -206,16 +168,10 @@ Histórico de Atividades | RECOM
                                name="data_fim"
                                class="form-control"
                                value="{{ filtros.data_fim }}">
-
                     </div>
 
-
-                    <!-- EQUIPE -->
-
                     <div class="col-12 col-md-6 col-xl-2">
-
-                        <label for="equipe"
-                               class="form-label">
+                        <label for="equipe" class="form-label">
                             Equipe
                         </label>
 
@@ -223,34 +179,22 @@ Histórico de Atividades | RECOM
                                 id="equipe"
                                 class="form-select">
 
-                            <option value="">
-                                Todas
-                            </option>
+                            <option value="">Todas</option>
 
                             {% for equipe in equipes %}
-
                                 <option value="{{ equipe.pk }}"
                                     {% if filtros.equipe == equipe.pk|stringformat:"s" %}
                                         selected
                                     {% endif %}>
-
                                     {{ equipe.nome }}
-
                                 </option>
-
                             {% endfor %}
 
                         </select>
-
                     </div>
 
-
-                    <!-- VIATURA -->
-
                     <div class="col-12 col-md-6 col-xl-3">
-
-                        <label for="viatura"
-                               class="form-label">
+                        <label for="viatura" class="form-label">
                             Viatura
                         </label>
 
@@ -263,30 +207,20 @@ Histórico de Atividades | RECOM
                             </option>
 
                             {% for viatura in viaturas %}
-
                                 <option value="{{ viatura.pk }}"
                                     {% if filtros.viatura == viatura.pk|stringformat:"s" %}
                                         selected
                                     {% endif %}>
-
                                     {{ viatura.identificacao }}
                                     - {{ viatura.plantao.data|date:"d/m/Y" }}
-
                                 </option>
-
                             {% endfor %}
 
                         </select>
-
                     </div>
 
-
-                    <!-- TIPO DE ATIVIDADE -->
-
                     <div class="col-12 col-md-6 col-xl-3">
-
-                        <label for="tipo"
-                               class="form-label">
+                        <label for="tipo" class="form-label">
                             Tipo de atividade
                         </label>
 
@@ -327,30 +261,30 @@ Histórico de Atividades | RECOM
                             </option>
 
                         </select>
-
                     </div>
 
                 </div>
 
-
-                <!-- BOTÕES DOS FILTROS -->
+                {% if filtros.viatura %}
+                    <div class="text-muted small mt-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        O filtro por viatura não inclui visitas
+                        avulsas ou ocorrências vinculadas
+                        exclusivamente ao Cartão Programa.
+                    </div>
+                {% endif %}
 
                 <div class="d-flex flex-wrap gap-2 mt-4">
 
-                    <button type="submit"
-                            class="btn btn-filtrar">
-
+                    <button type="submit" class="btn btn-filtrar">
                         <i class="bi bi-search me-1"></i>
                         Aplicar filtros
-
                     </button>
 
                     <a href="{% url 'core:historico_atividades' %}"
                        class="btn btn-limpar">
-
                         <i class="bi bi-arrow-counterclockwise me-1"></i>
                         Limpar filtros
-
                     </a>
 
                 </div>
@@ -358,9 +292,7 @@ Histórico de Atividades | RECOM
             </form>
 
         </div>
-
     </div>
-
 
     <!-- ========================================= -->
     <!-- LISTAGEM -->
@@ -368,9 +300,7 @@ Histórico de Atividades | RECOM
 
     <div class="card historico-card">
 
-        <div class="card-header historico-card-header
-                    d-flex justify-content-between
-                    align-items-center flex-wrap gap-2">
+        <div class="card-header historico-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
 
             <h5 class="mb-0">
                 <i class="bi bi-card-list me-2"></i>
@@ -383,30 +313,25 @@ Histórico de Atividades | RECOM
 
         </div>
 
-
         <div class="card-body p-0">
 
             {% if page_obj %}
 
                 <div class="table-responsive">
 
-                    <table class="table historico-tabela
-                                  align-middle mb-0">
+                    <table class="table historico-tabela align-middle mb-0">
 
                         <thead>
-
                             <tr>
                                 <th>Data / Hora</th>
                                 <th>Atividade</th>
                                 <th>Local</th>
                                 <th>Equipe</th>
+                                <th>Cartão Programa</th>
                                 <th>Viatura</th>
-                                <th>Responsável</th>
-                                <th class="text-center">
-                                    Detalhes
-                                </th>
+                                <th>Registrado por</th>
+                                <th class="text-center">Ações</th>
                             </tr>
-
                         </thead>
 
                         <tbody>
@@ -416,7 +341,6 @@ Histórico de Atividades | RECOM
                                 <tr>
 
                                     <!-- DATA -->
-
                                     <td class="historico-data">
 
                                         <strong>
@@ -429,9 +353,7 @@ Histórico de Atividades | RECOM
 
                                     </td>
 
-
                                     <!-- ATIVIDADE -->
-
                                     <td>
 
                                         {% if atividade.tipo == "VISITA_PROGRAMADA" %}
@@ -470,50 +392,147 @@ Histórico de Atividades | RECOM
 
                                     </td>
 
-
                                     <!-- LOCAL -->
-
                                     <td>
                                         {{ atividade.local|default:"-" }}
                                     </td>
 
-
                                     <!-- EQUIPE -->
-
                                     <td>
-                                        {{ atividade.equipe }}
+                                        {{ atividade.equipe|default:"-" }}
                                     </td>
 
+                                    <!-- CARTÃO PROGRAMA -->
+                                    <td>
+
+                                        {% if atividade.cartao_programa_id %}
+
+                                            <span class="fw-semibold">
+                                                <i class="bi bi-card-checklist me-1"></i>
+                                                CP {{ atividade.cartao_programa_id }}
+                                            </span>
+
+                                            {% if atividade.tipo == "VISITA_AVULSA" or atividade.tipo == "OCORRENCIA" %}
+
+                                                <small class="d-block text-muted mt-1">
+                                                    <i class="bi bi-people me-1"></i>
+                                                    Compartilhado
+                                                </small>
+
+                                            {% endif %}
+
+                                        {% else %}
+
+                                            <span class="text-muted small">
+                                                Não vinculado
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
 
                                     <!-- VIATURA -->
-
                                     <td>
-                                        {{ atividade.viatura }}
+
+                                        {% if atividade.viatura_id %}
+
+                                            {{ atividade.viatura }}
+
+                                        {% else %}
+
+                                            <span class="text-muted small">
+                                                Não vinculada
+                                            </span>
+
+                                        {% endif %}
+
                                     </td>
 
-
-                                    <!-- RESPONSÁVEL -->
-
+                                    <!-- AUTOR -->
                                     <td>
                                         {{ atividade.responsavel }}
                                     </td>
 
-
-                                    <!-- DETALHES -->
-
+                                    <!-- AÇÕES -->
                                     <td class="text-center">
 
-                                        <button type="button"
-                                                class="btn btn-detalhes"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#modalAtividade{{ forloop.counter }}">
+                                        <div class="d-flex justify-content-center align-items-center flex-wrap gap-1">
 
-                                            <i class="bi bi-eye"></i>
-                                            <span class="visually-hidden">
-                                                Visualizar detalhes
-                                            </span>
+                                            <!-- VISUALIZAR -->
+                                            <button type="button"
+                                                    class="btn btn-detalhes"
+                                                    title="Visualizar detalhes"
+                                                    aria-label="Visualizar detalhes"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalAtividade{{ forloop.counter }}">
 
-                                        </button>
+                                                <i class="bi bi-eye"></i>
+
+                                            </button>
+
+                                            <!-- VISITAS -->
+                                            {% if atividade.tipo == "VISITA_PROGRAMADA" or atividade.tipo == "VISITA_AVULSA" %}
+
+                                                {% if atividade.pode_editar %}
+
+                                                    <a href="{% url 'visitas:editar_visita' atividade.id %}"
+                                                       class="btn btn-sm btn-outline-primary"
+                                                       title="Editar visita"
+                                                       aria-label="Editar visita">
+
+                                                        <i class="bi bi-pencil-square"></i>
+
+                                                    </a>
+
+                                                {% endif %}
+
+                                                {% if atividade.pode_excluir %}
+
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-danger"
+                                                            title="Excluir visita"
+                                                            aria-label="Excluir visita"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modalExcluirVisita{{ atividade.id }}">
+
+                                                        <i class="bi bi-trash"></i>
+
+                                                    </button>
+
+                                                {% endif %}
+
+                                            <!-- OCORRÊNCIAS -->
+                                            {% elif atividade.tipo == "OCORRENCIA" %}
+
+                                                {% if atividade.pode_editar %}
+
+                                                    <a href="{% url 'ocorrencias:editar_ocorrencia' atividade.id %}"
+                                                       class="btn btn-sm btn-outline-primary"
+                                                       title="Editar ocorrência"
+                                                       aria-label="Editar ocorrência">
+
+                                                        <i class="bi bi-pencil-square"></i>
+
+                                                    </a>
+
+                                                {% endif %}
+
+                                                {% if atividade.pode_excluir %}
+
+                                                    <a href="{% url 'ocorrencias:excluir_ocorrencia' atividade.id %}"
+                                                       class="btn btn-sm btn-outline-danger"
+                                                       title="Excluir ocorrência"
+                                                       aria-label="Excluir ocorrência">
+
+                                                        <i class="bi bi-trash"></i>
+
+                                                    </a>
+
+                                                {% endif %}
+
+                                            {% endif %}
+
+                                        </div>
 
                                     </td>
 
@@ -533,13 +552,10 @@ Histórico de Atividades | RECOM
 
                     <i class="bi bi-inbox"></i>
 
-                    <h5>
-                        Nenhuma atividade encontrada
-                    </h5>
+                    <h5>Nenhuma atividade encontrada</h5>
 
                     <p>
-                        Não existem registros para os filtros
-                        selecionados.
+                        Não existem registros para os filtros selecionados.
                     </p>
 
                     <a href="{% url 'core:historico_atividades' %}"
@@ -553,7 +569,6 @@ Histórico de Atividades | RECOM
 
         </div>
 
-
         <!-- ===================================== -->
         <!-- PAGINAÇÃO -->
         <!-- ===================================== -->
@@ -564,8 +579,7 @@ Histórico de Atividades | RECOM
 
                 <nav aria-label="Paginação do histórico">
 
-                    <ul class="pagination justify-content-center
-                               flex-wrap mb-0">
+                    <ul class="pagination justify-content-center flex-wrap mb-0">
 
                         {% if page_obj.has_previous %}
 
@@ -582,18 +596,14 @@ Histórico de Atividades | RECOM
 
                         {% endif %}
 
-
                         <li class="page-item disabled">
 
                             <span class="page-link">
-
                                 Página {{ page_obj.number }}
                                 de {{ page_obj.paginator.num_pages }}
-
                             </span>
 
                         </li>
-
 
                         {% if page_obj.has_next %}
 
@@ -629,203 +639,295 @@ Histórico de Atividades | RECOM
 
 {% for atividade in page_obj %}
 
-<div class="modal fade"
-     id="modalAtividade{{ forloop.counter }}"
-     tabindex="-1"
-     aria-labelledby="tituloAtividade{{ forloop.counter }}"
-     aria-hidden="true">
+    <div class="modal fade"
+         id="modalAtividade{{ forloop.counter }}"
+         tabindex="-1"
+         aria-labelledby="tituloAtividade{{ forloop.counter }}"
+         aria-hidden="true">
 
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
 
-        <div class="modal-content historico-modal">
+            <div class="modal-content historico-modal">
 
-            <div class="modal-header">
+                <!-- CABEÇALHO -->
+                <div class="modal-header">
 
-                <h5 class="modal-title"
-                    id="tituloAtividade{{ forloop.counter }}">
+                    <h5 class="modal-title"
+                        id="tituloAtividade{{ forloop.counter }}">
 
-                    <i class="bi bi-journal-text me-2"></i>
-                    {{ atividade.tipo_label }}
+                        <i class="bi bi-journal-text me-2"></i>
+                        {{ atividade.tipo_label }}
 
-                </h5>
+                    </h5>
 
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Fechar">
-                </button>
-
-            </div>
-
-
-            <div class="modal-body">
-
-                <!-- INFORMAÇÕES GERAIS -->
-
-                <h6 class="historico-secao-titulo">
-                    Informações gerais
-                </h6>
-
-                <div class="row g-3 mb-4">
-
-                    <div class="col-md-4">
-                        <strong>Data:</strong>
-                        <div>
-                            {{ atividade.data|date:"d/m/Y" }}
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <strong>Horário:</strong>
-                        <div>
-                            {{ atividade.horario|time:"H:i"|default:"Não informado" }}
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <strong>Situação:</strong>
-                        <div>
-                            {{ atividade.situacao }}
-                        </div>
-                    </div>
-
-                    <div class="col-md-12">
-                        <strong>Local:</strong>
-                        <div>
-                            {{ atividade.local|default:"-" }}
-                        </div>
-                    </div>
-
-                    <div class="col-md-12">
-                        <strong>Tipo de atividade:</strong>
-                        <div>
-                            {{ atividade.descricao }}
-                        </div>
-                    </div>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Fechar">
+                    </button>
 
                 </div>
 
+                <!-- CORPO -->
+                <div class="modal-body">
 
-                <!-- VIATURA -->
-
-                <h6 class="historico-secao-titulo">
-                    Viatura e equipe
-                </h6>
-
-                <div class="row g-3 mb-4">
-
-                    <div class="col-md-4">
-                        <strong>Viatura:</strong>
-                        <div>{{ atividade.viatura }}</div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <strong>Equipe:</strong>
-                        <div>{{ atividade.equipe }}</div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <strong>Registrado por:</strong>
-                        <div>{{ atividade.responsavel }}</div>
-                    </div>
-
-                </div>
-
-
-                <!-- EFETIVO -->
-
-                <h6 class="historico-secao-titulo">
-                    <i class="bi bi-people me-1"></i>
-                    Efetivo escalado
-                </h6>
-
-                {% if atividade.efetivo %}
-
-                    <div class="table-responsive mb-4">
-
-                        <table class="table table-sm
-                                      table-bordered mb-0">
-
-                            <thead class="table-light">
-
-                                <tr>
-                                    <th>GCM</th>
-                                    <th>Função</th>
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                {% for integrante in atividade.efetivo %}
-
-                                    <tr>
-
-                                        <td>
-                                            {{ integrante.nome }}
-                                        </td>
-
-                                        <td>
-                                            {{ integrante.funcao }}
-                                        </td>
-
-                                    </tr>
-
-                                {% endfor %}
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                {% else %}
-
-                    <p class="text-muted mb-4">
-                        Efetivo não identificado para
-                        este registro.
-                    </p>
-
-                {% endif %}
-
-
-                <!-- RELATO -->
-
-                <h6 class="historico-secao-titulo">
-                    Relato / Justificativa
-                </h6>
-
-                <div class="historico-texto mb-4">
-                    {{ atividade.relato|default:"Não informado."|linebreaksbr }}
-                </div>
-
-
-                <!-- PROVIDÊNCIAS -->
-
-                {% if atividade.providencias %}
-
+                    <!-- INFORMAÇÕES GERAIS -->
                     <h6 class="historico-secao-titulo">
-                        Orientações / Providências
+                        Informações gerais
                     </h6>
 
-                    <div class="historico-texto">
-                        {{ atividade.providencias|linebreaksbr }}
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-md-4">
+                            <strong>Data:</strong>
+                            <div>
+                                {{ atividade.data|date:"d/m/Y" }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <strong>Horário:</strong>
+                            <div>
+                                {{ atividade.horario|time:"H:i"|default:"Não informado" }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <strong>Situação:</strong>
+                            <div>
+                                {{ atividade.situacao }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <strong>Local:</strong>
+                            <div>
+                                {{ atividade.local|default:"-" }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <strong>Tipo de atividade:</strong>
+                            <div>
+                                {{ atividade.descricao }}
+                            </div>
+                        </div>
+
                     </div>
 
-                {% endif %}
+                    <!-- CARTÃO PROGRAMA -->
+                    <h6 class="historico-secao-titulo">
+                        <i class="bi bi-card-checklist me-1"></i>
+                        Cartão Programa
+                    </h6>
 
-            </div>
+                    <div class="mb-4">
 
+                        {% if atividade.cartao_programa_id %}
 
-            <div class="modal-footer">
+                            <strong>
+                                {{ atividade.cartao_programa }}
+                            </strong>
 
-                <button type="button"
-                        class="btn btn-limpar"
-                        data-bs-dismiss="modal">
+                            {% if atividade.tipo == "VISITA_AVULSA" or atividade.tipo == "OCORRENCIA" %}
 
-                    Fechar
+                                <p class="text-muted small mt-2 mb-0">
 
-                </button>
+                                    <i class="bi bi-people-fill me-1"></i>
+
+                                    Registro compartilhado com o efetivo
+                                    deste Cartão Programa, independentemente
+                                    da viatura em que cada GCM está escalado.
+
+                                </p>
+
+                            {% else %}
+
+                                <p class="text-muted small mt-2 mb-0">
+                                    Atividade vinculada a uma missão
+                                    do Cartão Programa.
+                                </p>
+
+                            {% endif %}
+
+                        {% else %}
+
+                            <span class="text-muted">
+                                Registro sem vínculo com um
+                                Cartão Programa.
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                    <!-- EQUIPE E AUTORIA -->
+                    <h6 class="historico-secao-titulo">
+                        Equipe e identificação do registro
+                    </h6>
+
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-md-4">
+                            <strong>Viatura:</strong>
+                            <div>
+                                {{ atividade.viatura }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <strong>Equipe:</strong>
+                            <div>
+                                {{ atividade.equipe }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <strong>Registrado por:</strong>
+                            <div>
+                                {{ atividade.responsavel }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- EFETIVO -->
+                    <h6 class="historico-secao-titulo">
+
+                        <i class="bi bi-people me-1"></i>
+
+                        {% if atividade.cartao_programa_id and atividade.tipo == "VISITA_AVULSA" %}
+
+                            Efetivo do Cartão Programa
+
+                        {% elif atividade.cartao_programa_id and atividade.tipo == "OCORRENCIA" %}
+
+                            Efetivo do Cartão Programa
+
+                        {% else %}
+
+                            Efetivo escalado
+
+                        {% endif %}
+
+                    </h6>
+
+                    {% if atividade.efetivo %}
+
+                        <div class="table-responsive mb-4">
+
+                            <table class="table table-sm table-bordered mb-0">
+
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>GCM</th>
+                                        <th>Função</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    {% for integrante in atividade.efetivo %}
+
+                                        <tr>
+                                            <td>
+                                                {{ integrante.nome }}
+                                            </td>
+                                            <td>
+                                                {{ integrante.funcao }}
+                                            </td>
+                                        </tr>
+
+                                    {% endfor %}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    {% else %}
+
+                        <p class="text-muted mb-4">
+                            Efetivo não identificado para este registro.
+                        </p>
+
+                    {% endif %}
+
+                    <!-- RELATO -->
+                    <h6 class="historico-secao-titulo">
+                        Relato / Justificativa
+                    </h6>
+
+                    <div class="historico-texto mb-4">
+                        {{ atividade.relato|default:"Não informado."|linebreaksbr }}
+                    </div>
+
+                    <!-- PROVIDÊNCIAS -->
+                    {% if atividade.providencias %}
+
+                        <h6 class="historico-secao-titulo">
+                            Orientações / Providências
+                        </h6>
+
+                        <div class="historico-texto">
+                            {{ atividade.providencias|linebreaksbr }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+                <!-- RODAPÉ -->
+                <div class="modal-footer">
+
+                    {% if atividade.pode_editar %}
+
+                        {% if atividade.tipo == "VISITA_PROGRAMADA" or atividade.tipo == "VISITA_AVULSA" %}
+
+                            <a href="{% url 'visitas:editar_visita' atividade.id %}"
+                               class="btn btn-outline-primary">
+
+                                <i class="bi bi-pencil-square me-1"></i>
+                                Editar visita
+
+                            </a>
+
+                        {% elif atividade.tipo == "OCORRENCIA" %}
+
+                            <a href="{% url 'ocorrencias:editar_ocorrencia' atividade.id %}"
+                               class="btn btn-outline-primary">
+
+                                <i class="bi bi-pencil-square me-1"></i>
+                                Editar ocorrência
+
+                            </a>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                    {% if atividade.tipo == "OCORRENCIA" and atividade.pode_excluir %}
+
+                        <a href="{% url 'ocorrencias:excluir_ocorrencia' atividade.id %}"
+                           class="btn btn-outline-danger">
+
+                            <i class="bi bi-trash me-1"></i>
+                            Excluir ocorrência
+
+                        </a>
+
+                    {% endif %}
+
+                    <button type="button"
+                            class="btn btn-limpar"
+                            data-bs-dismiss="modal">
+
+                        Fechar
+
+                    </button>
+
+                </div>
 
             </div>
 
@@ -833,7 +935,188 @@ Histórico de Atividades | RECOM
 
     </div>
 
-</div>
+{% endfor %}
+
+
+<!-- ============================================= -->
+<!-- MODAIS DE EXCLUSÃO DAS VISITAS -->
+<!-- ============================================= -->
+
+{% for atividade in page_obj %}
+
+    {% if atividade.tipo == "VISITA_PROGRAMADA" or atividade.tipo == "VISITA_AVULSA" %}
+
+        {% if atividade.pode_excluir %}
+
+            <div class="modal fade"
+                 id="modalExcluirVisita{{ atividade.id }}"
+                 tabindex="-1"
+                 aria-labelledby="tituloExcluirVisita{{ atividade.id }}"
+                 aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+
+                    <div class="modal-content historico-modal">
+
+                        <!-- CABEÇALHO -->
+                        <div class="modal-header">
+
+                            <h5 class="modal-title"
+                                id="tituloExcluirVisita{{ atividade.id }}">
+
+                                <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+                                Excluir visita
+
+                            </h5>
+
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Fechar">
+                            </button>
+
+                        </div>
+
+                        <!-- INFORMAÇÕES DA VISITA -->
+                        <div class="modal-body">
+
+                            <p>
+                                Deseja realmente excluir esta visita?
+                            </p>
+
+                            <div class="border rounded p-3 mb-3">
+
+                                <p class="mb-2">
+                                    <strong>Escola:</strong>
+                                    {{ atividade.local }}
+                                </p>
+
+                                <p class="mb-2">
+                                    <strong>Data:</strong>
+                                    {{ atividade.data|date:"d/m/Y" }}
+                                </p>
+
+                                <p class="mb-2">
+                                    <strong>Horário:</strong>
+                                    {{ atividade.horario|time:"H:i"|default:"--:--" }}
+                                </p>
+
+                                <p class="mb-2">
+                                    <strong>Tipo:</strong>
+                                    {{ atividade.tipo_label }}
+                                </p>
+
+                                <p class="mb-2">
+                                    <strong>Cartão Programa:</strong>
+                                    {{ atividade.cartao_programa }}
+                                </p>
+
+                                <p class="mb-0">
+                                    <strong>Registrado por:</strong>
+                                    {{ atividade.responsavel }}
+                                </p>
+
+                            </div>
+
+                            <div class="alert alert-warning mb-0">
+
+                                <i class="bi bi-exclamation-circle me-1"></i>
+
+                                {% if atividade.tipo == "VISITA_PROGRAMADA" %}
+
+                                    A exclusão removerá o registro
+                                    da visita e retornará a missão
+                                    ao status pendente.
+
+                                {% else %}
+
+                                    A exclusão removerá esta visita
+                                    do histórico de todos os usuários
+                                    que possuem acesso ao registro.
+
+                                {% endif %}
+
+                                <strong>
+                                    Esta ação não poderá ser desfeita.
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                        <!-- CONFIRMAÇÃO -->
+                        <div class="modal-footer">
+
+                            <button type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal">
+
+                                Cancelar
+
+                            </button>
+
+                            <form method="post"
+                                  action="{% url 'visitas:excluir_visita' atividade.id %}">
+
+                                {% csrf_token %}
+
+                                <!-- ================================= -->
+                                <!-- ORIGEM DA EXCLUSÃO -->
+                                <!-- ================================= -->
+
+                                <input type="hidden"
+                                       name="origem"
+                                       value="historico">
+
+                                <!-- ================================= -->
+                                <!-- PRESERVAR FILTROS DO HISTÓRICO -->
+                                <!-- ================================= -->
+
+                                <input type="hidden"
+                                       name="data_inicio"
+                                       value="{{ filtros.data_inicio }}">
+
+                                <input type="hidden"
+                                       name="data_fim"
+                                       value="{{ filtros.data_fim }}">
+
+                                <input type="hidden"
+                                       name="equipe"
+                                       value="{{ filtros.equipe }}">
+
+                                <input type="hidden"
+                                       name="viatura"
+                                       value="{{ filtros.viatura }}">
+
+                                <input type="hidden"
+                                       name="tipo"
+                                       value="{{ filtros.tipo }}">
+
+                                <input type="hidden"
+                                       name="page"
+                                       value="{{ page_obj.number }}">
+
+                                <button type="submit"
+                                        class="btn btn-danger">
+
+                                    <i class="bi bi-trash me-1"></i>
+                                    Confirmar exclusão
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    {% endif %}
 
 {% endfor %}
 

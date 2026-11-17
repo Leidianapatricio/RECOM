@@ -1,4 +1,3 @@
-
 from django.urls import path
 from django.views.generic import RedirectView
 
@@ -34,7 +33,18 @@ urlpatterns = [
     ),
 
     # ==========================================
+    # CONSULTAR CARTÕES PROGRAMA DISPONÍVEIS
+    # ==========================================
+
+    path(
+        "api/cartoes/",
+        views.consultar_cartoes_visita,
+        name="consultar_cartoes_visita",
+    ),
+
+    # ==========================================
     # CONSULTAR VIATURAS DO PLANTÃO
+    # MANTIDO PARA COMPATIBILIDADE
     # ==========================================
 
     path(

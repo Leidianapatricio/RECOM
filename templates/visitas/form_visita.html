@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}
@@ -59,10 +58,31 @@
         font-size: 0.85rem;
         color: #6c757d;
     }
+
+    .visita-info-cartao {
+        background: #f5f8fb;
+        border: 1px solid #e5e9ef;
+        border-radius: 8px;
+        padding: 15px;
+    }
+
+    .visita-card .form-control:disabled,
+    .visita-card .form-select:disabled {
+        background-color: #f5f8fb;
+        cursor: not-allowed;
+    }
+
+    .visita-card .errorlist {
+        color: #dc3545;
+        padding-left: 20px;
+        margin-bottom: 0;
+    }
 </style>
 
 <div class="container mt-4 mb-5">
+
     <div class="row justify-content-center">
+
         <div class="col-lg-9">
 
             <!-- ====================================== -->
@@ -70,7 +90,9 @@
             <!-- ====================================== -->
 
             <div class="mb-4">
+
                 <h2 class="fw-bold visita-titulo">
+
                     <i class="bi bi-clipboard-check me-2"></i>
 
                     {% if modo_edicao %}
@@ -78,21 +100,29 @@
                     {% else %}
                         Registrar Visita Escolar
                     {% endif %}
+
                 </h2>
 
                 <p class="text-muted mb-0">
+
                     {% if modo_edicao %}
+
                         Atualize os dados da visita realizada
                         pela equipe da RECOM.
+
                     {% else %}
+
                         Preencha os dados da visita realizada
                         pela equipe da RECOM.
+
                     {% endif %}
+
                 </p>
+
             </div>
 
             <!-- ====================================== -->
-            <!-- INFORMAÇÕES DO CARTÃO PROGRAMA -->
+            <!-- INFORMAÇÕES DA VISITA PROGRAMADA -->
             <!-- ====================================== -->
 
             {% if missao_cartao %}
@@ -100,61 +130,185 @@
                 <div class="visita-info-missao p-3 mb-4">
 
                     <h6 class="fw-bold mb-3">
+
                         <i class="bi bi-card-checklist me-2"></i>
+
                         Visita vinculada ao Cartão Programa
+
                     </h6>
 
                     <div class="row g-3 small">
 
                         <div class="col-md-6">
+
+                            <strong>Cartão Programa:</strong>
+
+                            Nº {{ missao_cartao.cartao.pk }}
+
+                        </div>
+
+                        <div class="col-md-6">
+
                             <strong>Escola:</strong>
+
                             {{ missao_cartao.escola.nome }}
+
                         </div>
 
                         <div class="col-md-6">
+
                             <strong>Viatura:</strong>
+
                             {{ missao_cartao.viatura.identificacao }}
+
                         </div>
 
                         <div class="col-md-6">
+
                             <strong>Data:</strong>
+
                             {{ missao_cartao.cartao.plantao.data|date:"d/m/Y" }}
+
                         </div>
 
                         <div class="col-md-6">
+
                             <strong>Equipe:</strong>
 
                             {% if missao_cartao.viatura.equipe %}
+
                                 {{ missao_cartao.viatura.equipe.nome }}
+
                             {% else %}
+
                                 Equipe extraordinária
+
                             {% endif %}
+
                         </div>
 
                         <div class="col-md-6">
+
                             <strong>Missão:</strong>
+
                             Nº {{ missao_cartao.numero }}
+
                         </div>
 
                         <div class="col-md-6">
+
                             <strong>Período:</strong>
+
                             {{ missao_cartao.get_periodo_display }}
+
                         </div>
 
                         <div class="col-md-6">
+
                             <strong>Tipo de missão:</strong>
+
                             {{ missao_cartao.get_tipo_missao_display }}
+
                         </div>
 
                     </div>
 
                     <p class="text-muted small mt-3 mb-0">
+
                         <i class="bi bi-lock-fill me-1"></i>
+
                         Escola, viatura, equipe, data e tipo
                         de visita foram definidos pelo
                         Cartão Programa e não podem ser
                         alterados neste registro.
+
                     </p>
+
+                </div>
+
+            {% else %}
+
+                <!-- ================================== -->
+                <!-- INFORMAÇÕES DA VISITA AVULSA -->
+                <!-- ================================== -->
+
+                <div class="visita-info-missao p-3 mb-4">
+
+                    <h6 class="fw-bold mb-2">
+
+                        <i class="bi bi-clipboard-plus me-2"></i>
+
+                        Visita Avulsa
+
+                    </h6>
+
+                    {% if modo_edicao %}
+
+                        {% if visita.cartao_programa_id %}
+
+                            <div class="row g-3 small">
+
+                                <div class="col-md-6">
+
+                                    <strong>Cartão Programa:</strong>
+
+                                    Nº {{ visita.cartao_programa.pk }}
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <strong>Data:</strong>
+
+                                    {{ visita.cartao_programa.plantao.data|date:"d/m/Y" }}
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <strong>Tipo de serviço:</strong>
+
+                                    {{ visita.cartao_programa.plantao.get_tipo_servico_display }}
+
+                                </div>
+
+                            </div>
+
+                            <p class="text-muted small mt-3 mb-0">
+
+                                <i class="bi bi-people-fill me-1"></i>
+
+                                Registro compartilhado com os
+                                GCMs integrantes deste
+                                Cartão Programa.
+
+                            </p>
+
+                        {% else %}
+
+                            <p class="text-muted small mb-0">
+
+                                Esta visita não possui vínculo
+                                com um Cartão Programa.
+
+                            </p>
+
+                        {% endif %}
+
+                    {% else %}
+
+                        <p class="text-muted small mb-0">
+
+                            Registre uma visita não prevista
+                            nas missões do Cartão Programa.
+
+                            Quando houver vínculo com um cartão,
+                            o registro será compartilhado com
+                            todo o efetivo nele escalado.
+
+                        </p>
+
+                    {% endif %}
 
                 </div>
 
@@ -164,7 +318,7 @@
             <!-- FORMULÁRIO -->
             <!-- ====================================== -->
 
-            <div class="card visita-card shadow-sm">
+            <div class="card visita-card">
 
                 <div class="visita-card-header"></div>
 
@@ -174,7 +328,9 @@
 
                         {% csrf_token %}
 
+                        <!-- ========================== -->
                         <!-- IDENTIFICAÇÃO DA MISSÃO -->
+                        <!-- ========================== -->
 
                         {% if missao_cartao_id and not modo_edicao %}
 
@@ -186,25 +342,45 @@
 
                         {% endif %}
 
-                        <!-- ================================== -->
+                        <!-- ========================== -->
                         <!-- ERROS GERAIS -->
-                        <!-- ================================== -->
+                        <!-- ========================== -->
 
                         {% if form.non_field_errors %}
 
                             <div class="alert alert-danger">
+
                                 {{ form.non_field_errors }}
+
                             </div>
 
                         {% endif %}
 
-                        <!-- ================================== -->
+                        <!-- ========================== -->
+                        <!-- CAMPOS OCULTOS -->
+                        <!-- ========================== -->
+
+                        {% for campo in form.hidden_fields %}
+
+                            {{ campo }}
+
+                            {% for erro in campo.errors %}
+
+                                <div class="alert alert-danger">
+
+                                    {{ erro }}
+
+                                </div>
+
+                            {% endfor %}
+
+                        {% endfor %}
+
+                        <!-- ========================== -->
                         <!-- VISITA PROGRAMADA -->
-                        <!-- ================================== -->
+                        <!-- ========================== -->
 
                         {% if missao_cartao %}
-
-                            <!-- CAMPOS AUTOMÁTICOS -->
 
                             <div class="d-none">
 
@@ -213,16 +389,13 @@
                                 {{ form.equipe }}
                                 {{ form.data_visita }}
                                 {{ form.tipo_visita }}
+                                {{ form.cartao_programa }}
 
                             </div>
 
-                            {% for campo in form.hidden_fields %}
-                                {{ campo }}
-                            {% endfor %}
-
                             <!-- ERROS DOS CAMPOS AUTOMÁTICOS -->
 
-                            {% if form.escola.errors or form.viatura.errors or form.equipe.errors or form.data_visita.errors or form.tipo_visita.errors %}
+                            {% if form.escola.errors or form.viatura.errors or form.equipe.errors or form.data_visita.errors or form.tipo_visita.errors or form.cartao_programa.errors %}
 
                                 <div class="alert alert-danger">
 
@@ -231,6 +404,7 @@
                                     {{ form.equipe.errors }}
                                     {{ form.data_visita.errors }}
                                     {{ form.tipo_visita.errors }}
+                                    {{ form.cartao_programa.errors }}
 
                                 </div>
 
@@ -238,9 +412,9 @@
 
                         {% else %}
 
-                            <!-- ================================== -->
-                            <!-- VISITA LEGADA OU AVULSA -->
-                            <!-- ================================== -->
+                            <!-- ====================== -->
+                            <!-- VISITA AVULSA -->
+                            <!-- ====================== -->
 
                             <!-- DATA DA VISITA -->
 
@@ -250,21 +424,86 @@
                                     for="{{ form.data_visita.id_for_label }}"
                                     class="form-label fw-semibold"
                                 >
+
                                     Data da visita
+
                                     <span class="text-danger">*</span>
+
                                 </label>
 
                                 {{ form.data_visita }}
 
                                 {% for erro in form.data_visita.errors %}
+
                                     <div class="text-danger small mt-1">
+
                                         {{ erro }}
+
                                     </div>
+
                                 {% endfor %}
 
                             </div>
 
+                            <!-- ====================== -->
+                            <!-- CARTÃO PROGRAMA -->
+                            <!-- ====================== -->
+
+                            <div class="visita-info-cartao mb-3">
+
+                                <label
+                                    for="{{ form.cartao_programa.id_for_label }}"
+                                    class="form-label fw-semibold"
+                                >
+
+                                    <i class="bi bi-card-checklist me-1"></i>
+
+                                    Cartão Programa
+
+                                </label>
+
+                                {{ form.cartao_programa }}
+
+                                <div
+                                    class="form-text"
+                                    id="mensagem-cartao"
+                                    role="status"
+                                    aria-live="polite"
+                                >
+
+                                    {% if modo_edicao %}
+
+                                        <i class="bi bi-lock-fill me-1"></i>
+
+                                        O vínculo com o Cartão
+                                        Programa não pode ser
+                                        alterado durante a edição.
+
+                                    {% else %}
+
+                                        Os cartões disponíveis
+                                        serão identificados
+                                        conforme a data da visita.
+
+                                    {% endif %}
+
+                                </div>
+
+                                {% for erro in form.cartao_programa.errors %}
+
+                                    <div class="text-danger small mt-1">
+
+                                        {{ erro }}
+
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                            <!-- ====================== -->
                             <!-- EQUIPE RESPONSÁVEL -->
+                            <!-- ====================== -->
 
                             <div class="mb-3">
 
@@ -272,26 +511,40 @@
                                     for="{{ form.equipe.id_for_label }}"
                                     class="form-label fw-semibold"
                                 >
+
                                     Equipe responsável
+
                                     <span class="text-danger">*</span>
+
                                 </label>
 
                                 {{ form.equipe }}
 
                                 <div class="form-text">
-                                    Selecione a equipe responsável
-                                    pela realização da visita.
+
+                                    Equipe responsável pela
+                                    realização da visita.
+
+                                    Informação utilizada para
+                                    fins estatísticos.
+
                                 </div>
 
                                 {% for erro in form.equipe.errors %}
+
                                     <div class="text-danger small mt-1">
+
                                         {{ erro }}
+
                                     </div>
+
                                 {% endfor %}
 
                             </div>
 
+                            <!-- ====================== -->
                             <!-- ESCOLA -->
+                            <!-- ====================== -->
 
                             <div class="mb-3">
 
@@ -299,21 +552,30 @@
                                     for="{{ form.escola.id_for_label }}"
                                     class="form-label fw-semibold"
                                 >
+
                                     Escola
+
                                     <span class="text-danger">*</span>
+
                                 </label>
 
                                 {{ form.escola }}
 
                                 {% for erro in form.escola.errors %}
+
                                     <div class="text-danger small mt-1">
+
                                         {{ erro }}
+
                                     </div>
+
                                 {% endfor %}
 
                             </div>
 
+                            <!-- ====================== -->
                             <!-- TIPO DE VISITA -->
+                            <!-- ====================== -->
 
                             <div class="mb-3">
 
@@ -321,25 +583,32 @@
                                     for="{{ form.tipo_visita.id_for_label }}"
                                     class="form-label fw-semibold"
                                 >
+
                                     Tipo de visita
+
                                     <span class="text-danger">*</span>
+
                                 </label>
 
                                 {{ form.tipo_visita }}
 
                                 {% for erro in form.tipo_visita.errors %}
+
                                     <div class="text-danger small mt-1">
+
                                         {{ erro }}
+
                                     </div>
+
                                 {% endfor %}
 
                             </div>
 
                         {% endif %}
 
-                        <!-- ================================== -->
+                        <!-- ========================== -->
                         <!-- HORÁRIO -->
-                        <!-- ================================== -->
+                        <!-- ========================== -->
 
                         <div class="mb-3">
 
@@ -347,23 +616,30 @@
                                 for="{{ form.horario.id_for_label }}"
                                 class="form-label fw-semibold"
                             >
+
                                 Horário da visita
+
                                 <span class="text-danger">*</span>
+
                             </label>
 
                             {{ form.horario }}
 
                             {% for erro in form.horario.errors %}
+
                                 <div class="text-danger small mt-1">
+
                                     {{ erro }}
+
                                 </div>
+
                             {% endfor %}
 
                         </div>
 
-                        <!-- ================================== -->
+                        <!-- ========================== -->
                         <!-- SITUAÇÃO -->
-                        <!-- ================================== -->
+                        <!-- ========================== -->
 
                         <div class="mb-3">
 
@@ -371,23 +647,30 @@
                                 for="{{ form.situacao.id_for_label }}"
                                 class="form-label fw-semibold"
                             >
+
                                 Situação encontrada
+
                                 <span class="text-danger">*</span>
+
                             </label>
 
                             {{ form.situacao }}
 
                             {% for erro in form.situacao.errors %}
+
                                 <div class="text-danger small mt-1">
+
                                     {{ erro }}
+
                                 </div>
+
                             {% endfor %}
 
                         </div>
 
-                        <!-- ================================== -->
+                        <!-- ========================== -->
                         <!-- RELATO -->
-                        <!-- ================================== -->
+                        <!-- ========================== -->
 
                         <div class="mb-3">
 
@@ -395,22 +678,28 @@
                                 for="{{ form.relato.id_for_label }}"
                                 class="form-label fw-semibold"
                             >
+
                                 Relato da visita
+
                             </label>
 
                             {{ form.relato }}
 
                             {% for erro in form.relato.errors %}
+
                                 <div class="text-danger small mt-1">
+
                                     {{ erro }}
+
                                 </div>
+
                             {% endfor %}
 
                         </div>
 
-                        <!-- ================================== -->
-                        <!-- ORIENTAÇÕES -->
-                        <!-- ================================== -->
+                        <!-- ========================== -->
+                        <!-- ORIENTAÇÕES / PROVIDÊNCIAS -->
+                        <!-- ========================== -->
 
                         <div class="mb-4">
 
@@ -418,22 +707,60 @@
                                 for="{{ form.orientacoes.id_for_label }}"
                                 class="form-label fw-semibold"
                             >
+
                                 Orientações / Providências
+
                             </label>
 
                             {{ form.orientacoes }}
 
                             {% for erro in form.orientacoes.errors %}
+
                                 <div class="text-danger small mt-1">
+
                                     {{ erro }}
+
                                 </div>
+
                             {% endfor %}
 
                         </div>
 
-                        <!-- ================================== -->
+                        <!-- ========================== -->
+                        <!-- AUTORIA DO REGISTRO -->
+                        <!-- ========================== -->
+
+                        {% if modo_edicao and visita.registrado_por %}
+
+                            <div class="border-top pt-3 mb-4 text-muted small">
+
+                                <div class="mb-1">
+
+                                    <i class="bi bi-person-fill me-1"></i>
+
+                                    <strong>Registrado por:</strong>
+
+                                    {{ visita.registrado_por }}
+
+                                </div>
+
+                                <div>
+
+                                    <i class="bi bi-calendar-check me-1"></i>
+
+                                    <strong>Data do cadastro:</strong>
+
+                                    {{ visita.criado_em|date:"d/m/Y H:i" }}
+
+                                </div>
+
+                            </div>
+
+                        {% endif %}
+
+                        <!-- ========================== -->
                         <!-- BOTÕES -->
-                        <!-- ================================== -->
+                        <!-- ========================== -->
 
                         <div class="d-flex flex-wrap justify-content-between gap-2">
 
@@ -443,8 +770,24 @@
                                     href="{% url 'cartao_programa:meu_cartao_programa' %}"
                                     class="btn btn-outline-secondary"
                                 >
+
                                     <i class="bi bi-arrow-left me-1"></i>
+
                                     Voltar ao Cartão Programa
+
+                                </a>
+
+                            {% elif modo_edicao and visita %}
+
+                                <a
+                                    href="{% url 'escolas:detalhe_escola' visita.escola_id %}"
+                                    class="btn btn-outline-secondary"
+                                >
+
+                                    <i class="bi bi-arrow-left me-1"></i>
+
+                                    Cancelar
+
                                 </a>
 
                             {% else %}
@@ -453,8 +796,11 @@
                                     href="{% url 'escolas:listar_escolas' %}"
                                     class="btn btn-outline-secondary"
                                 >
+
                                     <i class="bi bi-arrow-left me-1"></i>
+
                                     Cancelar
+
                                 </a>
 
                             {% endif %}
@@ -468,9 +814,13 @@
                                 <i class="bi bi-check-circle me-1"></i>
 
                                 {% if modo_edicao %}
+
                                     Salvar Alterações
+
                                 {% else %}
+
                                     Registrar Visita
+
                                 {% endif %}
 
                             </button>
@@ -484,7 +834,9 @@
             </div>
 
         </div>
+
     </div>
+
 </div>
 
 {% endblock %}
@@ -495,13 +847,16 @@
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
 
 <script>
+
 document.addEventListener("DOMContentLoaded", function () {
 
     // ==============================================
     // PESQUISA DE ESCOLAS
     // ==============================================
 
-    const campoEscola = document.getElementById("id_escola");
+    const campoEscola = document.getElementById(
+        "id_escola"
+    );
 
     if (
         campoEscola &&
@@ -512,8 +867,11 @@ document.addEventListener("DOMContentLoaded", function () {
         new TomSelect(campoEscola, {
 
             create: false,
+
             allowEmptyOption: true,
+
             placeholder: "Digite o nome da escola...",
+
             searchField: ["text"],
 
             sortField: {
@@ -522,6 +880,7 @@ document.addEventListener("DOMContentLoaded", function () {
             },
 
             maxOptions: null,
+
             closeAfterSelect: true
 
         });
@@ -529,15 +888,344 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ==============================================
-    // VISITAS LEGADAS E AVULSAS
+    // CONSULTA DE CARTÕES PROGRAMA
+    // SOMENTE NO CADASTRO DE VISITAS AVULSAS
     // ==============================================
 
-    // A equipe é selecionada diretamente pelo usuário.
-    // Não existe consulta automática de viaturas.
-    // A viatura das visitas programadas permanece
-    // definida pelo Cartão Programa no servidor.
+    {% if not missao_cartao and not modo_edicao %}
+
+        const campoData = document.getElementById(
+            "id_data_visita"
+        );
+
+        const campoCartao = document.getElementById(
+            "id_cartao_programa"
+        );
+
+        const mensagemCartao = document.getElementById(
+            "mensagem-cartao"
+        );
+
+        const botaoSalvar = document.getElementById(
+            "btn-salvar-visita"
+        );
+
+        const urlConsulta = "{% url 'visitas:consultar_cartoes_visita' %}";
+
+        const usuarioGCM = {% if usuario and usuario.perfil == "GCM" and not request.user.is_superuser %}true{% else %}false{% endif %};
+
+        let controladorConsulta = null;
+
+        // ==========================================
+        // EXIBIR MENSAGEM
+        // ==========================================
+
+        function exibirMensagem(texto, classe) {
+
+            if (!mensagemCartao) {
+                return;
+            }
+
+            mensagemCartao.textContent = texto;
+
+            mensagemCartao.className =
+                "form-text " + (classe || "");
+
+        }
+
+        // ==========================================
+        // LIMPAR OPÇÕES DO CAMPO
+        // ==========================================
+
+        function limparCartoes() {
+
+            campoCartao.replaceChildren();
+
+            const opcaoVazia = new Option(
+                "Sem Cartão Programa",
+                ""
+            );
+
+            campoCartao.add(opcaoVazia);
+
+        }
+
+        // ==========================================
+        // CARREGAR CARTÕES DISPONÍVEIS
+        // ==========================================
+
+        async function carregarCartoes() {
+
+            if (!campoData || !campoCartao) {
+                return;
+            }
+
+            // Cancela uma consulta anterior caso
+            // o usuário altere rapidamente a data.
+
+            if (controladorConsulta) {
+
+                controladorConsulta.abort();
+
+            }
+
+            const controlador = new AbortController();
+
+            controladorConsulta = controlador;
+
+            const dataSelecionada = campoData.value;
+
+            const cartaoAnterior = campoCartao.value;
+
+            campoCartao.required = false;
+
+            limparCartoes();
+
+            // Nenhuma data informada.
+
+            if (!dataSelecionada) {
+
+                campoCartao.disabled = false;
+
+                if (botaoSalvar) {
+
+                    botaoSalvar.disabled = false;
+
+                }
+
+                exibirMensagem(
+                    "Informe a data da visita.",
+                    "text-muted"
+                );
+
+                return;
+
+            }
+
+            // Bloqueia temporariamente o envio enquanto
+            // consulta os cartões disponíveis.
+
+            campoCartao.disabled = true;
+
+            if (botaoSalvar) {
+
+                botaoSalvar.disabled = true;
+
+            }
+
+            exibirMensagem(
+                "Consultando cartões programa disponíveis...",
+                "text-muted"
+            );
+
+            try {
+
+                const parametros = new URLSearchParams({
+                    data: dataSelecionada
+                });
+
+                const resposta = await fetch(
+                    urlConsulta + "?" + parametros.toString(),
+                    {
+                        method: "GET",
+
+                        credentials: "same-origin",
+
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+
+                        signal: controlador.signal
+                    }
+                );
+
+                if (!resposta.ok) {
+
+                    throw new Error(
+                        "Não foi possível consultar os cartões."
+                    );
+
+                }
+
+                const dados = await resposta.json();
+
+                if (controlador.signal.aborted) {
+
+                    return;
+
+                }
+
+                const cartoes = dados.cartoes || [];
+
+                // ==================================
+                // PREENCHER OPÇÕES
+                // ==================================
+
+                cartoes.forEach(function (cartao) {
+
+                    const opcao = new Option(
+                        cartao.descricao,
+                        String(cartao.id)
+                    );
+
+                    campoCartao.add(opcao);
+
+                });
+
+                // ==================================
+                // NENHUM CARTÃO DISPONÍVEL
+                // ==================================
+
+                if (cartoes.length === 0) {
+
+                    campoCartao.value = "";
+
+                    campoCartao.required = false;
+
+                    exibirMensagem(
+                        "Nenhum Cartão Programa disponível " +
+                        "nesta data. A visita poderá ser " +
+                        "registrada sem vínculo com um cartão.",
+                        "text-muted"
+                    );
+
+                }
+
+                // ==================================
+                // GCM COM APENAS UM CARTÃO
+                // ==================================
+
+                else if (
+                    usuarioGCM &&
+                    cartoes.length === 1
+                ) {
+
+                    campoCartao.value = String(
+                        cartoes[0].id
+                    );
+
+                    campoCartao.required = true;
+
+                    exibirMensagem(
+                        "Cartão Programa identificado " +
+                        "automaticamente. O registro será " +
+                        "compartilhado com todos os GCMs " +
+                        "escalados neste cartão.",
+                        "text-success"
+                    );
+
+                }
+
+                // ==================================
+                // MAIS DE UM CARTÃO OU GESTOR
+                // ==================================
+
+                else {
+
+                    const cartaoAindaDisponivel = cartoes.some(
+                        function (cartao) {
+
+                            return String(cartao.id) ===
+                                cartaoAnterior;
+
+                        }
+                    );
+
+                    if (cartaoAindaDisponivel) {
+
+                        campoCartao.value = cartaoAnterior;
+
+                    }
+
+                    campoCartao.required = usuarioGCM;
+
+                    if (usuarioGCM) {
+
+                        exibirMensagem(
+                            "Selecione o Cartão Programa " +
+                            "correspondente à sua escala.",
+                            "text-muted"
+                        );
+
+                    } else {
+
+                        exibirMensagem(
+                            "Selecione um Cartão Programa " +
+                            "caso deseje vincular a visita.",
+                            "text-muted"
+                        );
+
+                    }
+
+                }
+
+            } catch (erro) {
+
+                if (erro.name === "AbortError") {
+
+                    return;
+
+                }
+
+                exibirMensagem(
+                    "Não foi possível consultar os cartões. " +
+                    "Selecione novamente a data. " +
+                    "O servidor também verificará sua escala " +
+                    "ao salvar a visita.",
+                    "text-danger"
+                );
+
+                console.error(
+                    "Erro ao consultar cartões:",
+                    erro
+                );
+
+            } finally {
+
+                if (controladorConsulta === controlador) {
+
+                    campoCartao.disabled = false;
+
+                    if (botaoSalvar) {
+
+                        botaoSalvar.disabled = false;
+
+                    }
+
+                    controladorConsulta = null;
+
+                }
+
+            }
+
+        }
+
+        // ==========================================
+        // CONSULTAR AO ALTERAR A DATA
+        // ==========================================
+
+        if (campoData && campoCartao) {
+
+            campoData.addEventListener(
+                "change",
+                carregarCartoes
+            );
+
+            // Consulta inicial quando já existe
+            // uma data preenchida.
+
+            if (campoData.value) {
+
+                carregarCartoes();
+
+            }
+
+        }
+
+    {% endif %}
 
 });
+
 </script>
 
 {% endblock %}

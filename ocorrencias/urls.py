@@ -1,4 +1,3 @@
-
 from django.urls import path
 
 from . import views
@@ -21,6 +20,13 @@ urlpatterns = [
         "nova/",
         views.cadastrar_ocorrencia,
         name="cadastrar_ocorrencia",
+    ),
+
+    # API - Consulta de cartões programa disponíveis
+    path(
+        "api/cartoes/",
+        views.consultar_cartoes_ocorrencia,
+        name="consultar_cartoes_ocorrencia",
     ),
 
     # Visualização dos detalhes

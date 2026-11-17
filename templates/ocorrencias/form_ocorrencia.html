@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% load static %}
 
@@ -7,15 +8,96 @@
 
 <link rel="stylesheet" href="{% static 'css/ocorrencias.css' %}">
 
+<!-- Select2: lista suspensa com pesquisa interna -->
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+>
+
+<style>
+    /* Campo Escola - integração com Bootstrap */
+
+    .ocorrencia-container .select2-container {
+        width: 100% !important;
+    }
+
+    .ocorrencia-container
+    .select2-container--default
+    .select2-selection--single {
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+    }
+
+    .ocorrencia-container
+    .select2-container--default
+    .select2-selection--single
+    .select2-selection__rendered {
+        line-height: 36px;
+        padding-left: 12px;
+        padding-right: 30px;
+        color: #212529;
+    }
+
+    .ocorrencia-container
+    .select2-container--default
+    .select2-selection--single
+    .select2-selection__arrow {
+        height: 36px;
+        right: 6px;
+    }
+
+    .ocorrencia-container
+    .select2-container--default.select2-container--focus
+    .select2-selection--single,
+    .ocorrencia-container
+    .select2-container--default.select2-container--open
+    .select2-selection--single {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+
+    .select2-dropdown {
+        border-color: #ced4da;
+    }
+
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid #ced4da !important;
+        border-radius: 5px;
+        padding: 8px;
+        outline: none;
+    }
+
+    .select2-results__option {
+        padding: 8px 12px;
+    }
+
+    .select2-container--default
+    .select2-results__option--highlighted.select2-results__option--selectable {
+        background-color: #17365d;
+    }
+
+    .select2-container--default
+    .select2-selection--single
+    .select2-selection__clear {
+        margin-right: 12px;
+        color: #6c757d;
+    }
+</style>
 
 <div class="ocorrencia-container">
 
+    <!-- ========================================== -->
     <!-- CABEÇALHO -->
+    <!-- ========================================== -->
+
     <div class="ocorrencia-cabecalho">
+
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
 
             <div>
                 <h2>{{ titulo }}</h2>
+
                 <p>
                     Registro de ocorrências atendidas pela
                     Ronda Escolar Comunitária.
@@ -28,10 +110,27 @@
             </a>
 
         </div>
+
     </div>
 
-    <form method="post" id="form-ocorrencia" novalidate>
+    <!-- ========================================== -->
+    <!-- FORMULÁRIO PRINCIPAL -->
+    <!-- ========================================== -->
+
+    <form
+        method="post"
+        id="form-ocorrencia"
+        data-api-cartoes="{% url 'ocorrencias:consultar_cartoes_ocorrencia' %}"
+        data-edicao="{{ modo_edicao|yesno:'true,false' }}"
+        data-gestor="{{ pode_gerenciar|yesno:'true,false' }}"
+        novalidate
+    >
+
         {% csrf_token %}
+
+        {% for campo_oculto in form.hidden_fields %}
+            {{ campo_oculto }}
+        {% endfor %}
 
         {% if form.non_field_errors %}
             <div class="alert alert-danger">
@@ -39,7 +138,10 @@
             </div>
         {% endif %}
 
-        <!-- DADOS GERAIS -->
+        <!-- ====================================== -->
+        <!-- 1. DADOS GERAIS -->
+        <!-- ====================================== -->
+
         <div class="ocorrencia-card">
 
             <div class="ocorrencia-card-titulo">
@@ -50,67 +152,275 @@
 
                 <div class="row g-3">
 
-                    <div class="col-md-6">
-                        <label for="{{ form.viatura.id_for_label }}" class="form-label">
-                            {{ form.viatura.label }}
+                    <!-- DATA -->
+
+                    <div class="col-md-3">
+
+                        <label for="{{ form.data.id_for_label }}">
+                            Data
+                            <span class="campo-obrigatorio">*</span>
                         </label>
 
-                        {{ form.viatura }}
+                        {{ form.data }}
 
-                        {% for erro in form.viatura.errors %}
-                            <div class="text-danger small mt-1">
+                        {% for erro in form.data.errors %}
+                            <div class="erro-campo">
                                 {{ erro }}
                             </div>
                         {% endfor %}
+
                     </div>
 
-                    <div class="col-md-3">
-                        <label for="{{ form.data.id_for_label }}">
-                            Data <span class="campo-obrigatorio">*</span>
-                        </label>
-                        {{ form.data }}
-                        {% for erro in form.data.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
-                        {% endfor %}
-                    </div>
+                    <!-- HORÁRIO -->
 
                     <div class="col-md-3">
+
                         <label for="{{ form.horario.id_for_label }}">
-                            Horário <span class="campo-obrigatorio">*</span>
-                        </label>
-                        {{ form.horario }}
-                        {% for erro in form.horario.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="{{ form.local.id_for_label }}">
-                            Local da ocorrência
+                            Horário
                             <span class="campo-obrigatorio">*</span>
                         </label>
-                        {{ form.local }}
-                        {% for erro in form.local.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
+
+                        {{ form.horario }}
+
+                        {% for erro in form.horario.errors %}
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
                         {% endfor %}
+
                     </div>
 
+                    <!-- CARTÃO PROGRAMA -->
+
                     <div class="col-md-6">
+
+                        <label
+                            for="{{ form.cartao_programa.id_for_label }}"
+                            class="form-label"
+                        >
+                            Cartão Programa
+
+                            <span
+                                id="cartao-obrigatorio"
+                                class="campo-obrigatorio campo-oculto"
+                            >
+                                *
+                            </span>
+                        </label>
+
+                        {{ form.cartao_programa }}
+
+                        {% for erro in form.cartao_programa.errors %}
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+                        {% endfor %}
+
+                        <div
+                            class="form-text"
+                            id="mensagem-cartao"
+                            aria-live="polite"
+                        >
+
+                            {% if modo_edicao %}
+
+                                O vínculo original com o Cartão Programa
+                                será preservado.
+
+                            {% else %}
+
+                                Informe a data para consultar os
+                                Cartões Programa disponíveis.
+
+                            {% endif %}
+
+                        </div>
+
+                        <button
+                            type="button"
+                            id="btn-recarregar-cartoes"
+                            class="btn btn-sm btn-outline-secondary mt-2 d-none"
+                        >
+                            Tentar novamente
+                        </button>
+
+                    </div>
+
+                    <!-- COMPARTILHAMENTO -->
+
+                    <div class="col-12">
+
+                        {% if modo_edicao %}
+
+                            {% if ocorrencia.cartao_programa_id %}
+
+                                <div class="alert alert-light border mb-0">
+
+                                    <i class="bi bi-people-fill me-2"></i>
+
+                                    Esta ocorrência está compartilhada com
+                                    os GCMs escalados no respectivo
+                                    Cartão Programa.
+
+                                </div>
+
+                            {% elif ocorrencia.viatura_id %}
+
+                                <div class="alert alert-light border mb-0">
+
+                                    <i class="bi bi-info-circle me-2"></i>
+
+                                    Registro anterior à nova regra
+                                    de compartilhamento.
+
+                                    <strong>
+                                        Viatura original:
+                                        {{ ocorrencia.viatura.identificacao }}
+                                    </strong>
+
+                                </div>
+
+                            {% else %}
+
+                                <div class="alert alert-light border mb-0">
+
+                                    <i class="bi bi-info-circle me-2"></i>
+
+                                    Ocorrência registrada sem vínculo
+                                    com um Cartão Programa.
+
+                                </div>
+
+                            {% endif %}
+
+                        {% else %}
+
+                            <div class="alert alert-light border mb-0">
+
+                                <i class="bi bi-people-fill me-2"></i>
+
+                                Ocorrências vinculadas ao Cartão Programa
+                                poderão ser visualizadas, editadas e
+                                excluídas pelos GCMs nele escalados,
+                                independentemente da viatura ou função.
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                    <!-- ================================== -->
+                    <!-- ESCOLA - LISTA PESQUISÁVEL -->
+                    <!-- ================================== -->
+
+                    <div class="col-12">
+
+                        <label
+                            for="{{ form.escola.id_for_label }}"
+                            class="form-label"
+                        >
+
+                            Escola
+
+                            <span class="text-muted fw-normal">
+                                (opcional)
+                            </span>
+
+                        </label>
+
+                        <!--
+                            A pesquisa será exibida dentro da lista
+                            pelo Select2.
+
+                            Não existe campo de pesquisa separado.
+                        -->
+
+                        {{ form.escola }}
+
+                        {% for erro in form.escola.errors %}
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
+                        {% endfor %}
+
+                        <!-- Dados das escolas para endereço e bairro -->
+
+                        <div
+                            id="dados-escolas-ocorrencia"
+                            hidden
+                        >
+
+                            {% for escola in form.escola.field.queryset %}
+
+                                <span
+                                    data-id="{{ escola.pk }}"
+                                    data-endereco="{{ escola.endereco|default_if_none:'' }}"
+                                    data-bairro="{{ escola.bairro|default_if_none:'' }}"
+                                ></span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <!-- LOCAL -->
+
+                    <div class="col-md-6">
+
+                        <label for="{{ form.local.id_for_label }}">
+
+                            Local da ocorrência
+
+                            <span class="campo-obrigatorio">*</span>
+
+                        </label>
+
+                        {{ form.local }}
+
+                        {% for erro in form.local.errors %}
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                    <!-- BAIRRO -->
+
+                    <div class="col-md-6">
+
                         <label for="{{ form.bairro.id_for_label }}">
                             Bairro
                         </label>
+
                         {{ form.bairro }}
+
                         {% for erro in form.bairro.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
                         {% endfor %}
+
                     </div>
 
                 </div>
 
             </div>
+
         </div>
 
-        <!-- ACIONAMENTO E ATUAÇÃO -->
+        <!-- ====================================== -->
+        <!-- 2. ACIONAMENTO E ATUAÇÃO -->
+        <!-- ====================================== -->
+
         <div class="ocorrencia-card">
 
             <div class="ocorrencia-card-titulo">
@@ -121,76 +431,124 @@
 
                 <div class="row g-4">
 
+                    <!-- ACIONAMENTO CICC -->
+
                     <div class="col-md-6">
+
                         <label>
                             Foi acionamento do CICC?
                             <span class="campo-obrigatorio">*</span>
                         </label>
 
                         <div class="opcoes-radio">
+
                             {% for radio in form.acionamento_cicc %}
+
                                 <div>
+
                                     {{ radio.tag }}
+
                                     <label for="{{ radio.id_for_label }}">
                                         {{ radio.choice_label }}
                                     </label>
+
                                 </div>
+
                             {% endfor %}
+
                         </div>
 
                         {% for erro in form.acionamento_cicc.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
                         {% endfor %}
+
                     </div>
 
+                    <!-- NATUREZA DA ATUAÇÃO -->
+
                     <div class="col-md-6">
+
                         <label>
                             Natureza da atuação
                             <span class="campo-obrigatorio">*</span>
                         </label>
 
                         <div class="opcoes-radio">
+
                             {% for radio in form.natureza_atuacao %}
+
                                 <div>
+
                                     {{ radio.tag }}
+
                                     <label for="{{ radio.id_for_label }}">
                                         {{ radio.choice_label }}
                                     </label>
+
                                 </div>
+
                             {% endfor %}
+
                         </div>
 
                         {% for erro in form.natureza_atuacao.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
                         {% endfor %}
+
                     </div>
 
-                    <div class="col-md-12 campo-oculto"
-                         id="bloco-equipe-apoiada">
+                    <!-- EQUIPE APOIADA -->
+
+                    <div
+                        class="col-md-12 campo-oculto"
+                        id="bloco-equipe-apoiada"
+                    >
 
                         <label for="{{ form.equipe_apoiada.id_for_label }}">
+
                             Equipe apoiada
+
                             <span class="campo-obrigatorio">*</span>
+
                         </label>
 
                         {{ form.equipe_apoiada }}
 
                         <div class="form-text">
+
                             Informe a equipe ou guarnição que recebeu
                             o apoio da RECOM. Ex.: Tático 1.
+
                         </div>
 
                         {% for erro in form.equipe_apoiada.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
                         {% endfor %}
+
                     </div>
 
                 </div>
 
             </div>
+
         </div>
 
-        <!-- CLASSIFICAÇÃO -->
+        <!-- ====================================== -->
+        <!-- 3. CLASSIFICAÇÃO -->
+        <!-- ====================================== -->
+
         <div class="ocorrencia-card">
 
             <div class="ocorrencia-card-titulo">
@@ -201,70 +559,124 @@
 
                 <div class="row g-4">
 
+                    <!-- CATEGORIA -->
+
                     <div class="col-md-12">
+
                         <label>
+
                             Categoria
+
                             <span class="campo-obrigatorio">*</span>
+
                         </label>
 
                         <div class="opcoes-radio">
+
                             {% for radio in form.categoria %}
+
                                 <div>
+
                                     {{ radio.tag }}
+
                                     <label for="{{ radio.id_for_label }}">
                                         {{ radio.choice_label }}
                                     </label>
+
                                 </div>
+
                             {% endfor %}
+
                         </div>
 
                         {% for erro in form.categoria.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
                         {% endfor %}
+
                     </div>
 
+                    <!-- TIPO DE OCORRÊNCIA -->
+
                     <div class="col-md-6">
+
                         <label for="{{ form.tipo_ocorrencia.id_for_label }}">
+
                             Tipo de ocorrência
+
                             <span class="campo-obrigatorio">*</span>
+
                         </label>
 
                         {{ form.tipo_ocorrencia }}
 
                         {% for erro in form.tipo_ocorrencia.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
                         {% endfor %}
+
                     </div>
 
+                    <!-- VÍTIMA -->
+
                     <div class="col-md-6">
+
                         <label>
+
                             Houve vítima?
+
                             <span class="campo-obrigatorio">*</span>
+
                         </label>
 
                         <div class="opcoes-radio">
+
                             {% for radio in form.possui_vitima %}
+
                                 <div>
+
                                     {{ radio.tag }}
+
                                     <label for="{{ radio.id_for_label }}">
                                         {{ radio.choice_label }}
                                     </label>
+
                                 </div>
+
                             {% endfor %}
+
                         </div>
 
                         {% for erro in form.possui_vitima.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
                         {% endfor %}
+
                     </div>
 
                 </div>
 
             </div>
+
         </div>
 
-        <!-- PESSOAS ENVOLVIDAS -->
-        <div class="ocorrencia-card" id="secao-pessoas">
+        <!-- ====================================== -->
+        <!-- 4. PESSOAS ENVOLVIDAS -->
+        <!-- ====================================== -->
+
+        <div
+            class="ocorrencia-card"
+            id="secao-pessoas"
+        >
 
             <div class="ocorrencia-card-titulo">
                 4. Pessoas envolvidas
@@ -273,17 +685,21 @@
             <div class="ocorrencia-card-corpo">
 
                 <p class="text-muted small">
+
                     Cadastre vítimas, suspeitos, condutores,
                     passageiros, testemunhas ou outros envolvidos,
                     quando identificados.
+
                 </p>
 
                 {{ pessoas_formset.management_form }}
 
                 {% if pessoas_formset.non_form_errors %}
+
                     <div class="alert alert-danger">
                         {{ pessoas_formset.non_form_errors }}
                     </div>
+
                 {% endif %}
 
                 <div id="lista-pessoas">
@@ -293,17 +709,28 @@
                         <div class="subform-card pessoa-form">
 
                             {% for campo_oculto in pessoa_form.hidden_fields %}
+
                                 {{ campo_oculto }}
+                                {{ campo_oculto.errors }}
+
                             {% endfor %}
 
                             <div class="d-flex justify-content-between align-items-center mb-3">
 
                                 <div class="subform-titulo mb-0">
-                                    Pessoa <span class="numero-pessoa">{{ forloop.counter }}</span>
+
+                                    Pessoa
+
+                                    <span class="numero-pessoa">
+                                        {{ forloop.counter }}
+                                    </span>
+
                                 </div>
 
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-danger btn-remover-pessoa">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-danger btn-remover-pessoa"
+                                >
                                     Remover
                                 </button>
 
@@ -311,40 +738,82 @@
 
                             <div class="row g-3">
 
+                                <!-- NOME -->
+
                                 <div class="col-md-6">
-                                    <label>Nome</label>
+
+                                    <label for="{{ pessoa_form.nome.id_for_label }}">
+                                        Nome
+                                    </label>
+
                                     {{ pessoa_form.nome }}
                                     {{ pessoa_form.nome.errors }}
+
                                 </div>
 
+                                <!-- PAPEL -->
+
                                 <div class="col-md-3">
-                                    <label>Papel na ocorrência</label>
+
+                                    <label for="{{ pessoa_form.papel.id_for_label }}">
+                                        Papel na ocorrência
+                                    </label>
+
                                     {{ pessoa_form.papel }}
                                     {{ pessoa_form.papel.errors }}
+
                                 </div>
 
+                                <!-- IDADE -->
+
                                 <div class="col-md-3">
-                                    <label>Idade</label>
+
+                                    <label for="{{ pessoa_form.idade.id_for_label }}">
+                                        Idade
+                                    </label>
+
                                     {{ pessoa_form.idade }}
                                     {{ pessoa_form.idade.errors }}
+
                                 </div>
 
+                                <!-- SEXO -->
+
                                 <div class="col-md-3">
-                                    <label>Sexo</label>
+
+                                    <label for="{{ pessoa_form.sexo.id_for_label }}">
+                                        Sexo
+                                    </label>
+
                                     {{ pessoa_form.sexo }}
                                     {{ pessoa_form.sexo.errors }}
+
                                 </div>
+
+                                <!-- DOCUMENTO -->
 
                                 <div class="col-md-3">
-                                    <label>Documento</label>
+
+                                    <label for="{{ pessoa_form.documento.id_for_label }}">
+                                        Documento
+                                    </label>
+
                                     {{ pessoa_form.documento }}
                                     {{ pessoa_form.documento.errors }}
+
                                 </div>
 
+                                <!-- OBSERVAÇÕES -->
+
                                 <div class="col-md-12">
-                                    <label>Observações</label>
+
+                                    <label for="{{ pessoa_form.observacoes.id_for_label }}">
+                                        Observações
+                                    </label>
+
                                     {{ pessoa_form.observacoes }}
                                     {{ pessoa_form.observacoes.errors }}
+
                                 </div>
 
                             </div>
@@ -354,9 +823,11 @@
                             </div>
 
                             {% if pessoa_form.non_field_errors %}
+
                                 <div class="erro-campo">
                                     {{ pessoa_form.non_field_errors }}
                                 </div>
+
                             {% endif %}
 
                         </div>
@@ -365,18 +836,26 @@
 
                 </div>
 
-                <button type="button"
-                        id="btn-adicionar-pessoa"
-                        class="btn btn-adicionar">
+                <button
+                    type="button"
+                    id="btn-adicionar-pessoa"
+                    class="btn btn-adicionar"
+                >
                     + Adicionar pessoa
                 </button>
 
             </div>
+
         </div>
 
-        <!-- VEÍCULOS -->
-        <div class="ocorrencia-card campo-oculto"
-             id="secao-veiculos">
+        <!-- ====================================== -->
+        <!-- 5. VEÍCULOS ENVOLVIDOS -->
+        <!-- ====================================== -->
+
+        <div
+            class="ocorrencia-card campo-oculto"
+            id="secao-veiculos"
+        >
 
             <div class="ocorrencia-card-titulo">
                 5. Veículos envolvidos
@@ -385,16 +864,20 @@
             <div class="ocorrencia-card-corpo">
 
                 <p class="text-muted small">
+
                     Informe os veículos envolvidos no sinistro,
                     mesmo quando não houver vítimas.
+
                 </p>
 
                 {{ veiculos_formset.management_form }}
 
                 {% if veiculos_formset.non_form_errors %}
+
                     <div class="alert alert-danger">
                         {{ veiculos_formset.non_form_errors }}
                     </div>
+
                 {% endif %}
 
                 <div id="lista-veiculos">
@@ -404,17 +887,28 @@
                         <div class="subform-card veiculo-form">
 
                             {% for campo_oculto in veiculo_form.hidden_fields %}
+
                                 {{ campo_oculto }}
+                                {{ campo_oculto.errors }}
+
                             {% endfor %}
 
                             <div class="d-flex justify-content-between align-items-center mb-3">
 
                                 <div class="subform-titulo mb-0">
-                                    Veículo <span class="numero-veiculo">{{ forloop.counter }}</span>
+
+                                    Veículo
+
+                                    <span class="numero-veiculo">
+                                        {{ forloop.counter }}
+                                    </span>
+
                                 </div>
 
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-danger btn-remover-veiculo">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-danger btn-remover-veiculo"
+                                >
                                     Remover
                                 </button>
 
@@ -422,40 +916,90 @@
 
                             <div class="row g-3">
 
+                                <!-- PLACA -->
+
                                 <div class="col-md-3">
-                                    <label>Placa</label>
+
+                                    <label for="{{ veiculo_form.placa.id_for_label }}">
+                                        Placa
+                                    </label>
+
                                     {{ veiculo_form.placa }}
                                     {{ veiculo_form.placa.errors }}
+
                                 </div>
+
+                                <!-- MARCA / MODELO -->
 
                                 <div class="col-md-5">
-                                    <label>Marca / Modelo</label>
+
+                                    <label for="{{ veiculo_form.marca_modelo.id_for_label }}">
+                                        Marca / Modelo
+                                    </label>
+
                                     {{ veiculo_form.marca_modelo }}
                                     {{ veiculo_form.marca_modelo.errors }}
+
                                 </div>
+
+                                <!-- COR -->
 
                                 <div class="col-md-4">
-                                    <label>Cor</label>
+
+                                    <label for="{{ veiculo_form.cor.id_for_label }}">
+                                        Cor
+                                    </label>
+
                                     {{ veiculo_form.cor }}
                                     {{ veiculo_form.cor.errors }}
+
                                 </div>
+
+                                <!-- CONDUTOR -->
 
                                 <div class="col-md-6">
-                                    <label>Condutor</label>
+
+                                    <label for="{{ veiculo_form.condutor.id_for_label }}">
+                                        Condutor
+                                    </label>
+
                                     {{ veiculo_form.condutor }}
                                     {{ veiculo_form.condutor.errors }}
+
+                                    <div class="form-text">
+
+                                        Para vincular um novo condutor,
+                                        primeiro salve a pessoa envolvida
+                                        e depois edite a ocorrência.
+
+                                    </div>
+
                                 </div>
 
+                                <!-- DANOS -->
+
                                 <div class="col-md-12">
-                                    <label>Danos identificados</label>
+
+                                    <label for="{{ veiculo_form.danos.id_for_label }}">
+                                        Danos identificados
+                                    </label>
+
                                     {{ veiculo_form.danos }}
                                     {{ veiculo_form.danos.errors }}
+
                                 </div>
 
+                                <!-- OBSERVAÇÕES -->
+
                                 <div class="col-md-12">
-                                    <label>Observações</label>
+
+                                    <label for="{{ veiculo_form.observacoes.id_for_label }}">
+                                        Observações
+                                    </label>
+
                                     {{ veiculo_form.observacoes }}
                                     {{ veiculo_form.observacoes.errors }}
+
                                 </div>
 
                             </div>
@@ -465,9 +1009,11 @@
                             </div>
 
                             {% if veiculo_form.non_field_errors %}
+
                                 <div class="erro-campo">
                                     {{ veiculo_form.non_field_errors }}
                                 </div>
+
                             {% endif %}
 
                         </div>
@@ -476,16 +1022,22 @@
 
                 </div>
 
-                <button type="button"
-                        id="btn-adicionar-veiculo"
-                        class="btn btn-adicionar">
+                <button
+                    type="button"
+                    id="btn-adicionar-veiculo"
+                    class="btn btn-adicionar"
+                >
                     + Adicionar veículo
                 </button>
 
             </div>
+
         </div>
 
-        <!-- RELATO -->
+        <!-- ====================================== -->
+        <!-- 6. RELATO E PROVIDÊNCIAS -->
+        <!-- ====================================== -->
+
         <div class="ocorrencia-card">
 
             <div class="ocorrencia-card-titulo">
@@ -496,56 +1048,105 @@
 
                 <div class="row g-3">
 
-                    <div class="col-12">
-                        <label for="{{ form.relato.id_for_label }}">
-                            Relato da ocorrência
-                            <span class="campo-obrigatorio">*</span>
-                        </label>
-                        {{ form.relato }}
-                        {% for erro in form.relato.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
-                        {% endfor %}
-                    </div>
+                    <!-- RELATO -->
 
                     <div class="col-12">
+
+                        <label for="{{ form.relato.id_for_label }}">
+
+                            Relato da ocorrência
+
+                            <span class="campo-obrigatorio">*</span>
+
+                        </label>
+
+                        {{ form.relato }}
+
+                        {% for erro in form.relato.errors %}
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                    <!-- PROVIDÊNCIAS -->
+
+                    <div class="col-12">
+
                         <label for="{{ form.providencias.id_for_label }}">
                             Providências adotadas
                         </label>
+
                         {{ form.providencias }}
+
                         {% for erro in form.providencias.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
                         {% endfor %}
+
                     </div>
 
+                    <!-- ÓRGÃOS ACIONADOS -->
+
                     <div class="col-12">
+
                         <label for="{{ form.orgaos_acionados.id_for_label }}">
                             Órgãos acionados
                         </label>
+
                         {{ form.orgaos_acionados }}
+
                         {% for erro in form.orgaos_acionados.errors %}
-                            <div class="erro-campo">{{ erro }}</div>
+
+                            <div class="erro-campo">
+                                {{ erro }}
+                            </div>
+
                         {% endfor %}
+
                     </div>
 
                 </div>
 
             </div>
+
         </div>
 
-        <!-- AÇÕES -->
+        <!-- ====================================== -->
+        <!-- BOTÕES -->
+        <!-- ====================================== -->
+
         <div class="acoes-formulario">
 
-            <a href="{% url 'ocorrencias:listar_ocorrencias' %}"
-               class="btn btn-outline-secondary px-4">
+            <a
+                href="{% url 'ocorrencias:listar_ocorrencias' %}"
+                class="btn btn-outline-secondary px-4"
+            >
                 Cancelar
             </a>
 
-            <button type="submit" class="btn btn-recom px-4">
+            <button
+                type="submit"
+                id="btn-salvar-ocorrencia"
+                class="btn btn-recom px-4"
+            >
+
                 {% if modo_edicao %}
+
                     Salvar alterações
+
                 {% else %}
+
                     Cadastrar ocorrência
+
                 {% endif %}
+
             </button>
 
         </div>
@@ -554,7 +1155,10 @@
 
 </div>
 
-<!-- MODELO PARA NOVA PESSOA -->
+<!-- ============================================== -->
+<!-- TEMPLATE PARA NOVA PESSOA -->
+<!-- ============================================== -->
+
 <template id="template-pessoa">
 
     <div class="subform-card pessoa-form">
@@ -568,11 +1172,17 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
 
                 <div class="subform-titulo mb-0">
-                    Pessoa <span class="numero-pessoa"></span>
+
+                    Pessoa
+
+                    <span class="numero-pessoa"></span>
+
                 </div>
 
-                <button type="button"
-                        class="btn btn-sm btn-outline-danger btn-remover-pessoa">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger btn-remover-pessoa"
+                >
                     Remover
                 </button>
 
@@ -581,33 +1191,63 @@
             <div class="row g-3">
 
                 <div class="col-md-6">
-                    <label>Nome</label>
+
+                    <label for="{{ pessoa_form.nome.id_for_label }}">
+                        Nome
+                    </label>
+
                     {{ pessoa_form.nome }}
+
                 </div>
 
                 <div class="col-md-3">
-                    <label>Papel na ocorrência</label>
+
+                    <label for="{{ pessoa_form.papel.id_for_label }}">
+                        Papel na ocorrência
+                    </label>
+
                     {{ pessoa_form.papel }}
+
                 </div>
 
                 <div class="col-md-3">
-                    <label>Idade</label>
+
+                    <label for="{{ pessoa_form.idade.id_for_label }}">
+                        Idade
+                    </label>
+
                     {{ pessoa_form.idade }}
+
                 </div>
 
                 <div class="col-md-3">
-                    <label>Sexo</label>
+
+                    <label for="{{ pessoa_form.sexo.id_for_label }}">
+                        Sexo
+                    </label>
+
                     {{ pessoa_form.sexo }}
+
                 </div>
 
                 <div class="col-md-3">
-                    <label>Documento</label>
+
+                    <label for="{{ pessoa_form.documento.id_for_label }}">
+                        Documento
+                    </label>
+
                     {{ pessoa_form.documento }}
+
                 </div>
 
                 <div class="col-md-12">
-                    <label>Observações</label>
+
+                    <label for="{{ pessoa_form.observacoes.id_for_label }}">
+                        Observações
+                    </label>
+
                     {{ pessoa_form.observacoes }}
+
                 </div>
 
             </div>
@@ -622,7 +1262,10 @@
 
 </template>
 
-<!-- MODELO PARA NOVO VEÍCULO -->
+<!-- ============================================== -->
+<!-- TEMPLATE PARA NOVO VEÍCULO -->
+<!-- ============================================== -->
+
 <template id="template-veiculo">
 
     <div class="subform-card veiculo-form">
@@ -636,11 +1279,17 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
 
                 <div class="subform-titulo mb-0">
-                    Veículo <span class="numero-veiculo"></span>
+
+                    Veículo
+
+                    <span class="numero-veiculo"></span>
+
                 </div>
 
-                <button type="button"
-                        class="btn btn-sm btn-outline-danger btn-remover-veiculo">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger btn-remover-veiculo"
+                >
                     Remover
                 </button>
 
@@ -649,33 +1298,70 @@
             <div class="row g-3">
 
                 <div class="col-md-3">
-                    <label>Placa</label>
+
+                    <label for="{{ veiculo_form.placa.id_for_label }}">
+                        Placa
+                    </label>
+
                     {{ veiculo_form.placa }}
+
                 </div>
 
                 <div class="col-md-5">
-                    <label>Marca / Modelo</label>
+
+                    <label for="{{ veiculo_form.marca_modelo.id_for_label }}">
+                        Marca / Modelo
+                    </label>
+
                     {{ veiculo_form.marca_modelo }}
+
                 </div>
 
                 <div class="col-md-4">
-                    <label>Cor</label>
+
+                    <label for="{{ veiculo_form.cor.id_for_label }}">
+                        Cor
+                    </label>
+
                     {{ veiculo_form.cor }}
+
                 </div>
 
                 <div class="col-md-6">
-                    <label>Condutor</label>
+
+                    <label for="{{ veiculo_form.condutor.id_for_label }}">
+                        Condutor
+                    </label>
+
                     {{ veiculo_form.condutor }}
+
+                    <div class="form-text">
+
+                        Novos condutores poderão ser vinculados
+                        após salvar a pessoa envolvida.
+
+                    </div>
+
                 </div>
 
                 <div class="col-md-12">
-                    <label>Danos identificados</label>
+
+                    <label for="{{ veiculo_form.danos.id_for_label }}">
+                        Danos identificados
+                    </label>
+
                     {{ veiculo_form.danos }}
+
                 </div>
 
                 <div class="col-md-12">
-                    <label>Observações</label>
+
+                    <label for="{{ veiculo_form.observacoes.id_for_label }}">
+                        Observações
+                    </label>
+
                     {{ veiculo_form.observacoes }}
+
                 </div>
 
             </div>
@@ -690,8 +1376,647 @@
 
 </template>
 
+<!-- ============================================== -->
+<!-- BIBLIOTECAS DA LISTA PESQUISÁVEL -->
+<!-- ============================================== -->
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- ============================================== -->
+<!-- JAVASCRIPT PRINCIPAL -->
+<!-- ============================================== -->
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+
+    // ============================================
+    // ELEMENTOS PRINCIPAIS
+    // ============================================
+
+    const formulario = document.getElementById(
+        "form-ocorrencia"
+    );
+
+    if (!formulario) {
+        return;
+    }
+
+    const modoEdicao = (
+        formulario.dataset.edicao === "true"
+    );
+
+    const gestor = (
+        formulario.dataset.gestor === "true"
+    );
+
+    const campoData = document.getElementById(
+        "id_data"
+    );
+
+    const campoCartao = document.getElementById(
+        "id_cartao_programa"
+    );
+
+    const mensagemCartao = document.getElementById(
+        "mensagem-cartao"
+    );
+
+    const cartaoObrigatorio = document.getElementById(
+        "cartao-obrigatorio"
+    );
+
+    const btnSalvar = document.getElementById(
+        "btn-salvar-ocorrencia"
+    );
+
+    const btnRecarregar = document.getElementById(
+        "btn-recarregar-cartoes"
+    );
+
+    const urlCartoes = formulario.dataset.apiCartoes;
+
+    let controleRequisicao = null;
+    let consultandoCartoes = false;
+    let erroConsultaCartoes = false;
+
+    // ============================================
+    // ESCOLA - LISTA SUSPENSA PESQUISÁVEL
+    // ============================================
+
+    const campoEscola = document.getElementById(
+        "id_escola"
+    );
+
+    const campoLocal = document.getElementById(
+        "id_local"
+    );
+
+    const campoBairro = document.getElementById(
+        "id_bairro"
+    );
+
+    const dadosEscolas = document.getElementById(
+        "dados-escolas-ocorrencia"
+    );
+
+    // ============================================
+    // INICIALIZAR SELECT2
+    // ============================================
+
+    if (
+        campoEscola &&
+        window.jQuery &&
+        jQuery.fn.select2
+    ) {
+
+        const $campoEscola = jQuery(campoEscola);
+
+        // Ordenação alfabética das opções.
+        // Mantém a opção vazia no início.
+
+        const opcoes = Array.from(
+            campoEscola.options
+        );
+
+        const opcaoVazia = opcoes.find(function (opcao) {
+            return opcao.value === "";
+        });
+
+        const escolas = opcoes.filter(function (opcao) {
+            return opcao.value !== "";
+        });
+
+        escolas.sort(function (a, b) {
+
+            return a.textContent.localeCompare(
+                b.textContent,
+                "pt-BR",
+                {
+                    sensitivity: "base"
+                }
+            );
+
+        });
+
+        const valorSelecionado = campoEscola.value;
+
+        campoEscola.replaceChildren();
+
+        if (opcaoVazia) {
+            campoEscola.appendChild(opcaoVazia);
+        }
+
+        escolas.forEach(function (opcao) {
+            campoEscola.appendChild(opcao);
+        });
+
+        campoEscola.value = valorSelecionado;
+
+        // Pesquisa dentro da lista suspensa.
+
+        $campoEscola.select2({
+
+            width: "100%",
+
+            placeholder: "Selecione ou pesquise uma escola",
+
+            allowClear: true,
+
+            minimumResultsForSearch: 0,
+
+            language: {
+
+                noResults: function () {
+                    return "Nenhuma escola encontrada";
+                },
+
+                searching: function () {
+                    return "Pesquisando...";
+                },
+
+                inputTooShort: function () {
+                    return "Digite o nome da escola";
+                }
+
+            }
+
+        });
+
+        // Ao abrir, posiciona o cursor na pesquisa.
+
+        $campoEscola.on(
+            "select2:open",
+            function () {
+
+                const campoPesquisa = document.querySelector(
+                    ".select2-container--open .select2-search__field"
+                );
+
+                if (campoPesquisa) {
+                    campoPesquisa.focus();
+                }
+
+            }
+        );
+
+    }
+
+    // ============================================
+    // PREENCHIMENTO AUTOMÁTICO DE ENDEREÇO
+    // ============================================
+
+    if (
+        campoEscola &&
+        campoLocal &&
+        campoBairro &&
+        dadosEscolas
+    ) {
+
+        campoEscola.addEventListener(
+            "change",
+            function () {
+
+                const escolaId = campoEscola.value;
+
+                // Sem escola selecionada:
+                // mantém local e bairro editáveis
+                // e preserva os valores digitados.
+
+                if (!escolaId) {
+                    return;
+                }
+
+                const escola = Array.from(
+                    dadosEscolas.children
+                ).find(function (item) {
+
+                    return item.dataset.id === escolaId;
+
+                });
+
+                if (!escola) {
+                    return;
+                }
+
+                const endereco = (
+                    escola.dataset.endereco || ""
+                );
+
+                const bairro = (
+                    escola.dataset.bairro || ""
+                );
+
+                campoLocal.value = endereco;
+                campoBairro.value = bairro;
+
+                // Os campos permanecem editáveis.
+
+            }
+        );
+
+    }
+
+    // ============================================
+    // CARTÃO PROGRAMA
+    // ============================================
+
+    function informarCartao(
+        mensagem,
+        erro = false
+    ) {
+
+        if (!mensagemCartao) {
+            return;
+        }
+
+        mensagemCartao.textContent = mensagem;
+
+        mensagemCartao.classList.toggle(
+            "text-danger",
+            erro
+        );
+
+    }
+
+    function definirCartaoObrigatorio(obrigatorio) {
+
+        if (!campoCartao) {
+            return;
+        }
+
+        campoCartao.required = obrigatorio;
+
+        if (cartaoObrigatorio) {
+
+            cartaoObrigatorio.classList.toggle(
+                "campo-oculto",
+                !obrigatorio
+            );
+
+        }
+
+    }
+
+    async function atualizarCartoes(
+        preservarSelecao = false
+    ) {
+
+        if (
+            modoEdicao ||
+            !campoCartao ||
+            !campoData
+        ) {
+            return;
+        }
+
+        const data = campoData.value;
+
+        const valorAnterior = preservarSelecao
+            ? campoCartao.value
+            : "";
+
+        if (controleRequisicao) {
+            controleRequisicao.abort();
+        }
+
+        controleRequisicao = new AbortController();
+
+        const requisicaoAtual = controleRequisicao;
+
+        consultandoCartoes = false;
+        erroConsultaCartoes = false;
+
+        if (btnRecarregar) {
+            btnRecarregar.classList.add("d-none");
+        }
+
+        definirCartaoObrigatorio(false);
+
+        if (!data) {
+
+            campoCartao.replaceChildren(
+                new Option(
+                    "Informe a data",
+                    ""
+                )
+            );
+
+            campoCartao.disabled = true;
+            btnSalvar.disabled = false;
+
+            informarCartao(
+                "Informe a data da ocorrência para consultar os cartões programa."
+            );
+
+            return;
+        }
+
+        consultandoCartoes = true;
+
+        campoCartao.disabled = true;
+        btnSalvar.disabled = true;
+
+        campoCartao.replaceChildren(
+            new Option(
+                "Consultando cartões...",
+                ""
+            )
+        );
+
+        informarCartao(
+            "Consultando cartões programa disponíveis..."
+        );
+
+        try {
+
+            const url = new URL(
+                urlCartoes,
+                window.location.origin
+            );
+
+            url.searchParams.set(
+                "data",
+                data
+            );
+
+            const resposta = await fetch(url, {
+
+                method: "GET",
+
+                headers: {
+                    "Accept": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+
+                signal: requisicaoAtual.signal
+
+            });
+
+            if (!resposta.ok) {
+
+                throw new Error(
+                    "Não foi possível consultar os cartões programa."
+                );
+
+            }
+
+            const resultado = await resposta.json();
+
+            if (
+                requisicaoAtual !== controleRequisicao
+            ) {
+                return;
+            }
+
+            if (!Array.isArray(resultado.cartoes)) {
+
+                throw new Error(
+                    "Resposta inválida da consulta."
+                );
+
+            }
+
+            const cartoes = resultado.cartoes;
+
+            campoCartao.replaceChildren();
+
+            if (cartoes.length === 0) {
+
+                campoCartao.appendChild(
+                    new Option(
+                        "Sem Cartão Programa",
+                        ""
+                    )
+                );
+
+                definirCartaoObrigatorio(false);
+
+                informarCartao(
+                    "Não há Cartão Programa disponível nesta data. " +
+                    "A ocorrência poderá ser registrada sem vínculo."
+                );
+
+            } else {
+
+                campoCartao.appendChild(
+                    new Option(
+                        gestor
+                            ? "Sem Cartão Programa"
+                            : "Selecione o Cartão Programa",
+                        ""
+                    )
+                );
+
+                cartoes.forEach(function (cartao) {
+
+                    campoCartao.appendChild(
+                        new Option(
+                            cartao.descricao,
+                            String(cartao.id)
+                        )
+                    );
+
+                });
+
+                const selecaoValida = cartoes.some(
+                    function (cartao) {
+
+                        return (
+                            String(cartao.id) === valorAnterior
+                        );
+
+                    }
+                );
+
+                if (selecaoValida) {
+
+                    campoCartao.value = valorAnterior;
+
+                } else if (
+                    cartoes.length === 1 &&
+                    !gestor
+                ) {
+
+                    campoCartao.value = String(
+                        cartoes[0].id
+                    );
+
+                }
+
+                definirCartaoObrigatorio(!gestor);
+
+                if (gestor) {
+
+                    informarCartao(
+                        "Selecione um Cartão Programa para compartilhar " +
+                        "a ocorrência com o efetivo escalado."
+                    );
+
+                } else if (cartoes.length === 1) {
+
+                    informarCartao(
+                        "Cartão Programa identificado automaticamente. " +
+                        "A ocorrência será compartilhada com todos " +
+                        "os GCMs nele escalados."
+                    );
+
+                } else {
+
+                    informarCartao(
+                        "Selecione o Cartão Programa correspondente à escala."
+                    );
+
+                }
+
+            }
+
+        } catch (erro) {
+
+            if (
+                erro.name === "AbortError" ||
+                requisicaoAtual !== controleRequisicao
+            ) {
+                return;
+            }
+
+            erroConsultaCartoes = true;
+
+            campoCartao.replaceChildren(
+                new Option(
+                    "Falha na consulta",
+                    ""
+                )
+            );
+
+            informarCartao(
+                "Não foi possível consultar os cartões programa. " +
+                "Tente novamente antes de salvar.",
+                true
+            );
+
+            if (btnRecarregar) {
+                btnRecarregar.classList.remove("d-none");
+            }
+
+        } finally {
+
+            if (
+                requisicaoAtual === controleRequisicao
+            ) {
+
+                consultandoCartoes = false;
+
+                campoCartao.disabled = erroConsultaCartoes;
+
+                btnSalvar.disabled = erroConsultaCartoes;
+
+            }
+
+        }
+
+    }
+
+    if (
+        !modoEdicao &&
+        campoCartao &&
+        campoData
+    ) {
+
+        campoData.addEventListener(
+            "change",
+            function () {
+
+                atualizarCartoes(false);
+
+            }
+        );
+
+        if (btnRecarregar) {
+
+            btnRecarregar.addEventListener(
+                "click",
+                function () {
+
+                    atualizarCartoes(true);
+
+                }
+            );
+
+        }
+
+        atualizarCartoes(true);
+
+    }
+
+    // ============================================
+    // VALIDAÇÃO DO ENVIO
+    // ============================================
+
+    formulario.addEventListener(
+        "submit",
+        function (event) {
+
+            if (modoEdicao) {
+                return;
+            }
+
+            if (
+                consultandoCartoes ||
+                erroConsultaCartoes
+            ) {
+
+                event.preventDefault();
+
+                informarCartao(
+                    "Aguarde ou refaça a consulta dos cartões programa.",
+                    true
+                );
+
+                return;
+            }
+
+            if (
+                campoData &&
+                !campoData.value
+            ) {
+
+                event.preventDefault();
+
+                informarCartao(
+                    "Informe a data da ocorrência.",
+                    true
+                );
+
+                campoData.focus();
+
+                return;
+            }
+
+            if (
+                campoCartao &&
+                campoCartao.required &&
+                !campoCartao.value
+            ) {
+
+                event.preventDefault();
+
+                informarCartao(
+                    "Selecione o Cartão Programa.",
+                    true
+                );
+
+                campoCartao.focus();
+
+            }
+
+        }
+    );
+
+    // ============================================
+    // NATUREZA E CLASSIFICAÇÃO
+    // ============================================
 
     const naturezaInputs = document.querySelectorAll(
         'input[name="natureza_atuacao"]'
@@ -718,33 +2043,58 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
     const tiposPorCategoria = {
+
         TRANSITO: [
             "SINISTRO"
         ],
+
         VIOLENCIA: [
             "FURTO",
             "ROUBO",
             "AMEACA",
-            "AGRESSAO"
+            "AGRESSAO",
+            "OUTRA"
         ]
+
     };
 
-    const opcoesOriginais = Array.from(
-        tipoOcorrencia.options
-    ).map(option => ({
-        value: option.value,
-        text: option.text
-    }));
+    const opcoesOriginais = tipoOcorrencia
+        ? Array.from(tipoOcorrencia.options).map(
+            function (option) {
+
+                return {
+                    value: option.value,
+                    text: option.text
+                };
+
+            }
+        )
+        : [];
 
     function obterRadioSelecionado(nome) {
+
         const selecionado = document.querySelector(
             `input[name="${nome}"]:checked`
         );
 
-        return selecionado ? selecionado.value : "";
+        return selecionado
+            ? selecionado.value
+            : "";
+
     }
 
+    // ============================================
+    // NATUREZA DA ATUAÇÃO
+    // ============================================
+
     function atualizarNatureza() {
+
+        if (
+            !blocoEquipeApoiada ||
+            !campoEquipeApoiada
+        ) {
+            return;
+        }
 
         const natureza = obterRadioSelecionado(
             "natureza_atuacao"
@@ -762,9 +2112,21 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!apoio) {
             campoEquipeApoiada.value = "";
         }
+
     }
 
+    // ============================================
+    // CATEGORIA DA OCORRÊNCIA
+    // ============================================
+
     function atualizarCategoria() {
+
+        if (
+            !tipoOcorrencia ||
+            !secaoVeiculos
+        ) {
+            return;
+        }
 
         const categoria = obterRadioSelecionado(
             "categoria"
@@ -776,258 +2138,322 @@ document.addEventListener("DOMContentLoaded", function () {
             tiposPorCategoria[categoria] || []
         );
 
-        tipoOcorrencia.innerHTML = "";
-
-        const opcaoInicial = document.createElement(
-            "option"
+        tipoOcorrencia.replaceChildren(
+            new Option(
+                "Selecione o tipo de ocorrência",
+                ""
+            )
         );
 
-        opcaoInicial.value = "";
-        opcaoInicial.textContent = (
-            "Selecione o tipo de ocorrência"
-        );
-
-        tipoOcorrencia.appendChild(opcaoInicial);
-
-        opcoesOriginais.forEach(opcao => {
+        opcoesOriginais.forEach(function (opcao) {
 
             if (
                 opcao.value &&
                 tiposPermitidos.includes(opcao.value)
             ) {
-                const option = document.createElement(
-                    "option"
+
+                tipoOcorrencia.appendChild(
+                    new Option(
+                        opcao.text,
+                        opcao.value
+                    )
                 );
 
-                option.value = opcao.value;
-                option.textContent = opcao.text;
-
-                tipoOcorrencia.appendChild(option);
             }
+
         });
 
-        if (tiposPermitidos.includes(valorAtual)) {
+        if (
+            tiposPermitidos.includes(valorAtual)
+        ) {
+
             tipoOcorrencia.value = valorAtual;
+
         }
 
-        const transito = categoria === "TRANSITO";
+        const transito = (
+            categoria === "TRANSITO"
+        );
+
+        const veiculosPreenchidos = Array.from(
+            secaoVeiculos.querySelectorAll(
+                ".veiculo-form"
+            )
+        ).some(function (item) {
+
+            const excluir = item.querySelector(
+                'input[name$="-DELETE"]'
+            );
+
+            if (
+                excluir &&
+                excluir.checked
+            ) {
+                return false;
+            }
+
+            return Array.from(
+                item.querySelectorAll(
+                    'input[name$="-id"], ' +
+                    'input:not([type="hidden"]):not([type="checkbox"]), ' +
+                    'select, textarea'
+                )
+            ).some(function (campo) {
+
+                return String(
+                    campo.value
+                ).trim() !== "";
+
+            });
+
+        });
 
         secaoVeiculos.classList.toggle(
             "campo-oculto",
-            !transito
+            !transito && !veiculosPreenchidos
         );
+
     }
 
-    naturezaInputs.forEach(input => {
+    naturezaInputs.forEach(function (input) {
+
         input.addEventListener(
             "change",
             atualizarNatureza
         );
+
     });
 
-    categoriaInputs.forEach(input => {
+    categoriaInputs.forEach(function (input) {
+
         input.addEventListener(
             "change",
             atualizarCategoria
         );
+
     });
 
     atualizarNatureza();
     atualizarCategoria();
 
     // ============================================
-    // FORMSET DE PESSOAS
+    // FORMSETS DINÂMICOS
     // ============================================
 
-    const listaPessoas = document.getElementById(
-        "lista-pessoas"
-    );
+    function configurarFormset(configuracao) {
 
-    const totalPessoas = document.getElementById(
-        "id_pessoas-TOTAL_FORMS"
-    );
+        const lista = document.getElementById(
+            configuracao.lista
+        );
 
-    const templatePessoa = document.getElementById(
-        "template-pessoa"
-    );
+        const total = document.getElementById(
+            configuracao.total
+        );
 
-    function atualizarNumeracaoPessoas() {
+        const template = document.getElementById(
+            configuracao.template
+        );
 
-        let numero = 1;
+        const botaoAdicionar = document.getElementById(
+            configuracao.botaoAdicionar
+        );
 
-        listaPessoas.querySelectorAll(
-            ".pessoa-form"
-        ).forEach(formulario => {
+        if (
+            !lista ||
+            !total ||
+            !template ||
+            !botaoAdicionar
+        ) {
+            return;
+        }
 
-            if (
-                formulario.classList.contains(
-                    "campo-oculto"
-                )
-            ) {
-                return;
+        // ========================================
+        // NUMERAÇÃO
+        // ========================================
+
+        function atualizarNumeracao() {
+
+            let numero = 1;
+
+            lista.querySelectorAll(
+                configuracao.classeForm
+            ).forEach(function (item) {
+
+                const campoDelete = item.querySelector(
+                    'input[name$="-DELETE"]'
+                );
+
+                const removido = (
+                    campoDelete &&
+                    campoDelete.checked
+                );
+
+                item.classList.toggle(
+                    "campo-oculto",
+                    Boolean(removido)
+                );
+
+                if (removido) {
+                    return;
+                }
+
+                const marcador = item.querySelector(
+                    configuracao.classeNumero
+                );
+
+                if (marcador) {
+
+                    marcador.textContent = numero++;
+
+                }
+
+            });
+
+        }
+
+        // ========================================
+        // ADICIONAR NOVO FORMULÁRIO
+        // ========================================
+
+        botaoAdicionar.addEventListener(
+            "click",
+            function () {
+
+                const indice = parseInt(
+                    total.value,
+                    10
+                );
+
+                if (
+                    !Number.isInteger(indice) ||
+                    indice < 0
+                ) {
+                    return;
+                }
+
+                const html = template.innerHTML.replace(
+                    /__prefix__/g,
+                    String(indice)
+                );
+
+                lista.insertAdjacentHTML(
+                    "beforeend",
+                    html
+                );
+
+                total.value = indice + 1;
+
+                atualizarNumeracao();
+
+                if (
+                    configuracao.lista === "lista-veiculos"
+                ) {
+
+                    atualizarCategoria();
+
+                }
+
             }
+        );
 
-            formulario.querySelector(
-                ".numero-pessoa"
-            ).textContent = numero++;
+        // ========================================
+        // REMOVER FORMULÁRIO
+        // ========================================
 
-        });
+        lista.addEventListener(
+            "click",
+            function (event) {
+
+                const botao = event.target.closest(
+                    configuracao.classeRemover
+                );
+
+                if (!botao) {
+                    return;
+                }
+
+                const item = botao.closest(
+                    configuracao.classeForm
+                );
+
+                if (!item) {
+                    return;
+                }
+
+                const campoDelete = item.querySelector(
+                    'input[name$="-DELETE"]'
+                );
+
+                if (campoDelete) {
+
+                    campoDelete.checked = true;
+
+                    item.classList.add(
+                        "campo-oculto"
+                    );
+
+                }
+
+                atualizarNumeracao();
+
+                if (
+                    configuracao.lista === "lista-veiculos"
+                ) {
+
+                    atualizarCategoria();
+
+                }
+
+            }
+        );
+
+        atualizarNumeracao();
+
     }
 
-    document.getElementById(
-        "btn-adicionar-pessoa"
-    ).addEventListener("click", function () {
-
-        const indice = parseInt(
-            totalPessoas.value,
-            10
-        );
-
-        const html = templatePessoa.innerHTML.replace(
-            /__prefix__/g,
-            indice
-        );
-
-        listaPessoas.insertAdjacentHTML(
-            "beforeend",
-            html
-        );
-
-        totalPessoas.value = indice + 1;
-
-        atualizarNumeracaoPessoas();
-    });
-
-    listaPessoas.addEventListener(
-        "click",
-        function (event) {
-
-            const botao = event.target.closest(
-                ".btn-remover-pessoa"
-            );
-
-            if (!botao) {
-                return;
-            }
-
-            const formulario = botao.closest(
-                ".pessoa-form"
-            );
-
-            const campoDelete = formulario.querySelector(
-                'input[name$="-DELETE"]'
-            );
-
-            if (campoDelete) {
-                campoDelete.checked = true;
-            }
-
-            formulario.classList.add(
-                "campo-oculto"
-            );
-
-            atualizarNumeracaoPessoas();
-        }
-    );
-
-    atualizarNumeracaoPessoas();
-
     // ============================================
-    // FORMSET DE VEÍCULOS
+    // PESSOAS ENVOLVIDAS
     // ============================================
 
-    const listaVeiculos = document.getElementById(
-        "lista-veiculos"
-    );
+    configurarFormset({
 
-    const totalVeiculos = document.getElementById(
-        "id_veiculos-TOTAL_FORMS"
-    );
+        lista: "lista-pessoas",
 
-    const templateVeiculo = document.getElementById(
-        "template-veiculo"
-    );
+        total: "id_pessoas-TOTAL_FORMS",
 
-    function atualizarNumeracaoVeiculos() {
+        template: "template-pessoa",
 
-        let numero = 1;
+        botaoAdicionar: "btn-adicionar-pessoa",
 
-        listaVeiculos.querySelectorAll(
-            ".veiculo-form"
-        ).forEach(formulario => {
+        classeForm: ".pessoa-form",
 
-            if (
-                formulario.classList.contains(
-                    "campo-oculto"
-                )
-            ) {
-                return;
-            }
+        classeNumero: ".numero-pessoa",
 
-            formulario.querySelector(
-                ".numero-veiculo"
-            ).textContent = numero++;
+        classeRemover: ".btn-remover-pessoa"
 
-        });
-    }
-
-    document.getElementById(
-        "btn-adicionar-veiculo"
-    ).addEventListener("click", function () {
-
-        const indice = parseInt(
-            totalVeiculos.value,
-            10
-        );
-
-        const html = templateVeiculo.innerHTML.replace(
-            /__prefix__/g,
-            indice
-        );
-
-        listaVeiculos.insertAdjacentHTML(
-            "beforeend",
-            html
-        );
-
-        totalVeiculos.value = indice + 1;
-
-        atualizarNumeracaoVeiculos();
     });
 
-    listaVeiculos.addEventListener(
-        "click",
-        function (event) {
+    // ============================================
+    // VEÍCULOS ENVOLVIDOS
+    // ============================================
 
-            const botao = event.target.closest(
-                ".btn-remover-veiculo"
-            );
+    configurarFormset({
 
-            if (!botao) {
-                return;
-            }
+        lista: "lista-veiculos",
 
-            const formulario = botao.closest(
-                ".veiculo-form"
-            );
+        total: "id_veiculos-TOTAL_FORMS",
 
-            const campoDelete = formulario.querySelector(
-                'input[name$="-DELETE"]'
-            );
+        template: "template-veiculo",
 
-            if (campoDelete) {
-                campoDelete.checked = true;
-            }
+        botaoAdicionar: "btn-adicionar-veiculo",
 
-            formulario.classList.add(
-                "campo-oculto"
-            );
+        classeForm: ".veiculo-form",
 
-            atualizarNumeracaoVeiculos();
-        }
-    );
+        classeNumero: ".numero-veiculo",
 
-    atualizarNumeracaoVeiculos();
+        classeRemover: ".btn-remover-veiculo"
+
+    });
 
 });
 </script>

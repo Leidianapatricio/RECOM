@@ -10,12 +10,17 @@
 
 <div class="ocorrencia-container">
 
+    <!-- ========================================= -->
     <!-- CABEÇALHO -->
+    <!-- ========================================= -->
+
     <div class="ocorrencia-cabecalho">
+
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
 
             <div>
                 <h2>Ocorrências</h2>
+
                 <p>
                     Consulta e gerenciamento das ocorrências
                     registradas pela Ronda Escolar Comunitária.
@@ -23,16 +28,26 @@
             </div>
 
             {% if pode_cadastrar %}
+
                 <a href="{% url 'ocorrencias:cadastrar_ocorrencia' %}"
                    class="btn btn-light">
-                    + Nova Ocorrência
+
+                    <i class="bi bi-plus-circle me-1"></i>
+                    Nova Ocorrência
+
                 </a>
+
             {% endif %}
 
         </div>
+
     </div>
 
+
+    <!-- ========================================= -->
     <!-- FILTROS -->
+    <!-- ========================================= -->
+
     <div class="ocorrencia-filtros">
 
         <form method="get"
@@ -40,21 +55,28 @@
 
             <div class="row g-3 align-items-end">
 
+                <!-- BUSCA GERAL -->
+
                 <div class="col-lg-4 col-md-6">
+
                     <label for="busca" class="form-label">
                         Buscar ocorrência
                     </label>
 
-                    <input
-                        type="text"
-                        name="busca"
-                        id="busca"
-                        class="form-control"
-                        value="{{ busca }}"
-                        placeholder="Local, bairro, relato ou equipe apoiada">
+                    <input type="search"
+                           name="busca"
+                           id="busca"
+                           class="form-control"
+                           value="{{ busca }}"
+                           placeholder="Local, bairro, relato ou equipe apoiada">
+
                 </div>
 
+
+                <!-- CATEGORIA -->
+
                 <div class="col-lg-4 col-md-6">
+
                     <label for="categoria" class="form-label">
                         Categoria
                     </label>
@@ -68,16 +90,27 @@
                         </option>
 
                         {% for valor, descricao in categorias %}
+
                             <option value="{{ valor }}"
-                                {% if categoria_selecionada == valor %}selected{% endif %}>
+                                {% if categoria_selecionada == valor %}
+                                    selected
+                                {% endif %}>
+
                                 {{ descricao }}
+
                             </option>
+
                         {% endfor %}
 
                     </select>
+
                 </div>
 
+
+                <!-- NATUREZA DA ATUAÇÃO -->
+
                 <div class="col-lg-4 col-md-6">
+
                     <label for="natureza" class="form-label">
                         Natureza da atuação
                     </label>
@@ -91,55 +124,125 @@
                         </option>
 
                         {% for valor, descricao in naturezas %}
+
                             <option value="{{ valor }}"
-                                {% if natureza_selecionada == valor %}selected{% endif %}>
+                                {% if natureza_selecionada == valor %}
+                                    selected
+                                {% endif %}>
+
                                 {{ descricao }}
+
                             </option>
+
                         {% endfor %}
 
                     </select>
+
                 </div>
 
+
+                <!-- ESCOLA -->
+
+                <div class="col-lg-6 col-md-12">
+
+                    <label for="pesquisa_escola" class="form-label">
+                        Escola
+                    </label>
+
+                    <input type="search"
+                           id="pesquisa_escola"
+                           class="form-control mb-2"
+                           placeholder="Digite o nome da escola..."
+                           autocomplete="off"
+                           aria-label="Pesquisar escola na lista">
+
+                    <select name="escola"
+                            id="escola"
+                            class="form-select">
+
+                        <option value="">
+                            Todas as escolas
+                        </option>
+
+                        {% for escola in escolas %}
+
+                            <option value="{{ escola.pk }}"
+                                {% if escola_selecionada == escola.pk|stringformat:"s" %}
+                                    selected
+                                {% endif %}>
+
+                                {{ escola.nome }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <small class="text-muted">
+                        Pesquise pelo nome e selecione a escola desejada.
+                    </small>
+
+                </div>
+
+
+                <!-- DATA INICIAL -->
+
                 <div class="col-lg-3 col-md-6">
+
                     <label for="data_inicio" class="form-label">
                         Data inicial
                     </label>
 
-                    <input
-                        type="date"
-                        name="data_inicio"
-                        id="data_inicio"
-                        class="form-control"
-                        value="{{ data_inicio }}">
+                    <input type="date"
+                           name="data_inicio"
+                           id="data_inicio"
+                           class="form-control"
+                           value="{{ data_inicio }}">
+
                 </div>
 
+
+                <!-- DATA FINAL -->
+
                 <div class="col-lg-3 col-md-6">
+
                     <label for="data_fim" class="form-label">
                         Data final
                     </label>
 
-                    <input
-                        type="date"
-                        name="data_fim"
-                        id="data_fim"
-                        class="form-control"
-                        value="{{ data_fim }}">
+                    <input type="date"
+                           name="data_fim"
+                           id="data_fim"
+                           class="form-control"
+                           value="{{ data_fim }}">
+
                 </div>
 
-                <div class="col-lg-6 col-md-12">
-                    <div class="d-flex gap-2 flex-wrap">
+
+                <!-- BOTÕES -->
+
+                <div class="col-12">
+
+                    <div class="d-flex flex-wrap gap-2 mt-2">
 
                         <button type="submit"
                                 class="btn btn-recom px-4">
+
+                            <i class="bi bi-search me-1"></i>
                             Filtrar
+
                         </button>
 
                         <a href="{% url 'ocorrencias:listar_ocorrencias' %}"
                            class="btn btn-outline-secondary px-4">
+
                             Limpar filtros
+
                         </a>
 
                     </div>
+
                 </div>
 
             </div>
@@ -148,14 +251,20 @@
 
     </div>
 
-    <!-- LISTAGEM -->
+
+    <!-- ========================================= -->
+    <!-- LISTAGEM DE OCORRÊNCIAS -->
+    <!-- ========================================= -->
+
     <div class="ocorrencia-card">
 
         <div class="ocorrencia-card-titulo d-flex justify-content-between align-items-center flex-wrap gap-2">
 
-            <span>Ocorrências encontradas</span>
+            <span>
+                Ocorrências encontradas
+            </span>
 
-            <span class="text-muted small">
+            <span class="small">
                 {{ page_obj.paginator.count }}
                 registro{{ page_obj.paginator.count|pluralize }}
             </span>
@@ -167,8 +276,11 @@
             <table class="ocorrencia-tabela">
 
                 <thead>
+
                     <tr>
                         <th>Data / Horário</th>
+                        <th>Cartão Programa</th>
+                        <th>Escola</th>
                         <th>Categoria</th>
                         <th>Tipo</th>
                         <th>Natureza da atuação</th>
@@ -176,6 +288,7 @@
                         <th>Equipe apoiada</th>
                         <th class="text-center">Ações</th>
                     </tr>
+
                 </thead>
 
                 <tbody>
@@ -184,15 +297,78 @@
 
                         <tr>
 
+                            <!-- DATA E HORÁRIO -->
+
                             <td>
-                                <div class="fw-semibold">
+
+                                <div class="fw-semibold text-nowrap">
                                     {{ ocorrencia.data|date:"d/m/Y" }}
                                 </div>
 
                                 <small class="text-muted">
                                     {{ ocorrencia.horario|time:"H:i" }}
                                 </small>
+
                             </td>
+
+
+                            <!-- CARTÃO PROGRAMA -->
+
+                            <td>
+
+                                {% if ocorrencia.cartao_programa_id %}
+
+                                    <div class="fw-semibold text-nowrap">
+                                        CP nº {{ ocorrencia.cartao_programa_id }}
+                                    </div>
+
+                                    <small class="text-muted">
+                                        {{ ocorrencia.cartao_programa.plantao.get_tipo_servico_display }}
+                                    </small>
+
+                                {% elif ocorrencia.viatura_id %}
+
+                                    <div class="text-muted small">
+                                        Registro anterior
+                                    </div>
+
+                                    <small class="text-muted">
+                                        Sem vínculo com cartão
+                                    </small>
+
+                                {% else %}
+
+                                    <span class="text-muted small">
+                                        Sem Cartão Programa
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- ESCOLA -->
+
+                            <td>
+
+                                {% if ocorrencia.escola_id %}
+
+                                    <div class="fw-semibold">
+                                        {{ ocorrencia.escola.nome }}
+                                    </div>
+
+                                {% else %}
+
+                                    <span class="text-muted small">
+                                        Não vinculada
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <!-- CATEGORIA -->
 
                             <td>
 
@@ -216,9 +392,15 @@
 
                             </td>
 
+
+                            <!-- TIPO DA OCORRÊNCIA -->
+
                             <td>
                                 {{ ocorrencia.get_tipo_ocorrencia_display }}
                             </td>
+
+
+                            <!-- NATUREZA DA ATUAÇÃO -->
 
                             <td>
 
@@ -238,17 +420,27 @@
 
                             </td>
 
+
+                            <!-- LOCAL E BAIRRO -->
+
                             <td>
+
                                 <div class="fw-semibold">
                                     {{ ocorrencia.local }}
                                 </div>
 
                                 {% if ocorrencia.bairro %}
+
                                     <small class="text-muted">
                                         {{ ocorrencia.bairro }}
                                     </small>
+
                                 {% endif %}
+
                             </td>
+
+
+                            <!-- EQUIPE APOIADA -->
 
                             <td>
 
@@ -258,47 +450,80 @@
 
                                 {% else %}
 
-                                    <span class="text-muted">—</span>
+                                    <span class="text-muted">
+                                        —
+                                    </span>
 
                                 {% endif %}
 
                             </td>
 
+
+                            <!-- AÇÕES -->
+
                             <td class="text-center">
 
-                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                <div class="d-flex justify-content-center align-items-center gap-2 flex-nowrap">
+
+                                    <!-- VISUALIZAR -->
 
                                     <a href="{% url 'ocorrencias:detalhe_ocorrencia' ocorrencia.pk %}"
                                        class="btn btn-sm btn-outline-primary"
-                                       title="Visualizar ocorrência">
-                                        Visualizar
+                                       title="Visualizar ocorrência"
+                                       aria-label="Visualizar ocorrência">
+
+                                        <i class="bi bi-eye"></i>
+
                                     </a>
 
-                                   {% if ocorrencia.pode_editar_usuario %}
+
+                                    <!-- EDITAR -->
+
+                                    {% if ocorrencia.pode_editar_usuario or pode_gerenciar %}
+
                                         <a href="{% url 'ocorrencias:editar_ocorrencia' ocorrencia.pk %}"
-                                        class="btn btn-sm btn-outline-primary">
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Editar ocorrência"
+                                           aria-label="Editar ocorrência">
+
                                             Editar
+
                                         </a>
+
                                     {% endif %}
 
-                                    {% if ocorrencia.pode_excluir_usuario %}
-                                        <a href="{% url 'ocorrencias:excluir_ocorrencia' ocorrencia.pk %}"
-                                        class="btn btn-sm btn-outline-danger">
-                                            Excluir
-                                        </a>
-                                    {% endif %}
 
-                                    {% if pode_gerenciar %}
+                                    <!-- EXCLUIR -->
+
+                                    {% if ocorrencia.pode_excluir_usuario or pode_gerenciar %}
 
                                         <a href="{% url 'ocorrencias:excluir_ocorrencia' ocorrencia.pk %}"
                                            class="btn btn-sm btn-outline-danger"
-                                           title="Excluir ocorrência">
+                                           title="Excluir ocorrência"
+                                           aria-label="Excluir ocorrência">
+
                                             Excluir
+
                                         </a>
 
                                     {% endif %}
 
                                 </div>
+
+
+                                <!-- INFORMAÇÃO SOBRE PERMISSÕES -->
+
+                                {% if not pode_gerenciar %}
+
+                                    {% if not ocorrencia.pode_editar_usuario and not ocorrencia.pode_excluir_usuario %}
+
+                                        <small class="text-muted d-block mt-2">
+                                            Somente visualização
+                                        </small>
+
+                                    {% endif %}
+
+                                {% endif %}
 
                             </td>
 
@@ -307,13 +532,15 @@
                     {% empty %}
 
                         <tr>
-                            <td colspan="7"
+
+                            <td colspan="9"
                                 class="text-center text-muted py-5">
 
                                 Nenhuma ocorrência encontrada
                                 para os filtros informados.
 
                             </td>
+
                         </tr>
 
                     {% endfor %}
@@ -326,7 +553,11 @@
 
     </div>
 
+
+    <!-- ========================================= -->
     <!-- PAGINAÇÃO -->
+    <!-- ========================================= -->
+
     {% if page_obj.has_other_pages %}
 
         <nav class="ocorrencia-paginacao"
@@ -337,43 +568,63 @@
                 {% if page_obj.has_previous %}
 
                     <li class="page-item">
+
                         <a class="page-link"
-                           href="?page=1&busca={{ busca|urlencode }}&categoria={{ categoria_selecionada|urlencode }}&natureza={{ natureza_selecionada|urlencode }}&data_inicio={{ data_inicio|urlencode }}&data_fim={{ data_fim|urlencode }}">
+                           href="?page=1&amp;busca={{ busca|urlencode }}&amp;categoria={{ categoria_selecionada|urlencode }}&amp;natureza={{ natureza_selecionada|urlencode }}&amp;escola={{ escola_selecionada|urlencode }}&amp;data_inicio={{ data_inicio|urlencode }}&amp;data_fim={{ data_fim|urlencode }}">
+
                             Primeira
+
                         </a>
+
                     </li>
 
                     <li class="page-item">
+
                         <a class="page-link"
-                           href="?page={{ page_obj.previous_page_number }}&busca={{ busca|urlencode }}&categoria={{ categoria_selecionada|urlencode }}&natureza={{ natureza_selecionada|urlencode }}&data_inicio={{ data_inicio|urlencode }}&data_fim={{ data_fim|urlencode }}">
+                           href="?page={{ page_obj.previous_page_number }}&amp;busca={{ busca|urlencode }}&amp;categoria={{ categoria_selecionada|urlencode }}&amp;natureza={{ natureza_selecionada|urlencode }}&amp;escola={{ escola_selecionada|urlencode }}&amp;data_inicio={{ data_inicio|urlencode }}&amp;data_fim={{ data_fim|urlencode }}">
+
                             Anterior
+
                         </a>
+
                     </li>
 
                 {% endif %}
 
-                <li class="page-item active">
+
+                <li class="page-item active"
+                    aria-current="page">
+
                     <span class="page-link">
                         {{ page_obj.number }}
-                        de
-                        {{ page_obj.paginator.num_pages }}
+                        de {{ page_obj.paginator.num_pages }}
                     </span>
+
                 </li>
+
 
                 {% if page_obj.has_next %}
 
                     <li class="page-item">
+
                         <a class="page-link"
-                           href="?page={{ page_obj.next_page_number }}&busca={{ busca|urlencode }}&categoria={{ categoria_selecionada|urlencode }}&natureza={{ natureza_selecionada|urlencode }}&data_inicio={{ data_inicio|urlencode }}&data_fim={{ data_fim|urlencode }}">
+                           href="?page={{ page_obj.next_page_number }}&amp;busca={{ busca|urlencode }}&amp;categoria={{ categoria_selecionada|urlencode }}&amp;natureza={{ natureza_selecionada|urlencode }}&amp;escola={{ escola_selecionada|urlencode }}&amp;data_inicio={{ data_inicio|urlencode }}&amp;data_fim={{ data_fim|urlencode }}">
+
                             Próxima
+
                         </a>
+
                     </li>
 
                     <li class="page-item">
+
                         <a class="page-link"
-                           href="?page={{ page_obj.paginator.num_pages }}&busca={{ busca|urlencode }}&categoria={{ categoria_selecionada|urlencode }}&natureza={{ natureza_selecionada|urlencode }}&data_inicio={{ data_inicio|urlencode }}&data_fim={{ data_fim|urlencode }}">
+                           href="?page={{ page_obj.paginator.num_pages }}&amp;busca={{ busca|urlencode }}&amp;categoria={{ categoria_selecionada|urlencode }}&amp;natureza={{ natureza_selecionada|urlencode }}&amp;escola={{ escola_selecionada|urlencode }}&amp;data_inicio={{ data_inicio|urlencode }}&amp;data_fim={{ data_fim|urlencode }}">
+
                             Última
+
                         </a>
+
                     </li>
 
                 {% endif %}
@@ -385,5 +636,84 @@
     {% endif %}
 
 </div>
+
+
+<!-- ============================================= -->
+<!-- PESQUISA DE ESCOLAS NO SELECT -->
+<!-- ============================================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const campoPesquisa = document.getElementById("pesquisa_escola");
+    const selectEscola = document.getElementById("escola");
+
+    if (!campoPesquisa || !selectEscola) {
+        return;
+    }
+
+    const escolas = Array.from(selectEscola.options)
+        .filter(option => option.value !== "")
+        .map(option => ({
+            value: option.value,
+            text: option.textContent.trim()
+        }))
+        .sort((a, b) =>
+            a.text.localeCompare(b.text, "pt-BR", {
+                sensitivity: "base"
+            })
+        );
+
+    function atualizarLista() {
+
+        const termo = campoPesquisa.value
+            .trim()
+            .toLocaleLowerCase("pt-BR");
+
+        const valorSelecionado = selectEscola.value;
+
+        selectEscola.innerHTML = "";
+
+        const opcaoTodas = document.createElement("option");
+        opcaoTodas.value = "";
+        opcaoTodas.textContent = "Todas as escolas";
+
+        selectEscola.appendChild(opcaoTodas);
+
+        escolas.forEach(escola => {
+
+            if (
+                escola.text
+                    .toLocaleLowerCase("pt-BR")
+                    .includes(termo)
+            ) {
+
+                const option = document.createElement("option");
+
+                option.value = escola.value;
+                option.textContent = escola.text;
+
+                selectEscola.appendChild(option);
+
+            }
+
+        });
+
+        const selecionadaAindaVisivel = Array.from(
+            selectEscola.options
+        ).some(option => option.value === valorSelecionado);
+
+        selectEscola.value = selecionadaAindaVisivel
+            ? valorSelecionado
+            : "";
+
+    }
+
+    campoPesquisa.addEventListener("input", atualizarLista);
+
+    atualizarLista();
+
+});
+</script>
 
 {% endblock %}

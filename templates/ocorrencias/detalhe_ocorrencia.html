@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 {% load static %}
 
@@ -30,10 +29,36 @@ Detalhes da Ocorrência | RECOM
 
         <div class="d-flex flex-wrap gap-2">
 
+            {% if pode_editar %}
+
+                <a href="{% url 'ocorrencias:editar_ocorrencia' ocorrencia.pk %}"
+                   class="btn btn-light">
+
+                    <i class="bi bi-pencil-square me-1"></i>
+                    Editar
+
+                </a>
+
+            {% endif %}
+
+            {% if pode_excluir %}
+
+                <a href="{% url 'ocorrencias:excluir_ocorrencia' ocorrencia.pk %}"
+                   class="btn btn-danger">
+
+                    <i class="bi bi-trash me-1"></i>
+                    Excluir
+
+                </a>
+
+            {% endif %}
+
             <a href="{% url 'ocorrencias:listar_ocorrencias' %}"
                class="btn btn-voltar">
+
                 <i class="bi bi-arrow-left me-1"></i>
                 Voltar
+
             </a>
 
         </div>
@@ -55,76 +80,114 @@ Detalhes da Ocorrência | RECOM
             <div class="row g-4">
 
                 <div class="col-md-3">
+
                     <span class="campo-label">Data</span>
+
                     <div class="campo-valor">
                         {{ ocorrencia.data|date:"d/m/Y" }}
                     </div>
+
                 </div>
 
                 <div class="col-md-3">
+
                     <span class="campo-label">Horário</span>
+
                     <div class="campo-valor">
                         {{ ocorrencia.horario|time:"H:i" }}
                     </div>
+
                 </div>
 
                 <div class="col-md-3">
+
                     <span class="campo-label">Categoria</span>
+
                     <div class="campo-valor">
                         {{ ocorrencia.get_categoria_display|default:"Não informada" }}
                     </div>
+
                 </div>
 
                 <div class="col-md-3">
+
                     <span class="campo-label">Tipo de ocorrência</span>
+
                     <div class="campo-valor">
                         {{ ocorrencia.get_tipo_ocorrencia_display|default:"Não informado" }}
                     </div>
+
                 </div>
 
                 <div class="col-md-6">
+
                     <span class="campo-label">Local</span>
+
                     <div class="campo-valor">
                         {{ ocorrencia.local|default:"Não informado" }}
                     </div>
+
                 </div>
 
                 <div class="col-md-6">
+
                     <span class="campo-label">Bairro</span>
+
                     <div class="campo-valor">
                         {{ ocorrencia.bairro|default:"Não informado" }}
                     </div>
+
                 </div>
 
                 <div class="col-md-4">
-                    <span class="campo-label">Natureza da atuação</span>
+
+                    <span class="campo-label">
+                        Natureza da atuação
+                    </span>
+
                     <div class="campo-valor">
                         {{ ocorrencia.get_natureza_atuacao_display }}
                     </div>
+
                 </div>
 
                 <div class="col-md-4">
-                    <span class="campo-label">Acionamento CICC</span>
+
+                    <span class="campo-label">
+                        Acionamento CICC
+                    </span>
+
                     <div class="campo-valor">
                         {{ ocorrencia.acionamento_cicc|yesno:"Sim,Não" }}
                     </div>
+
                 </div>
 
                 <div class="col-md-4">
-                    <span class="campo-label">Possui vítima</span>
+
+                    <span class="campo-label">
+                        Possui vítima
+                    </span>
+
                     <div class="campo-valor">
                         {{ ocorrencia.possui_vitima|yesno:"Sim,Não" }}
                     </div>
+
                 </div>
 
                 {% if ocorrencia.equipe_apoiada %}
 
-                <div class="col-md-6">
-                    <span class="campo-label">Equipe apoiada</span>
-                    <div class="campo-valor">
-                        {{ ocorrencia.equipe_apoiada }}
+                    <div class="col-md-6">
+
+                        <span class="campo-label">
+                            Equipe apoiada
+                        </span>
+
+                        <div class="campo-valor">
+                            {{ ocorrencia.equipe_apoiada }}
+                        </div>
+
                     </div>
-                </div>
 
                 {% endif %}
 
@@ -135,50 +198,278 @@ Detalhes da Ocorrência | RECOM
     </div>
 
 
-    <!-- VIATURA E EFETIVO -->
+    <!-- ========================================= -->
+    <!-- CARTÃO PROGRAMA E EFETIVO -->
+    <!-- ========================================= -->
 
     <div class="card detalhe-card mb-4">
 
         <div class="card-header">
-            <i class="bi bi-truck me-2"></i>
-            Viatura e Efetivo
+
+            <i class="bi bi-clipboard-check me-2"></i>
+            Cartão Programa e Efetivo
+
         </div>
 
         <div class="card-body">
 
-            {% if ocorrencia.viatura %}
+            {% if ocorrencia.cartao_programa_id %}
+
+                <!-- OCORRÊNCIA VINCULADA AO CARTÃO PROGRAMA -->
 
                 <div class="row g-3 mb-4">
 
                     <div class="col-md-4">
-                        <span class="campo-label">Viatura</span>
+
+                        <span class="campo-label">
+                            Cartão Programa
+                        </span>
+
                         <div class="campo-valor">
+
+                            CP nº {{ ocorrencia.cartao_programa.pk }}
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <span class="campo-label">
+                            Data do plantão
+                        </span>
+
+                        <div class="campo-valor">
+
+                            {{ ocorrencia.cartao_programa.plantao.data|date:"d/m/Y" }}
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <span class="campo-label">
+                            Tipo de serviço
+                        </span>
+
+                        <div class="campo-valor">
+
+                            {{ ocorrencia.cartao_programa.plantao.get_tipo_servico_display }}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="alert alert-light border mb-4">
+
+                    <i class="bi bi-people-fill me-2"></i>
+
+                    Ocorrência compartilhada com todos os GCMs
+                    escalados neste Cartão Programa, independentemente
+                    da viatura ou da função exercida.
+
+                </div>
+
+
+                <!-- EFETIVO DE TODO O CARTÃO PROGRAMA -->
+
+                <h6 class="secao-subtitulo">
+
+                    Efetivo escalado no Cartão Programa
+
+                </h6>
+
+                {% with viaturas=ocorrencia.cartao_programa.plantao.viaturas.all %}
+
+                    {% if viaturas %}
+
+                        <div class="table-responsive">
+
+                            <table class="table table-bordered align-middle">
+
+                                <thead class="table-light">
+
+                                    <tr>
+
+                                        <th>GCM</th>
+                                        <th>Função</th>
+                                        <th>Equipe</th>
+                                        <th>Viatura da escala</th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    {% for viatura in viaturas %}
+
+                                        {% for integrante in viatura.efetivo.all %}
+
+                                            <tr>
+
+                                                <td>
+
+                                                    {{ integrante.gcm.nome }}
+
+                                                </td>
+
+                                                <td>
+
+                                                    {{ integrante.get_funcao_display }}
+
+                                                </td>
+
+                                                <td>
+
+                                                    {% if viatura.equipe %}
+
+                                                        {{ viatura.equipe.nome }}
+
+                                                    {% else %}
+
+                                                        Extraordinária
+
+                                                    {% endif %}
+
+                                                </td>
+
+                                                <td>
+
+                                                    {{ viatura.identificacao }}
+
+                                                </td>
+
+                                            </tr>
+
+                                        {% empty %}
+
+                                            <tr>
+
+                                                <td colspan="4"
+                                                    class="text-muted">
+
+                                                    Nenhum integrante escalado
+                                                    na viatura
+                                                    {{ viatura.identificacao }}.
+
+                                                </td>
+
+                                            </tr>
+
+                                        {% endfor %}
+
+                                    {% endfor %}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    {% else %}
+
+                        <p class="text-muted mb-0">
+
+                            Nenhum efetivo encontrado
+                            neste Cartão Programa.
+
+                        </p>
+
+                    {% endif %}
+
+                {% endwith %}
+
+
+            {% elif ocorrencia.viatura_id %}
+
+                <!-- OCORRÊNCIAS ANTIGAS -->
+
+                <div class="alert alert-light border mb-4">
+
+                    <i class="bi bi-info-circle me-2"></i>
+
+                    Ocorrência registrada antes da alteração
+                    da regra de compartilhamento, com vínculo
+                    direto à viatura.
+
+                </div>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-6">
+
+                        <span class="campo-label">
+                            Cartão Programa
+                        </span>
+
+                        <div class="campo-valor">
+
+                            Não vinculado
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <span class="campo-label">
+                            Viatura original
+                        </span>
+
+                        <div class="campo-valor">
+
                             {{ ocorrencia.viatura.identificacao }}
+
                         </div>
+
                     </div>
 
-                    <div class="col-md-4">
-                        <span class="campo-label">Equipe</span>
+                    <div class="col-md-6">
+
+                        <span class="campo-label">
+                            Equipe
+                        </span>
+
                         <div class="campo-valor">
+
                             {% if ocorrencia.viatura.equipe %}
+
                                 {{ ocorrencia.viatura.equipe.nome }}
+
                             {% else %}
+
                                 Extraordinária
+
                             {% endif %}
+
                         </div>
+
                     </div>
 
-                    <div class="col-md-4">
-                        <span class="campo-label">Plantão</span>
+                    <div class="col-md-6">
+
+                        <span class="campo-label">
+                            Data do plantão
+                        </span>
+
                         <div class="campo-valor">
+
                             {{ ocorrencia.viatura.plantao.data|date:"d/m/Y" }}
+
                         </div>
+
                     </div>
 
                 </div>
 
                 <h6 class="secao-subtitulo">
-                    Efetivo escalado
+
+                    Efetivo da viatura original
+
                 </h6>
 
                 {% with integrantes=ocorrencia.viatura.efetivo.all %}
@@ -190,10 +481,14 @@ Detalhes da Ocorrência | RECOM
                             <table class="table table-bordered align-middle">
 
                                 <thead class="table-light">
+
                                     <tr>
+
                                         <th>GCM</th>
                                         <th>Função</th>
+
                                     </tr>
+
                                 </thead>
 
                                 <tbody>
@@ -201,12 +496,19 @@ Detalhes da Ocorrência | RECOM
                                     {% for integrante in integrantes %}
 
                                         <tr>
+
                                             <td>
+
                                                 {{ integrante.gcm.nome }}
+
                                             </td>
+
                                             <td>
+
                                                 {{ integrante.get_funcao_display }}
+
                                             </td>
+
                                         </tr>
 
                                     {% endfor %}
@@ -220,18 +522,60 @@ Detalhes da Ocorrência | RECOM
                     {% else %}
 
                         <p class="text-muted mb-0">
+
                             Nenhum integrante encontrado.
+
                         </p>
 
                     {% endif %}
 
                 {% endwith %}
 
+
             {% else %}
 
-                <p class="text-muted mb-0">
-                    Esta ocorrência não possui viatura vinculada.
-                </p>
+                <!-- OCORRÊNCIA SEM CARTÃO PROGRAMA -->
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <span class="campo-label">
+                            Cartão Programa
+                        </span>
+
+                        <div class="campo-valor">
+
+                            Não vinculado
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <span class="campo-label">
+                            Tipo de registro
+                        </span>
+
+                        <div class="campo-valor">
+
+                            Registro individual
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="alert alert-light border mt-3 mb-0">
+
+                    <i class="bi bi-person me-2"></i>
+
+                    Esta ocorrência foi registrada sem vínculo
+                    com um Cartão Programa.
+
+                </div>
 
             {% endif %}
 
@@ -240,13 +584,17 @@ Detalhes da Ocorrência | RECOM
     </div>
 
 
+    <!-- ========================================= -->
     <!-- PESSOAS ENVOLVIDAS -->
+    <!-- ========================================= -->
 
     <div class="card detalhe-card mb-4">
 
         <div class="card-header">
+
             <i class="bi bi-people me-2"></i>
             Pessoas Envolvidas
+
         </div>
 
         <div class="card-body">
@@ -260,10 +608,14 @@ Detalhes da Ocorrência | RECOM
                         <table class="table table-bordered align-middle">
 
                             <thead class="table-light">
+
                                 <tr>
+
                                     <th>Nome</th>
                                     <th>Informações</th>
+
                                 </tr>
+
                             </thead>
 
                             <tbody>
@@ -273,20 +625,35 @@ Detalhes da Ocorrência | RECOM
                                     <tr>
 
                                         <td>
+
                                             {{ pessoa.nome|default:"Não informado" }}
+
                                         </td>
 
                                         <td>
+
                                             {% for campo, valor in pessoa.dados_exibicao %}
+
                                                 <div>
-                                                    <strong>{{ campo }}:</strong>
+
+                                                    <strong>
+                                                        {{ campo }}:
+                                                    </strong>
+
                                                     {{ valor }}
+
                                                 </div>
+
                                             {% empty %}
+
                                                 <span class="text-muted">
+
                                                     Sem informações adicionais.
+
                                                 </span>
+
                                             {% endfor %}
+
                                         </td>
 
                                     </tr>
@@ -302,7 +669,9 @@ Detalhes da Ocorrência | RECOM
                 {% else %}
 
                     <p class="text-muted mb-0">
+
                         Nenhuma pessoa envolvida cadastrada.
+
                     </p>
 
                 {% endif %}
@@ -314,13 +683,17 @@ Detalhes da Ocorrência | RECOM
     </div>
 
 
+    <!-- ========================================= -->
     <!-- VEÍCULOS ENVOLVIDOS -->
+    <!-- ========================================= -->
 
     <div class="card detalhe-card mb-4">
 
         <div class="card-header">
+
             <i class="bi bi-car-front me-2"></i>
             Veículos Envolvidos
+
         </div>
 
         <div class="card-body">
@@ -334,10 +707,14 @@ Detalhes da Ocorrência | RECOM
                         <table class="table table-bordered align-middle">
 
                             <thead class="table-light">
+
                                 <tr>
+
                                     <th>Placa</th>
                                     <th>Informações</th>
+
                                 </tr>
+
                             </thead>
 
                             <tbody>
@@ -347,20 +724,37 @@ Detalhes da Ocorrência | RECOM
                                     <tr>
 
                                         <td>
+
                                             {{ veiculo.placa|default:"Não informada" }}
+
                                         </td>
 
                                         <td>
+
                                             {% for campo, valor in veiculo.dados_exibicao %}
+
                                                 <div>
-                                                    <strong>{{ campo }}:</strong>
+
+                                                    <strong>
+
+                                                        {{ campo }}:
+
+                                                    </strong>
+
                                                     {{ valor }}
+
                                                 </div>
+
                                             {% empty %}
+
                                                 <span class="text-muted">
+
                                                     Sem informações adicionais.
+
                                                 </span>
+
                                             {% endfor %}
+
                                         </td>
 
                                     </tr>
@@ -376,7 +770,9 @@ Detalhes da Ocorrência | RECOM
                 {% else %}
 
                     <p class="text-muted mb-0">
+
                         Nenhum veículo envolvido cadastrado.
+
                     </p>
 
                 {% endif %}
@@ -388,19 +784,25 @@ Detalhes da Ocorrência | RECOM
     </div>
 
 
+    <!-- ========================================= -->
     <!-- RELATO -->
+    <!-- ========================================= -->
 
     <div class="card detalhe-card mb-4">
 
         <div class="card-header">
+
             <i class="bi bi-journal-text me-2"></i>
             Relato da Ocorrência
+
         </div>
 
         <div class="card-body">
 
             <div class="texto-registro">
+
                 {{ ocorrencia.relato|default:"Nenhum relato informado."|linebreaksbr }}
+
             </div>
 
         </div>
@@ -408,19 +810,25 @@ Detalhes da Ocorrência | RECOM
     </div>
 
 
+    <!-- ========================================= -->
     <!-- PROVIDÊNCIAS -->
+    <!-- ========================================= -->
 
     <div class="card detalhe-card mb-4">
 
         <div class="card-header">
+
             <i class="bi bi-clipboard-check me-2"></i>
             Providências Adotadas
+
         </div>
 
         <div class="card-body">
 
             <div class="texto-registro">
+
                 {{ ocorrencia.providencias|default:"Nenhuma providência informada."|linebreaksbr }}
+
             </div>
 
         </div>
@@ -428,19 +836,25 @@ Detalhes da Ocorrência | RECOM
     </div>
 
 
+    <!-- ========================================= -->
     <!-- ÓRGÃOS ACIONADOS -->
+    <!-- ========================================= -->
 
     <div class="card detalhe-card mb-4">
 
         <div class="card-header">
+
             <i class="bi bi-telephone-forward me-2"></i>
             Órgãos Acionados
+
         </div>
 
         <div class="card-body">
 
             <div class="texto-registro">
+
                 {{ ocorrencia.orgaos_acionados|default:"Nenhum órgão informado."|linebreaksbr }}
+
             </div>
 
         </div>
@@ -448,13 +862,17 @@ Detalhes da Ocorrência | RECOM
     </div>
 
 
-    <!-- RESPONSÁVEL -->
+    <!-- ========================================= -->
+    <!-- INFORMAÇÕES DO REGISTRO -->
+    <!-- ========================================= -->
 
     <div class="card detalhe-card mb-4">
 
         <div class="card-header">
+
             <i class="bi bi-person-check me-2"></i>
             Informações do Registro
+
         </div>
 
         <div class="card-body">
@@ -462,21 +880,139 @@ Detalhes da Ocorrência | RECOM
             <div class="row g-3">
 
                 <div class="col-md-6">
-                    <span class="campo-label">Registrado por</span>
+
+                    <span class="campo-label">
+
+                        Registrado por
+
+                    </span>
+
                     <div class="campo-valor">
+
                         {% if ocorrencia.registrado_por %}
+
                             {{ ocorrencia.registrado_por.nome|default:ocorrencia.registrado_por }}
+
                         {% else %}
+
                             Não informado
+
                         {% endif %}
+
                     </div>
+
                 </div>
 
                 <div class="col-md-6">
-                    <span class="campo-label">Número do registro</span>
+
+                    <span class="campo-label">
+
+                        Número do registro
+
+                    </span>
+
                     <div class="campo-valor">
+
                         #{{ ocorrencia.pk }}
+
                     </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <span class="campo-label">
+
+                        Data do registro
+
+                    </span>
+
+                    <div class="campo-valor">
+
+                        {{ ocorrencia.criado_em|date:"d/m/Y" }}
+                        às
+                        {{ ocorrencia.criado_em|time:"H:i" }}
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <span class="campo-label">
+
+                        Última atualização
+
+                    </span>
+
+                    <div class="campo-valor">
+
+                        {{ ocorrencia.atualizado_em|date:"d/m/Y" }}
+                        às
+                        {{ ocorrencia.atualizado_em|time:"H:i" }}
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <span class="campo-label">
+
+                        Tipo de compartilhamento
+
+                    </span>
+
+                    <div class="campo-valor">
+
+                        {% if ocorrencia.cartao_programa_id %}
+
+                            Efetivo do Cartão Programa
+
+                        {% elif ocorrencia.viatura_id %}
+
+                            Efetivo da viatura original
+
+                        {% else %}
+
+                            Registro individual
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <span class="campo-label">
+
+                        Permissão de acesso
+
+                    </span>
+
+                    <div class="campo-valor">
+
+                        {% if pode_editar and pode_excluir %}
+
+                            Visualização, edição e exclusão
+
+                        {% elif pode_editar %}
+
+                            Visualização e edição
+
+                        {% elif pode_excluir %}
+
+                            Visualização e exclusão
+
+                        {% else %}
+
+                            Somente visualização
+
+                        {% endif %}
+
+                    </div>
+
                 </div>
 
             </div>
