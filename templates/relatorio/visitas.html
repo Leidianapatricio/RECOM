@@ -48,25 +48,33 @@ Relatório de Visitas - RECOM
         color: #ffffff;
     }
 
+    /* ==========================================
+       BOTÕES DE EXPORTAÇÃO
+       ========================================== */
+
     .btn-exportar-pdf {
         background-color: #ffffff;
         color: #b42332;
         border: 1px solid #b42332;
     }
 
-    .btn-exportar-pdf:hover {
+    .btn-exportar-pdf:hover,
+    .btn-exportar-pdf:focus {
         background-color: #b42332;
+        border-color: #b42332;
         color: #ffffff;
     }
 
-    .btn-exportar-csv {
+    .btn-exportar-xlsx {
         background-color: #ffffff;
         color: #198754;
         border: 1px solid #198754;
     }
 
-    .btn-exportar-csv:hover {
+    .btn-exportar-xlsx:hover,
+    .btn-exportar-xlsx:focus {
         background-color: #198754;
+        border-color: #198754;
         color: #ffffff;
     }
 
@@ -267,6 +275,7 @@ Relatório de Visitas - RECOM
                         </a>
                     {% endif %}
 
+                    <!-- EXPORTAR PDF -->
                     <a
                         href="{% url 'core:exportar_visitas_pdf' %}{% if query_filtros %}?{{ query_filtros }}{% endif %}"
                         class="btn btn-exportar-pdf"
@@ -276,13 +285,14 @@ Relatório de Visitas - RECOM
                         Exportar PDF
                     </a>
 
+                    <!-- EXPORTAR XLSX -->
                     <a
-                        href="{% url 'core:exportar_visitas_csv' %}{% if query_filtros %}?{{ query_filtros }}{% endif %}"
-                        class="btn btn-exportar-csv"
-                        title="Exportar todas as visitas filtradas em CSV"
+                        href="{% url 'core:exportar_visitas_xlsx' %}{% if query_filtros %}?{{ query_filtros }}{% endif %}"
+                        class="btn btn-exportar-xlsx"
+                        title="Exportar todas as visitas filtradas em XLSX, compatível com Google Sheets"
                     >
-                        <i class="bi bi-filetype-csv me-1"></i>
-                        Exportar CSV
+                        <i class="bi bi-file-earmark-excel me-1"></i>
+                        Exportar XLSX
                     </a>
 
                 </div>
@@ -474,7 +484,7 @@ Relatório de Visitas - RECOM
                     >
                 </div>
 
-                <!-- BOTÕES -->
+                <!-- BOTÕES DOS FILTROS -->
                 <div class="col-12 d-flex flex-wrap justify-content-end gap-2">
 
                     <a
@@ -500,10 +510,9 @@ Relatório de Visitas - RECOM
         </div>
     </div>
 
-    
     <!-- ==========================================
-     VISITAS ENCONTRADAS
-     ========================================== -->
+         VISITAS ENCONTRADAS
+         ========================================== -->
 
     <div class="card relatorio-card">
 
@@ -547,14 +556,17 @@ Relatório de Visitas - RECOM
 
                                 <tr>
 
+                                    <!-- DATA -->
                                     <td class="text-nowrap">
                                         {{ visita.data_visita|date:"d/m/Y" }}
                                     </td>
 
+                                    <!-- HORÁRIO -->
                                     <td class="text-nowrap">
                                         {{ visita.horario|time:"H:i" }}
                                     </td>
 
+                                    <!-- ESCOLA -->
                                     <td>
                                         <a
                                             href="{% url 'escolas:detalhe_escola' visita.escola.pk %}"
@@ -564,34 +576,43 @@ Relatório de Visitas - RECOM
                                         </a>
                                     </td>
 
+                                    <!-- POLO -->
                                     <td class="text-nowrap">
                                         Polo {{ visita.escola.polo }}
                                     </td>
 
+                                    <!-- EQUIPE -->
                                     <td class="text-nowrap">
                                         {{ visita.get_equipe_display }}
                                     </td>
 
+                                    <!-- TIPO DE VISITA -->
                                     <td>
                                         {{ visita.get_tipo_visita_display }}
                                     </td>
 
+                                    <!-- SITUAÇÃO -->
                                     <td>
                                         {% if visita.situacao == "SEM_ALTERACAO" %}
+
                                             <span class="badge bg-success">
                                                 Sem alteração
                                             </span>
 
                                         {% elif visita.situacao == "COM_ALTERACAO" %}
+
                                             <span class="badge bg-warning text-dark">
                                                 Com alteração
                                             </span>
 
                                         {% else %}
+
                                             {{ visita.get_situacao_display }}
+
                                         {% endif %}
                                     </td>
 
+                                    <!-- RELATO -->
                                     <td class="coluna-texto">
                                         {% if visita.relato %}
                                             <div class="conteudo-texto">
@@ -602,6 +623,7 @@ Relatório de Visitas - RECOM
                                         {% endif %}
                                     </td>
 
+                                    <!-- ORIENTAÇÕES / PROVIDÊNCIAS -->
                                     <td class="coluna-texto">
                                         {% if visita.orientacoes %}
                                             <div class="conteudo-texto">
@@ -660,7 +682,7 @@ Relatório de Visitas - RECOM
 
         {% if total_visitas > 0 %}
             <p class="resumo-resultados mb-0">
-                Os arquivos PDF e CSV incluem todos
+                Os arquivos PDF e XLSX incluem todos
                 os registros encontrados na consulta.
             </p>
         {% endif %}
@@ -798,6 +820,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const campoPolo = document.getElementById("polo");
     const campoEscola = document.getElementById("escola");
+
     const formulario = document.getElementById(
         "form-filtros-visitas"
     );

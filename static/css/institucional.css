@@ -1,0 +1,150 @@
+
+/* ==========================================
+   RECOM - PÁGINAS INSTITUCIONAIS
+   PADRÃO VISUAL DOS DASHBOARDS
+========================================== */
+
+.institucional-recom {
+    background-color: #f4f7fa;
+    min-height: 75vh;
+    padding: 24px 0 60px;
+}
+
+/* ==========================================
+   CABEÇALHO
+========================================== */
+
+.institucional-hero {
+    background-color: #092b49;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.institucional-hero-titulo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.institucional-hero-titulo i {
+    color: #ffffff;
+    font-size: 1.8rem;
+    line-height: 1;
+}
+
+.institucional-hero h1 {
+    color: #ffffff !important;
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.institucional-hero p {
+    color: #ffffff !important;
+    font-size: 0.95rem;
+    margin: 10px 0 0;
+    line-height: 1.6;
+}
+
+/* ==========================================
+   CONTEÚDO
+========================================== */
+
+.institucional-conteudo {
+    padding: 12px 0 30px;
+}
+
+.institucional-texto {
+    max-width: 100%;
+}
+
+.institucional-texto h2 {
+    color: #092b49;
+    font-size: 1.45rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.institucional-texto h3 {
+    color: #092b49;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 25px 0 14px;
+}
+
+.institucional-texto p {
+    color: #526779;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    margin-bottom: 16px;
+}
+
+/* ==========================================
+   LISTA DE ATIVIDADES
+========================================== */
+
+.institucional-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.institucional-lista li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 13px;
+    color: #425c70;
+    font-size: 0.95rem;
+}
+
+.institucional-lista i {
+    color: #16845b;
+    margin-top: 3px;
+}
+
+/* ==========================================
+   VOLTAR
+========================================== */
+
+.institucional-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #092b49;
+    font-weight: 600;
+    margin-top: 30px;
+}
+
+.institucional-voltar:hover {
+    color: #17649b;
+}
+
+/* ==========================================
+   RESPONSIVIDADE
+========================================== */
+
+@media (max-width: 767px) {
+
+    .institucional-recom {
+        padding-top: 16px;
+    }
+
+    .institucional-hero {
+        padding: 20px;
+    }
+
+    .institucional-hero h1 {
+        font-size: 1.5rem;
+    }
+
+    .institucional-hero-titulo i {
+        font-size: 1.5rem;
+    }
+
+    .institucional-conteudo {
+        padding-top: 8px;
+    }
+}

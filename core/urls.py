@@ -99,16 +99,18 @@ urlpatterns = [
     # EXPORTAÇÃO DE RELATÓRIOS DE VISITAS
     # =========================================================
 
+    # Exportar relatório de visitas para PDF
     path(
         "relatorios/visitas/pdf/",
         views_relatorios.exportar_visitas_pdf,
         name="exportar_visitas_pdf"
     ),
 
+    # Exportar relatório de visitas para XLSX
     path(
-        "relatorios/visitas/csv/",
-        views_relatorios.exportar_visitas_csv,
-        name="exportar_visitas_csv"
+        "relatorios/visitas/xlsx/",
+        views_relatorios.exportar_visitas_xlsx,
+        name="exportar_visitas_xlsx"
     ),
 
     # =========================================================
@@ -128,11 +130,42 @@ urlpatterns = [
         name="exportar_historico_pdf"
     ),
 
-    # Exportar histórico para CSV
+    # Exportar histórico para XLSX
     path(
-        "historico/csv/",
-        views_historico.exportar_historico_csv,
-        name="exportar_historico_csv"
+        "historico/xlsx/",
+        views_historico.exportar_historico_xlsx,
+        name="exportar_historico_xlsx"
     ),
+    
+    
+    # =========================================================
+    # PÁGINAS INSTITUCIONAIS
+    # =========================================================
+
+    path(
+        "institucional/escolas/",
+        views.institucional_escolas,
+        name="institucional_escolas"
+    ),
+
+    path(
+        "institucional/problematicas/",
+        views.institucional_problematicas,
+        name="institucional_problematicas"
+    ),
+
+    path(
+        "institucional/visitas/",
+        views.institucional_visitas,
+        name="institucional_visitas"
+    ),
+
+    path(
+        "institucional/acompanhamento/",
+        views.institucional_acompanhamento,
+        name="institucional_acompanhamento"
+    ),
+
+    
 
 ]

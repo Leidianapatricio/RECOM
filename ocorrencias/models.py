@@ -27,7 +27,6 @@ class Ocorrencia(models.Model):
         AMEACA = "AMEACA", "Ameaça"
         AGRESSAO = "AGRESSAO", "Agressão"
         OUTRA = "OUTRA", "Outra"
-    
     # ==========================================
     # CARTÃO PROGRAMA RESPONSÁVEL
     # ==========================================

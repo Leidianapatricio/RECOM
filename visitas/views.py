@@ -1,5 +1,5 @@
 
-from datetime import date
+from datetime import date, datetime, time
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -27,6 +27,7 @@ from .forms import (
     obter_codigo_equipe_viatura,
 )
 from .models import RondaVisita
+from .periodos import filtrar_cartoes_por_momento, horario_compativel
 from .permissoes import (
     pode_editar_visita,
     pode_excluir_visita,
@@ -211,8 +212,9 @@ def definir_cartao_visita_avulsa(request, visita, usuario):
 
     cartoes = cartoes_disponiveis(
         request.user
-    ).filter(
-        plantao__data=visita.data_visita
+    )
+    cartoes = filtrar_cartoes_por_momento(
+        cartoes, visita.data_visita, visita.horario
     )
 
     if visita.cartao_programa_id:
@@ -439,12 +441,16 @@ def cadastrar_visita(request):
 
     else:
 
-        initial = {}
+        agora = timezone.localtime()
+        initial = {
+            "data_visita": agora.date(),
+            "horario": agora.time().replace(second=0, microsecond=0),
+        }
 
         if missao is not None:
 
             initial["escola"] = missao.escola_id
-            initial["data_visita"] = missao.cartao.plantao.data
+            initial["data_visita"] = timezone.localdate()
             initial["cartao_programa"] = missao.cartao_id
 
         else:
@@ -461,10 +467,9 @@ def cadastrar_visita(request):
             ):
 
                 cartoes = list(
-                    cartoes_disponiveis(
-                        request.user
-                    ).filter(
-                        plantao__data=timezone.localdate()
+                    filtrar_cartoes_por_momento(
+                        cartoes_disponiveis(request.user),
+                        initial["data_visita"], initial["horario"],
                     ).order_by("pk")[:2]
                 )
 
@@ -601,7 +606,7 @@ def editar_visita(request, pk):
 
                         if (
                             cartao_original_id is not None
-                            and campo in ("data_visita", "equipe")
+                            and campo == "equipe"
                         ):
                             continue
 
@@ -939,11 +944,20 @@ def consultar_cartoes_visita(request):
             status=400,
         )
 
-    cartoes = cartoes_disponiveis(
-        request.user
-    ).filter(
-        plantao__data=data_visita
-    ).order_by("pk")
+    horario_str = request.GET.get("horario", "").strip()
+    try:
+        horario = time.fromisoformat(horario_str) if horario_str else (
+            timezone.localtime().time() if data_visita == timezone.localdate() else None
+        )
+    except ValueError:
+        return JsonResponse({"cartoes": [], "mensagem": "Horário inválido."}, status=400)
+
+    cartoes = cartoes_disponiveis(request.user)
+    if horario is not None:
+        cartoes = filtrar_cartoes_por_momento(cartoes, data_visita, horario)
+    else:
+        cartoes = cartoes.filter(plantao__data=data_visita)
+    cartoes = cartoes.order_by("pk")
 
     resultado = []
 
@@ -1006,12 +1020,27 @@ def consultar_viaturas_visita(request):
             status=400,
         )
 
-    viaturas = ViaturaPlantao.objects.select_related(
-        "plantao",
-        "equipe",
-    ).filter(
-        plantao__data=data_visita
-    )
+    horario_str = request.GET.get("horario", "").strip()
+    try:
+        horario = time.fromisoformat(horario_str) if horario_str else (
+            timezone.localtime().time() if data_visita == timezone.localdate() else None
+        )
+    except ValueError:
+        return JsonResponse({"viaturas": [], "mensagem": "Horário inválido."}, status=400)
+
+    viaturas = ViaturaPlantao.objects.select_related("plantao", "equipe")
+    if horario is not None:
+        from django.db.models import Q
+        from datetime import timedelta
+        ontem = data_visita - timedelta(days=1)
+        viaturas = viaturas.filter(
+            Q(plantao__data=data_visita) |
+            Q(plantao__data=ontem, plantao__tipo_servico="ORDINARIO")
+        )
+        ids = [v.pk for v in viaturas if horario_compativel(v.plantao, data_visita, horario)]
+        viaturas = ViaturaPlantao.objects.select_related("plantao", "equipe").filter(pk__in=ids)
+    else:
+        viaturas = viaturas.filter(plantao__data=data_visita)
 
     if not pode_gerenciar_visitas(request):
 

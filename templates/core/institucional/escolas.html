@@ -1,0 +1,106 @@
+
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}
+Gestão de Escolas | RECOM
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/institucional.css' %}?v=3"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="institucional-recom">
+
+    <div class="container">
+
+        <!-- CABEÇALHO -->
+        <section class="institucional-hero">
+
+            <div class="institucional-hero-titulo">
+
+                <i class="bi bi-building"></i>
+
+                <h1>
+                    {% trans "Gestão de Escolas" %}
+                </h1>
+
+            </div>
+
+            <p>
+                {% trans "Organização e acompanhamento das unidades escolares atendidas pela Ronda Escolar Comunitária." %}
+            </p>
+
+        </section>
+
+        <!-- CONTEÚDO -->
+        <section class="institucional-conteudo">
+
+            <div class="institucional-texto">
+
+                <h2>
+                    {% trans "Acompanhamento das unidades escolares" %}
+                </h2>
+
+                <p>
+                    {% trans "O RECOM reúne informações das unidades escolares para apoiar o planejamento das rondas, a organização das equipes e o acompanhamento das demandas relacionadas à segurança escolar." %}
+                </p>
+
+                <h3>
+                    {% trans "Principais atividades" %}
+                </h3>
+
+                <ul class="institucional-lista">
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>
+                            {% trans "Cadastro e atualização das informações das escolas." %}
+                        </span>
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>
+                            {% trans "Organização das unidades escolares por polos." %}
+                        </span>
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>
+                            {% trans "Acompanhamento das demandas e situações identificadas nas escolas." %}
+                        </span>
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>
+                            {% trans "Apoio ao planejamento das visitas e ações preventivas." %}
+                        </span>
+                    </li>
+
+                </ul>
+
+                <a
+                    href="{% url 'core:home' %}"
+                    class="institucional-voltar"
+                >
+                    <i class="bi bi-arrow-left"></i>
+                    {% trans "Voltar para a página inicial" %}
+                </a>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+{% endblock %}

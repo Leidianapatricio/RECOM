@@ -36,21 +36,31 @@ Histórico de Atividades | RECOM
             </p>
         </div>
 
+        
         <div class="historico-exportacoes">
 
-            <a href="{% url 'core:exportar_historico_pdf' %}?{{ request.GET.urlencode }}"
-               class="btn btn-exportar-pdf">
+            <!-- EXPORTAR PDF -->
+            <a href="{% url 'core:exportar_historico_pdf' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+            class="btn btn-exportar-pdf"
+            title="Exportar histórico em PDF">
+
                 <i class="bi bi-file-earmark-pdf me-1"></i>
                 Exportar PDF
+
             </a>
 
-            <a href="{% url 'core:exportar_historico_csv' %}?{{ request.GET.urlencode }}"
-               class="btn btn-exportar-csv">
-                <i class="bi bi-file-earmark-spreadsheet me-1"></i>
-                Exportar CSV
+            <!-- EXPORTAR XLSX -->
+            <a href="{% url 'core:exportar_historico_xlsx' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+            class="btn btn-exportar-pdf"
+            title="Exportar histórico em XLSX">
+
+                <i class="bi bi-file-earmark-excel me-1"></i>
+                Exportar XLSX
+
             </a>
 
         </div>
+
 
     </div>
 
@@ -60,67 +70,87 @@ Histórico de Atividades | RECOM
 
     <div class="row g-3 mb-4">
 
+        <!-- TOTAL DE ATIVIDADES -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="historico-indicador">
+
                 <div class="indicador-icone icone-total">
                     <i class="bi bi-list-check"></i>
                 </div>
+
                 <div>
                     <span class="indicador-label">
                         Total de atividades
                     </span>
+
                     <h3 class="indicador-numero">
                         {{ total_atividades }}
                     </h3>
                 </div>
+
             </div>
         </div>
 
+        <!-- VISITAS REALIZADAS -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="historico-indicador">
+
                 <div class="indicador-icone icone-visitas">
                     <i class="bi bi-building-check"></i>
                 </div>
+
                 <div>
                     <span class="indicador-label">
                         Visitas realizadas
                     </span>
+
                     <h3 class="indicador-numero">
                         {{ total_visitas }}
                     </h3>
                 </div>
+
             </div>
         </div>
 
+        <!-- OCORRÊNCIAS -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="historico-indicador">
+
                 <div class="indicador-icone icone-ocorrencias">
                     <i class="bi bi-exclamation-triangle"></i>
                 </div>
+
                 <div>
                     <span class="indicador-label">
                         Ocorrências
                     </span>
+
                     <h3 class="indicador-numero">
                         {{ total_ocorrencias }}
                     </h3>
                 </div>
+
             </div>
         </div>
 
+        <!-- MISSÕES NÃO REALIZADAS -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="historico-indicador">
+
                 <div class="indicador-icone icone-pendencias">
                     <i class="bi bi-x-circle"></i>
                 </div>
+
                 <div>
                     <span class="indicador-label">
                         Missões não realizadas
                     </span>
+
                     <h3 class="indicador-numero">
                         {{ total_nao_realizadas }}
                     </h3>
                 </div>
+
             </div>
         </div>
 
@@ -146,8 +176,11 @@ Histórico de Atividades | RECOM
 
                 <div class="row g-3">
 
+                    <!-- DATA INICIAL -->
                     <div class="col-12 col-md-6 col-xl-2">
-                        <label for="data_inicio" class="form-label">
+
+                        <label for="data_inicio"
+                               class="form-label">
                             Data inicial
                         </label>
 
@@ -156,10 +189,14 @@ Histórico de Atividades | RECOM
                                name="data_inicio"
                                class="form-control"
                                value="{{ filtros.data_inicio }}">
+
                     </div>
 
+                    <!-- DATA FINAL -->
                     <div class="col-12 col-md-6 col-xl-2">
-                        <label for="data_fim" class="form-label">
+
+                        <label for="data_fim"
+                               class="form-label">
                             Data final
                         </label>
 
@@ -168,10 +205,14 @@ Histórico de Atividades | RECOM
                                name="data_fim"
                                class="form-control"
                                value="{{ filtros.data_fim }}">
+
                     </div>
 
+                    <!-- EQUIPE -->
                     <div class="col-12 col-md-6 col-xl-2">
-                        <label for="equipe" class="form-label">
+
+                        <label for="equipe"
+                               class="form-label">
                             Equipe
                         </label>
 
@@ -179,22 +220,32 @@ Histórico de Atividades | RECOM
                                 id="equipe"
                                 class="form-select">
 
-                            <option value="">Todas</option>
+                            <option value="">
+                                Todas
+                            </option>
 
                             {% for equipe in equipes %}
+
                                 <option value="{{ equipe.pk }}"
                                     {% if filtros.equipe == equipe.pk|stringformat:"s" %}
                                         selected
                                     {% endif %}>
+
                                     {{ equipe.nome }}
+
                                 </option>
+
                             {% endfor %}
 
                         </select>
+
                     </div>
 
+                    <!-- VIATURA -->
                     <div class="col-12 col-md-6 col-xl-3">
-                        <label for="viatura" class="form-label">
+
+                        <label for="viatura"
+                               class="form-label">
                             Viatura
                         </label>
 
@@ -207,20 +258,28 @@ Histórico de Atividades | RECOM
                             </option>
 
                             {% for viatura in viaturas %}
+
                                 <option value="{{ viatura.pk }}"
                                     {% if filtros.viatura == viatura.pk|stringformat:"s" %}
                                         selected
                                     {% endif %}>
+
                                     {{ viatura.identificacao }}
                                     - {{ viatura.plantao.data|date:"d/m/Y" }}
+
                                 </option>
+
                             {% endfor %}
 
                         </select>
+
                     </div>
 
+                    <!-- TIPO DE ATIVIDADE -->
                     <div class="col-12 col-md-6 col-xl-3">
-                        <label for="tipo" class="form-label">
+
+                        <label for="tipo"
+                               class="form-label">
                             Tipo de atividade
                         </label>
 
@@ -261,30 +320,43 @@ Histórico de Atividades | RECOM
                             </option>
 
                         </select>
+
                     </div>
 
                 </div>
 
+                <!-- OBSERVAÇÃO SOBRE VIATURA -->
                 {% if filtros.viatura %}
+
                     <div class="text-muted small mt-3">
+
                         <i class="bi bi-info-circle me-1"></i>
+
                         O filtro por viatura não inclui visitas
                         avulsas ou ocorrências vinculadas
                         exclusivamente ao Cartão Programa.
+
                     </div>
+
                 {% endif %}
 
+                <!-- BOTÕES -->
                 <div class="d-flex flex-wrap gap-2 mt-4">
 
-                    <button type="submit" class="btn btn-filtrar">
+                    <button type="submit"
+                            class="btn btn-filtrar">
+
                         <i class="bi bi-search me-1"></i>
                         Aplicar filtros
+
                     </button>
 
                     <a href="{% url 'core:historico_atividades' %}"
                        class="btn btn-limpar">
+
                         <i class="bi bi-arrow-counterclockwise me-1"></i>
                         Limpar filtros
+
                     </a>
 
                 </div>
@@ -292,19 +364,24 @@ Histórico de Atividades | RECOM
             </form>
 
         </div>
+
     </div>
 
     <!-- ========================================= -->
-    <!-- LISTAGEM -->
+    <!-- LISTAGEM DE ATIVIDADES -->
     <!-- ========================================= -->
 
     <div class="card historico-card">
 
-        <div class="card-header historico-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="card-header historico-card-header
+                    d-flex justify-content-between
+                    align-items-center flex-wrap gap-2">
 
             <h5 class="mb-0">
+
                 <i class="bi bi-card-list me-2"></i>
                 Registros encontrados
+
             </h5>
 
             <span class="historico-contador">
@@ -319,7 +396,8 @@ Histórico de Atividades | RECOM
 
                 <div class="table-responsive">
 
-                    <table class="table historico-tabela align-middle mb-0">
+                    <table class="table historico-tabela
+                                  align-middle mb-0">
 
                         <thead>
                             <tr>
@@ -330,7 +408,9 @@ Histórico de Atividades | RECOM
                                 <th>Cartão Programa</th>
                                 <th>Viatura</th>
                                 <th>Registrado por</th>
-                                <th class="text-center">Ações</th>
+                                <th class="text-center">
+                                    Ações
+                                </th>
                             </tr>
                         </thead>
 
@@ -340,7 +420,7 @@ Histórico de Atividades | RECOM
 
                                 <tr>
 
-                                    <!-- DATA -->
+                                    <!-- DATA / HORA -->
                                     <td class="historico-data">
 
                                         <strong>
@@ -353,35 +433,43 @@ Histórico de Atividades | RECOM
 
                                     </td>
 
-                                    <!-- ATIVIDADE -->
+                                    <!-- TIPO DE ATIVIDADE -->
                                     <td>
 
                                         {% if atividade.tipo == "VISITA_PROGRAMADA" %}
 
                                             <span class="badge badge-visita">
+
                                                 <i class="bi bi-calendar-check me-1"></i>
                                                 Visita programada
+
                                             </span>
 
                                         {% elif atividade.tipo == "VISITA_AVULSA" %}
 
                                             <span class="badge badge-avulsa">
+
                                                 <i class="bi bi-building me-1"></i>
                                                 Visita avulsa
+
                                             </span>
 
                                         {% elif atividade.tipo == "OCORRENCIA" %}
 
                                             <span class="badge badge-ocorrencia">
+
                                                 <i class="bi bi-exclamation-triangle me-1"></i>
                                                 Ocorrência
+
                                             </span>
 
                                         {% else %}
 
                                             <span class="badge badge-nao-realizada">
+
                                                 <i class="bi bi-x-circle me-1"></i>
                                                 Não realizada
+
                                             </span>
 
                                         {% endif %}
@@ -408,15 +496,19 @@ Histórico de Atividades | RECOM
                                         {% if atividade.cartao_programa_id %}
 
                                             <span class="fw-semibold">
+
                                                 <i class="bi bi-card-checklist me-1"></i>
                                                 CP {{ atividade.cartao_programa_id }}
+
                                             </span>
 
                                             {% if atividade.tipo == "VISITA_AVULSA" or atividade.tipo == "OCORRENCIA" %}
 
                                                 <small class="d-block text-muted mt-1">
+
                                                     <i class="bi bi-people me-1"></i>
                                                     Compartilhado
+
                                                 </small>
 
                                             {% endif %}
@@ -448,7 +540,7 @@ Histórico de Atividades | RECOM
 
                                     </td>
 
-                                    <!-- AUTOR -->
+                                    <!-- REGISTRADO POR -->
                                     <td>
                                         {{ atividade.responsavel }}
                                     </td>
@@ -456,9 +548,10 @@ Histórico de Atividades | RECOM
                                     <!-- AÇÕES -->
                                     <td class="text-center">
 
-                                        <div class="d-flex justify-content-center align-items-center flex-wrap gap-1">
+                                        <div class="d-flex justify-content-center
+                                                    align-items-center flex-wrap gap-1">
 
-                                            <!-- VISUALIZAR -->
+                                            <!-- VISUALIZAR DETALHES -->
                                             <button type="button"
                                                     class="btn btn-detalhes"
                                                     title="Visualizar detalhes"
@@ -548,11 +641,14 @@ Histórico de Atividades | RECOM
 
             {% else %}
 
+                <!-- SEM REGISTROS -->
                 <div class="historico-vazio">
 
                     <i class="bi bi-inbox"></i>
 
-                    <h5>Nenhuma atividade encontrada</h5>
+                    <h5>
+                        Nenhuma atividade encontrada
+                    </h5>
 
                     <p>
                         Não existem registros para os filtros selecionados.
@@ -560,7 +656,9 @@ Histórico de Atividades | RECOM
 
                     <a href="{% url 'core:historico_atividades' %}"
                        class="btn btn-limpar">
+
                         Limpar filtros
+
                     </a>
 
                 </div>
@@ -579,8 +677,10 @@ Histórico de Atividades | RECOM
 
                 <nav aria-label="Paginação do histórico">
 
-                    <ul class="pagination justify-content-center flex-wrap mb-0">
+                    <ul class="pagination justify-content-center
+                               flex-wrap mb-0">
 
+                        <!-- ANTERIOR -->
                         {% if page_obj.has_previous %}
 
                             <li class="page-item">
@@ -596,15 +696,19 @@ Histórico de Atividades | RECOM
 
                         {% endif %}
 
+                        <!-- PÁGINA ATUAL -->
                         <li class="page-item disabled">
 
                             <span class="page-link">
+
                                 Página {{ page_obj.number }}
                                 de {{ page_obj.paginator.num_pages }}
+
                             </span>
 
                         </li>
 
+                        <!-- PRÓXIMA -->
                         {% if page_obj.has_next %}
 
                             <li class="page-item">
@@ -679,46 +783,63 @@ Histórico de Atividades | RECOM
                     <div class="row g-3 mb-4">
 
                         <div class="col-md-4">
+
                             <strong>Data:</strong>
+
                             <div>
                                 {{ atividade.data|date:"d/m/Y" }}
                             </div>
+
                         </div>
 
                         <div class="col-md-4">
+
                             <strong>Horário:</strong>
+
                             <div>
                                 {{ atividade.horario|time:"H:i"|default:"Não informado" }}
                             </div>
+
                         </div>
 
                         <div class="col-md-4">
+
                             <strong>Situação:</strong>
+
                             <div>
                                 {{ atividade.situacao }}
                             </div>
+
                         </div>
 
                         <div class="col-md-12">
+
                             <strong>Local:</strong>
+
                             <div>
                                 {{ atividade.local|default:"-" }}
                             </div>
+
                         </div>
 
                         <div class="col-md-12">
+
                             <strong>Tipo de atividade:</strong>
+
                             <div>
                                 {{ atividade.descricao }}
                             </div>
+
                         </div>
 
                     </div>
 
                     <!-- CARTÃO PROGRAMA -->
                     <h6 class="historico-secao-titulo">
+
                         <i class="bi bi-card-checklist me-1"></i>
                         Cartão Programa
+
                     </h6>
 
                     <div class="mb-4">
@@ -744,8 +865,10 @@ Histórico de Atividades | RECOM
                             {% else %}
 
                                 <p class="text-muted small mt-2 mb-0">
+
                                     Atividade vinculada a uma missão
                                     do Cartão Programa.
+
                                 </p>
 
                             {% endif %}
@@ -753,8 +876,10 @@ Histórico de Atividades | RECOM
                         {% else %}
 
                             <span class="text-muted">
+
                                 Registro sem vínculo com um
                                 Cartão Programa.
+
                             </span>
 
                         {% endif %}
@@ -769,24 +894,33 @@ Histórico de Atividades | RECOM
                     <div class="row g-3 mb-4">
 
                         <div class="col-md-4">
+
                             <strong>Viatura:</strong>
+
                             <div>
-                                {{ atividade.viatura }}
+                                {{ atividade.viatura|default:"Não vinculada" }}
                             </div>
+
                         </div>
 
                         <div class="col-md-4">
+
                             <strong>Equipe:</strong>
+
                             <div>
-                                {{ atividade.equipe }}
+                                {{ atividade.equipe|default:"-" }}
                             </div>
+
                         </div>
 
                         <div class="col-md-4">
+
                             <strong>Registrado por:</strong>
+
                             <div>
                                 {{ atividade.responsavel }}
                             </div>
+
                         </div>
 
                     </div>
@@ -819,10 +953,12 @@ Histórico de Atividades | RECOM
                             <table class="table table-sm table-bordered mb-0">
 
                                 <thead class="table-light">
+
                                     <tr>
                                         <th>GCM</th>
                                         <th>Função</th>
                                     </tr>
+
                                 </thead>
 
                                 <tbody>
@@ -830,12 +966,15 @@ Histórico de Atividades | RECOM
                                     {% for integrante in atividade.efetivo %}
 
                                         <tr>
+
                                             <td>
                                                 {{ integrante.nome }}
                                             </td>
+
                                             <td>
                                                 {{ integrante.funcao }}
                                             </td>
+
                                         </tr>
 
                                     {% endfor %}
@@ -849,7 +988,9 @@ Histórico de Atividades | RECOM
                     {% else %}
 
                         <p class="text-muted mb-4">
+
                             Efetivo não identificado para este registro.
+
                         </p>
 
                     {% endif %}
@@ -860,18 +1001,24 @@ Histórico de Atividades | RECOM
                     </h6>
 
                     <div class="historico-texto mb-4">
+
                         {{ atividade.relato|default:"Não informado."|linebreaksbr }}
+
                     </div>
 
                     <!-- PROVIDÊNCIAS -->
                     {% if atividade.providencias %}
 
                         <h6 class="historico-secao-titulo">
+
                             Orientações / Providências
+
                         </h6>
 
                         <div class="historico-texto">
+
                             {{ atividade.providencias|linebreaksbr }}
+
                         </div>
 
                     {% endif %}
@@ -881,6 +1028,7 @@ Histórico de Atividades | RECOM
                 <!-- RODAPÉ -->
                 <div class="modal-footer">
 
+                    <!-- EDITAR -->
                     {% if atividade.pode_editar %}
 
                         {% if atividade.tipo == "VISITA_PROGRAMADA" or atividade.tipo == "VISITA_AVULSA" %}
@@ -907,6 +1055,7 @@ Histórico de Atividades | RECOM
 
                     {% endif %}
 
+                    <!-- EXCLUIR OCORRÊNCIA -->
                     {% if atividade.tipo == "OCORRENCIA" and atividade.pode_excluir %}
 
                         <a href="{% url 'ocorrencias:excluir_ocorrencia' atividade.id %}"
@@ -919,6 +1068,7 @@ Histórico de Atividades | RECOM
 
                     {% endif %}
 
+                    <!-- FECHAR -->
                     <button type="button"
                             class="btn btn-limpar"
                             data-bs-dismiss="modal">
@@ -987,33 +1137,45 @@ Histórico de Atividades | RECOM
                             <div class="border rounded p-3 mb-3">
 
                                 <p class="mb-2">
+
                                     <strong>Escola:</strong>
                                     {{ atividade.local }}
+
                                 </p>
 
                                 <p class="mb-2">
+
                                     <strong>Data:</strong>
                                     {{ atividade.data|date:"d/m/Y" }}
+
                                 </p>
 
                                 <p class="mb-2">
+
                                     <strong>Horário:</strong>
                                     {{ atividade.horario|time:"H:i"|default:"--:--" }}
+
                                 </p>
 
                                 <p class="mb-2">
+
                                     <strong>Tipo:</strong>
                                     {{ atividade.tipo_label }}
+
                                 </p>
 
                                 <p class="mb-2">
+
                                     <strong>Cartão Programa:</strong>
                                     {{ atividade.cartao_programa }}
+
                                 </p>
 
                                 <p class="mb-0">
+
                                     <strong>Registrado por:</strong>
                                     {{ atividade.responsavel }}
+
                                 </p>
 
                             </div>
@@ -1060,18 +1222,12 @@ Histórico de Atividades | RECOM
 
                                 {% csrf_token %}
 
-                                <!-- ================================= -->
                                 <!-- ORIGEM DA EXCLUSÃO -->
-                                <!-- ================================= -->
-
                                 <input type="hidden"
                                        name="origem"
                                        value="historico">
 
-                                <!-- ================================= -->
-                                <!-- PRESERVAR FILTROS DO HISTÓRICO -->
-                                <!-- ================================= -->
-
+                                <!-- PRESERVAR FILTROS -->
                                 <input type="hidden"
                                        name="data_inicio"
                                        value="{{ filtros.data_inicio }}">
@@ -1096,6 +1252,7 @@ Histórico de Atividades | RECOM
                                        name="page"
                                        value="{{ page_obj.number }}">
 
+                                <!-- CONFIRMAR -->
                                 <button type="submit"
                                         class="btn btn-danger">
 

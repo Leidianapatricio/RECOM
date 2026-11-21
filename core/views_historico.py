@@ -1,8 +1,12 @@
-import csv
 import re
 
 from datetime import date, datetime
 from io import BytesIO
+from collections import OrderedDict
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
 from xml.sax.saxutils import escape
 
 from django.contrib.auth.decorators import login_required
@@ -13,17 +17,20 @@ from django.http import HttpResponse
 from django.shortcuts import render
 
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.styles import (
     getSampleStyleSheet,
     ParagraphStyle,
 )
-from reportlab.lib.units import cm
+from reportlab.lib.units import cm, mm
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
     Spacer,
     KeepTogether,
+    LongTable,
+    TableStyle,
 )
 
 from cartao_programa.models import (
@@ -1313,425 +1320,366 @@ def historico_atividades(request):
     )
 
 
+
+
 # =========================================================
-# EXPORTAR HISTÓRICO CSV
+# EXPORTAÇÕES PADRONIZADAS - HISTÓRICO RECOM
 # =========================================================
+
+ORDEM_FUNCOES = {"C": 0, "M": 1, "P1": 2, "P2": 3}
+AZUL_RECOM = "092B49"
+
+
+def _xlsx_seguro(valor):
+    if valor is None:
+        return ""
+    if isinstance(valor, str):
+        valor = valor.replace("\x00", "")
+        if valor.lstrip().startswith(("=", "+", "-", "@")):
+            return "'" + valor
+    return valor
+
+
+def _estilizar_aba(aba, larguras):
+    aba.sheet_view.showGridLines = False
+    aba.freeze_panes = "A2"
+    aba.auto_filter.ref = aba.dimensions
+    for celula in aba[1]:
+        celula.fill = PatternFill("solid", fgColor=AZUL_RECOM)
+        celula.font = Font(bold=True, color="FFFFFF")
+        celula.alignment = Alignment(vertical="center", wrap_text=True)
+    aba.row_dimensions[1].height = 32
+    for indice, largura in enumerate(larguras, 1):
+        aba.column_dimensions[get_column_letter(indice)].width = largura
+    for linha in aba.iter_rows(min_row=2):
+        for celula in linha:
+            celula.alignment = Alignment(vertical="top", wrap_text=True)
+
+
+def _resposta_xlsx(workbook, nome):
+    memoria = BytesIO()
+    workbook.save(memoria)
+    resposta = HttpResponse(
+        memoria.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    resposta["Content-Disposition"] = f'attachment; filename="{nome}"'
+    return resposta
+
+
+def _grupos_historico(atividades):
+    """Um grupo por CP, independentemente da viatura da atividade."""
+    grupos = OrderedDict()
+    for item in atividades:
+        cp_id = item.get("cartao_programa_id")
+        chave = ("cp", cp_id) if cp_id is not None else ("sem_cp", None)
+        if chave not in grupos:
+            grupos[chave] = {
+                "cartao_id": cp_id,
+                "titulo": item["cartao_programa"] if cp_id else "Atividades sem Cartão Programa",
+                "atividades": [],
+            }
+        grupos[chave]["atividades"].append(item)
+    for grupo in grupos.values():
+        grupo["atividades"].sort(
+            key=lambda item: (
+                item["data"] or date.min,
+                item["horario"] or datetime.min.time(),
+                item["id"],
+            )
+        )
+    return list(grupos.values())
+
+
+def _escalas_historico(grupo, cache):
+    """Escala do plantão do CP: referência, não atribuição à atividade."""
+    cp_id = grupo["cartao_id"]
+    if cp_id is None:
+        return []
+    if cp_id not in cache:
+        from cartao_programa.models import CartaoPrograma
+        cartao = CartaoPrograma.objects.select_related("plantao").get(pk=cp_id)
+        escalas = (
+            EfetivoViatura.objects
+            .filter(viatura__plantao_id=cartao.plantao_id)
+            .select_related("gcm", "viatura", "viatura__equipe")
+            .order_by("viatura_id", "pk")
+        )
+        por_viatura = OrderedDict()
+        for escala in escalas:
+            if escala.viatura_id not in por_viatura:
+                v = escala.viatura
+                por_viatura[escala.viatura_id] = {
+                    "viatura": v.identificacao,
+                    "equipe": v.equipe.nome if v.equipe_id else "Não informada",
+                    "pessoas": [],
+                }
+            por_viatura[escala.viatura_id]["pessoas"].append(escala)
+        resultado = list(por_viatura.values())
+        for dados in resultado:
+            dados["pessoas"].sort(
+                key=lambda escala: (
+                    ORDEM_FUNCOES.get(escala.funcao, 9),
+                    escala.gcm.nome if escala.gcm_id else "",
+                )
+            )
+        cache[cp_id] = resultado
+    return cache[cp_id]
+
+
+def _texto_escala(escala):
+    pessoas = " | ".join(
+        f"{pessoa.funcao}: {pessoa.gcm.nome}"
+        for pessoa in escala["pessoas"] if pessoa.gcm_id
+    ) or "Não identificado"
+    return f'{escala["equipe"]} / {escala["viatura"]}: {pessoas}'
+
+
+def _detalhes_grupo(grupo, cache):
+    escalas = _escalas_historico(grupo, cache)
+    if grupo["cartao_id"] is None:
+        return {
+            "escalas": [],
+            "equipes": "Não vinculadas a um CP",
+            "viaturas": "Não vinculadas a um CP",
+            "efetivo": "Sem escala de CP atribuída",
+        }
+    return {
+        "escalas": escalas,
+        "equipes": ", ".join(dict.fromkeys(e["equipe"] for e in escalas)) or "Não identificadas",
+        "viaturas": ", ".join(e["viatura"] for e in escalas) or "Não identificadas",
+        "efetivo": " | ".join(_texto_escala(e) for e in escalas) or "Não identificado",
+    }
+
 
 @login_required
-def exportar_historico_csv(request):
+def exportar_historico_xlsx(request):
+    atividades = consultar_atividades(request)["atividades"]
+    grupos = _grupos_historico(atividades)
+    cache = {}
+    wb = Workbook()
+    visual = wb.active
+    visual.title = "Atividades por cartão"
+    visual.sheet_view.showGridLines = False
+    titulos = [
+        "Data", "Horário", "Tipo de registro", "Atividade realizada",
+        "Local", "Situação", "Viatura da atividade",
+        "Registrado por", "Relato", "Providências",
+    ]
+    larguras = [16, 12, 23, 31, 37, 23, 24, 27, 60, 60]
+    for indice, largura in enumerate(larguras, 1):
+        visual.column_dimensions[get_column_letter(indice)].width = largura
+    visual.merge_cells("A1:J1")
+    c = visual["A1"]
+    c.value = "RECOM — Ronda Escolar Comunitária | Histórico de Atividades"
+    c.fill = PatternFill("solid", fgColor=AZUL_RECOM)
+    c.font = Font(bold=True, color="FFFFFF", size=15)
+    c.alignment = Alignment(vertical="center", horizontal="left")
+    visual.row_dimensions[1].height = 36
+    visual.freeze_panes = "A2"
 
-    dados = consultar_atividades(
-        request
-    )
-
-    response = HttpResponse(
-        content_type="text/csv; charset=utf-8"
-    )
-
-    response["Content-Disposition"] = (
-        'attachment; filename="historico_recom.csv"'
-    )
-
-    # BOM UTF-8 para preservar os acentos.
-
-    response.write("\ufeff")
-
-    writer = csv.writer(
-        response,
-        delimiter=";",
-    )
-
-    # -----------------------------------------------------
-    # CABEÇALHO
-    # -----------------------------------------------------
-
-    writer.writerow([
-
-        "Data",
-        "Horário",
-        "Atividade",
-        "Descrição",
-        "Local",
-        "Situação",
-        "Cartão Programa",
-        "Viatura",
-        "Equipe",
-        "Registrado por",
-        "Efetivo escalado",
-        "Relato",
-        "Providências",
-
+    base = wb.create_sheet("Base estatística")
+    base.append([
+        "Data", "Horário", "Cartão Programa", "Equipe da atividade",
+        "Viatura da atividade", "Efetivo escalado no CP (referência)",
+        "Tipo de registro", "Atividade realizada", "Local", "Situação",
+        "Registrado por", "Relato", "Providências",
     ])
+    escalas_aba = wb.create_sheet("Escalas do plantão")
+    escalas_aba.append(["Cartão Programa", "Equipe", "Viatura", "Efetivo escalado"])
 
-    # -----------------------------------------------------
-    # REGISTROS
-    # -----------------------------------------------------
-
-    def texto_seguro_csv(valor):
-
-        if isinstance(valor, str):
-
-            if valor.lstrip().startswith(
-                ("=", "+", "-", "@")
-            ):
-
-                return "'" + valor
-
-        return valor
-
-    for item in dados["atividades"]:
-
-        linha = [
-
-            formatar_data(
-                item["data"]
-            ),
-
-            formatar_hora(
-                item["horario"]
-            ),
-
-            item["tipo_label"],
-
-            item["descricao"],
-
-            item["local"],
-
-            item["situacao"],
-
-            item["cartao_programa"],
-
-            item["viatura"],
-
-            item["equipe"],
-
-            item["responsavel"],
-
-            texto_efetivo(
-                item["efetivo"]
-            ),
-
-            item["relato"],
-
-            item["providencias"],
-
+    for grupo in grupos:
+        detalhes = _detalhes_grupo(grupo, cache)
+        inicio = visual.max_row + 2
+        visual.merge_cells(start_row=inicio, start_column=1, end_row=inicio, end_column=10)
+        titulo = visual.cell(inicio, 1, _xlsx_seguro(grupo["titulo"]))
+        titulo.fill = PatternFill("solid", fgColor=AZUL_RECOM)
+        titulo.font = Font(bold=True, color="FFFFFF", size=12)
+        titulo.alignment = Alignment(vertical="center")
+        visual.row_dimensions[inicio].height = 26
+        campos = [
+            ("Equipe(s)", detalhes["equipes"]),
+            ("Viatura(s) escalada(s)", detalhes["viaturas"]),
+            ("Efetivo escalado no CP", detalhes["efetivo"]),
+            ("Total de atividades", len(grupo["atividades"])),
         ]
+        for indice, (rotulo, valor) in enumerate(campos, inicio + 1):
+            visual.merge_cells(start_row=indice, start_column=2, end_row=indice, end_column=10)
+            visual.cell(indice, 1, rotulo).font = Font(bold=True, color=AZUL_RECOM)
+            celula = visual.cell(indice, 2, _xlsx_seguro(valor))
+            celula.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+            visual.row_dimensions[indice].height = 34 if rotulo == "Efetivo escalado no CP" else 23
+        linha_cabecalho = inicio + 1 + len(campos)
+        for coluna, nome in enumerate(titulos, 1):
+            c = visual.cell(linha_cabecalho, coluna, nome)
+            c.fill = PatternFill("solid", fgColor=AZUL_RECOM)
+            c.font = Font(bold=True, color="FFFFFF")
+            c.alignment = Alignment(vertical="center", wrap_text=True)
+        visual.row_dimensions[linha_cabecalho].height = 32
 
-        writer.writerow([
+        for posicao, item in enumerate(grupo["atividades"], 1):
+            linha = visual.max_row + 1
+            valores = [
+                item["data"], item["horario"], item["tipo_label"],
+                item["descricao"], item["local"], item["situacao"],
+                item["viatura"], item["responsavel"],
+                item["relato"], item["providencias"],
+            ]
+            for coluna, valor in enumerate(valores, 1):
+                c = visual.cell(linha, coluna, _xlsx_seguro(valor))
+                c.alignment = Alignment(vertical="top", wrap_text=True)
+                if posicao % 2 == 0:
+                    c.fill = PatternFill("solid", fgColor="F3F6F9")
+            visual.cell(linha, 1).number_format = "DD/MM/YYYY"
+            visual.cell(linha, 2).number_format = "HH:MM"
+            visual.row_dimensions[linha].height = 35
+            base.append([_xlsx_seguro(v) for v in [
+                item["data"], item["horario"],
+                f'CP {grupo["cartao_id"]}' if grupo["cartao_id"] else "Não vinculado",
+                item["equipe"], item["viatura"], detalhes["efetivo"],
+                item["tipo_label"], item["descricao"], item["local"],
+                item["situacao"], item["responsavel"], item["relato"], item["providencias"],
+            ]])
+            base.cell(base.max_row, 1).number_format = "DD/MM/YYYY"
+            base.cell(base.max_row, 2).number_format = "HH:MM"
 
-            texto_seguro_csv(valor)
+        for escala in detalhes["escalas"]:
+            escalas_aba.append([
+                f'CP {grupo["cartao_id"]}',
+                _xlsx_seguro(escala["equipe"]),
+                _xlsx_seguro(escala["viatura"]),
+                _xlsx_seguro(_texto_escala(escala)),
+            ])
 
-            for valor in linha
+    _estilizar_aba(base, [16, 12, 22, 28, 25, 78, 24, 32, 38, 24, 28, 65, 65])
+    _estilizar_aba(escalas_aba, [22, 32, 24, 78])
+    resumo = wb.create_sheet("Resumo")
+    resumo.append(["Indicador", "Quantidade"])
+    for chave, rotulo in [
+        ("VISITA_PROGRAMADA", "Visitas programadas"),
+        ("VISITA_AVULSA", "Visitas avulsas"),
+        ("OCORRENCIA", "Ocorrências"),
+        ("MISSAO_NAO_REALIZADA", "Missões não realizadas"),
+    ]:
+        resumo.append([rotulo, sum(item["tipo"] == chave for item in atividades)])
+    resumo.append(["Total de atividades", len(atividades)])
+    resumo.append(["Cartões Programa com atividades", sum(g["cartao_id"] is not None for g in grupos)])
+    _estilizar_aba(resumo, [43, 19])
+    return _resposta_xlsx(wb, "historico_atividades_recom.xlsx")
 
-        ])
-
-    return response
-
-
-# =========================================================
-# EXPORTAR HISTÓRICO PDF
-# =========================================================
 
 @login_required
 def exportar_historico_pdf(request):
-
-    dados = consultar_atividades(
-        request
-    )
-
+    atividades = consultar_atividades(request)["atividades"]
+    grupos = _grupos_historico(atividades)
+    cache = {}
     buffer = BytesIO()
-
-    # -----------------------------------------------------
-    # CONFIGURAÇÃO DO DOCUMENTO
-    # -----------------------------------------------------
-
+    pagina = landscape(A4)
     documento = SimpleDocTemplate(
-
-        buffer,
-
-        pagesize=(
-            21 * cm,
-            29.7 * cm,
-        ),
-
-        rightMargin=1.5 * cm,
-
-        leftMargin=1.5 * cm,
-
-        topMargin=1.5 * cm,
-
-        bottomMargin=1.5 * cm,
-
-        title="Histórico de Atividades - RECOM",
-
+        buffer, pagesize=pagina,
+        leftMargin=8 * mm, rightMargin=8 * mm,
+        topMargin=12 * mm, bottomMargin=12 * mm,
+        title="Histórico de Atividades - RECOM", author="RECOM",
     )
-
     estilos = getSampleStyleSheet()
-
-    # -----------------------------------------------------
-    # ESTILO DO TÍTULO
-    # -----------------------------------------------------
-
-    estilos.add(
-
-        ParagraphStyle(
-
-            name="TituloRECOM",
-
-            parent=estilos["Heading1"],
-
-            alignment=TA_CENTER,
-
-            textColor=colors.HexColor(
-                "#092B49"
-            ),
-
-            spaceAfter=12,
-
-        )
-
+    titulo = ParagraphStyle(
+        "TituloHistoricoRECOM", parent=estilos["Heading1"],
+        fontName="Helvetica-Bold", fontSize=15, leading=19,
+        alignment=TA_CENTER, textColor=colors.HexColor("#092B49"),
+        spaceAfter=3 * mm,
+    )
+    subtitulo = ParagraphStyle(
+        "SubtituloHistoricoRECOM", parent=estilos["Normal"],
+        fontSize=10, leading=13, alignment=TA_CENTER, spaceAfter=3 * mm,
+    )
+    celula = ParagraphStyle(
+        "CelulaHistoricoRECOM", parent=estilos["Normal"],
+        fontName="Helvetica", fontSize=7.5, leading=10,
+        alignment=TA_LEFT, wordWrap="CJK",
+    )
+    cabecalho = ParagraphStyle(
+        "CabecalhoHistoricoRECOM", parent=celula,
+        fontName="Helvetica-Bold", textColor=colors.white,
+    )
+    grupo_estilo = ParagraphStyle(
+        "GrupoHistoricoRECOM", parent=estilos["Normal"],
+        fontName="Helvetica-Bold", fontSize=10, leading=13,
+        textColor=colors.HexColor("#092B49"),
+    )
+    detalhe_estilo = ParagraphStyle(
+        "DetalheHistoricoRECOM", parent=estilos["Normal"],
+        fontSize=9, leading=12,
     )
 
-    # -----------------------------------------------------
-    # ESTILO DO TEXTO
-    # -----------------------------------------------------
-
-    estilos.add(
-
-        ParagraphStyle(
-
-            name="TextoRECOM",
-
-            parent=estilos["BodyText"],
-
-            fontSize=9,
-
-            leading=13,
-
-            spaceAfter=5,
-
+    def p(valor, estilo=celula):
+        valor = "-" if valor is None or valor == "" else str(valor)
+        return Paragraph(
+            escape(valor).replace("\r\n", "\n").replace("\n", "<br/>"),
+            estilo,
         )
-
-    )
-
-    # -----------------------------------------------------
-    # CABEÇALHO
-    # -----------------------------------------------------
 
     elementos = [
-
-        Paragraph(
-
-            "RECOM - Histórico de Atividades",
-
-            estilos["TituloRECOM"],
-
-        ),
-
-        Paragraph(
-
-            f"Total de atividades: "
-            f"{len(dados['atividades'])}",
-
-            estilos["TextoRECOM"],
-
-        ),
-
-        Spacer(
-            1,
-            0.4 * cm,
-        ),
-
+        Paragraph("RECOM - Ronda Escolar Comunitária", titulo),
+        Paragraph("Histórico de Atividades", subtitulo),
+        Paragraph(f"Total de atividades encontradas: {len(atividades)}", subtitulo),
+        Spacer(1, 2 * mm),
     ]
-
-    # -----------------------------------------------------
-    # FUNÇÃO AUXILIAR
-    # -----------------------------------------------------
-
-    def paragrafo(rotulo, valor):
-
-        valor = escape(
-            str(valor or "-")
-        )
-
-        valor = valor.replace(
-            "\n",
-            "<br/>",
-        )
-
-        return Paragraph(
-
-            f"<b>{rotulo}:</b> {valor}",
-
-            estilos["TextoRECOM"],
-
-        )
-
-    # -----------------------------------------------------
-    # MONTAR ATIVIDADES
-    # -----------------------------------------------------
-
-    for item in dados["atividades"]:
-
-        detalhes = [
-
-            paragrafo(
-
-                "Data e horário",
-
-                (
-                    f"{formatar_data(item['data'])} "
-                    f"às {formatar_hora(item['horario'])}"
-                ),
-
-            ),
-
-            paragrafo(
-
-                "Atividade",
-
-                item["tipo_label"],
-
-            ),
-
-            paragrafo(
-
-                "Descrição",
-
-                item["descricao"],
-
-            ),
-
-            paragrafo(
-
-                "Local",
-
-                item["local"],
-
-            ),
-
-            paragrafo(
-
-                "Situação",
-
-                item["situacao"],
-
-            ),
-
-            paragrafo(
-
-                "Cartão Programa",
-
-                item["cartao_programa"],
-
-            ),
-
-            paragrafo(
-
-                "Viatura",
-
-                item["viatura"],
-
-            ),
-
-            paragrafo(
-
-                "Equipe",
-
-                item["equipe"],
-
-            ),
-
-            paragrafo(
-
-                "Registrado por",
-
-                item["responsavel"],
-
-            ),
-
-            paragrafo(
-
-                "Efetivo escalado",
-
-                texto_efetivo(
-                    item["efetivo"]
-                ),
-
-            ),
-
-            paragrafo(
-
-                "Relato",
-
-                item["relato"],
-
-            ),
-
-            paragrafo(
-
-                "Providências",
-
-                item["providencias"],
-
-            ),
-
-        ]
-
-        elementos.append(
-
-            KeepTogether([
-
-                *detalhes,
-
-                Spacer(
-                    1,
-                    0.25 * cm,
-                ),
-
+    largura_util = pagina[0] - 16 * mm
+    proporcoes = [0.075, 0.05, 0.105, 0.125, 0.135, 0.095, 0.085, 0.105, 0.11, 0.115]
+    larguras = [largura_util * fracao for fracao in proporcoes]
+    nomes = [
+        "Data", "Hora", "Tipo de registro", "Atividade", "Local",
+        "Situação", "Viatura", "Registrado por", "Relato", "Providências",
+    ]
+    if not grupos:
+        elementos.append(Paragraph("Nenhuma atividade encontrada.", subtitulo))
+    for grupo in grupos:
+        detalhes = _detalhes_grupo(grupo, cache)
+        elementos.append(p(grupo["titulo"], grupo_estilo))
+        elementos.append(p(f'Total de atividades deste grupo: {len(grupo["atividades"])}', detalhe_estilo))
+        if grupo["cartao_id"] is not None:
+            if detalhes["escalas"]:
+                for escala in detalhes["escalas"]:
+                    elementos.append(p(_texto_escala(escala), detalhe_estilo))
+            else:
+                elementos.append(p("Efetivo escalado não identificado.", detalhe_estilo))
+        else:
+            elementos.append(p("Sem vínculo com Cartão Programa; efetivo não atribuído.", detalhe_estilo))
+        elementos.append(Spacer(1, 2 * mm))
+        linhas = [[p(nome, cabecalho) for nome in nomes]]
+        for item in grupo["atividades"]:
+            linhas.append([
+                p(formatar_data(item["data"])),
+                p(formatar_hora(item["horario"])),
+                p(item["tipo_label"]), p(item["descricao"]), p(item["local"]),
+                p(item["situacao"]), p(item["viatura"]), p(item["responsavel"]),
+                p(item["relato"]), p(item["providencias"]),
             ])
+        tabela = LongTable(linhas, colWidths=larguras, repeatRows=1, hAlign="CENTER")
+        tabela.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#092B49")),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#CBD5DF")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 3),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1),
+             [colors.white, colors.HexColor("#F3F6F9")]),
+        ]))
+        elementos.append(tabela)
+        elementos.append(Spacer(1, 6 * mm))
 
-        )
+    def rodape(canvas, doc):
+        canvas.saveState()
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.HexColor("#555555"))
+        canvas.drawString(8 * mm, 7 * mm, "RECOM - Histórico de Atividades")
+        canvas.drawRightString(pagina[0] - 8 * mm, 7 * mm, f"Página {doc.page}")
+        canvas.restoreState()
 
-    # -----------------------------------------------------
-    # NENHUM REGISTRO
-    # -----------------------------------------------------
-
-    if not dados["atividades"]:
-
-        elementos.append(
-
-            Paragraph(
-
-                "Nenhuma atividade encontrada "
-                "para os filtros.",
-
-                estilos["TextoRECOM"],
-
-            )
-
-        )
-
-    # -----------------------------------------------------
-    # GERAR PDF
-    # -----------------------------------------------------
-
-    documento.build(
-        elementos
-    )
-
-    response = HttpResponse(
-
-        buffer.getvalue(),
-
-        content_type="application/pdf",
-
-    )
-
-    response["Content-Disposition"] = (
-        'attachment; filename="historico_recom.pdf"'
-    )
-
+    documento.build(elementos, onFirstPage=rodape, onLaterPages=rodape)
+    resposta = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    resposta["Content-Disposition"] = 'attachment; filename="historico_atividades_recom.pdf"'
     buffer.close()
-
-    return response
+    return resposta

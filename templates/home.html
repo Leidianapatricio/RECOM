@@ -1,12 +1,28 @@
+
 {% extends 'base.html' %}
 
+{% load static %}
 {% load i18n %}
+
+{% block title %}
+    RECOM - Ronda Escolar Comunitária
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/home.css' %}?v=1"
+>
+{% endblock %}
 
 {% block content %}
 
 <div class="home-recom">
 
-    <!-- APRESENTAÇÃO -->
+    <!-- ==========================================
+         APRESENTAÇÃO INSTITUCIONAL
+    ========================================== -->
+
     <section class="hero-recom">
 
         <div class="container">
@@ -35,22 +51,16 @@
 
                 </div>
 
-
                 <div class="col-lg-4">
 
                     <div class="hero-message">
-
                         {% trans "Educação" %}
                         <br>
-
                         {% trans "Segurança" %}
                         <br>
-
                         {% trans "Cidadania" %}
                         <br>
-
                         {% trans "Para um futuro melhor" %}
-
                     </div>
 
                 </div>
@@ -62,7 +72,214 @@
     </section>
 
 
-    <!-- FUNCIONALIDADES -->
+    <!-- ==========================================
+         CARROSSEL DE FOTOGRAFIAS
+    ========================================== -->
+
+    <section class="home-carousel-section">
+
+        <div class="container">
+
+            <div
+                id="carouselRecom"
+                class="carousel slide home-carousel"
+                data-bs-ride="carousel"
+                data-bs-interval="5500"
+                aria-label="{% trans 'Fotografias das atividades da RECOM' %}"
+            >
+
+                <div class="carousel-indicators">
+
+                    <button
+                        type="button"
+                        data-bs-target="#carouselRecom"
+                        data-bs-slide-to="0"
+                        class="active"
+                        aria-current="true"
+                        aria-label="Foto 1"
+                    ></button>
+
+                    <button
+                        type="button"
+                        data-bs-target="#carouselRecom"
+                        data-bs-slide-to="1"
+                        aria-label="Foto 2"
+                    ></button>
+
+                    <button
+                        type="button"
+                        data-bs-target="#carouselRecom"
+                        data-bs-slide-to="2"
+                        aria-label="Foto 3"
+                    ></button>
+
+                    <button
+                        type="button"
+                        data-bs-target="#carouselRecom"
+                        data-bs-slide-to="3"
+                        aria-label="Foto 4"
+                    ></button>
+
+                    <button
+                        type="button"
+                        data-bs-target="#carouselRecom"
+                        data-bs-slide-to="4"
+                        aria-label="Foto 5"
+                    ></button>
+
+                </div>
+
+                <div class="carousel-inner">
+
+                    <!-- FOTO 1 -->
+                    <div class="carousel-item active">
+
+                        <img
+                            src="{% static 'img/home/equipe_recom.jpg' %}"
+                            class="d-block w-100"
+                            alt="{% trans 'Equipe da Ronda Escolar Comunitária' %}"
+                            fetchpriority="high"
+                        >
+
+                        <div class="carousel-caption">
+                            <h3>
+                                {% trans "Ronda Escolar Comunitária" %}
+                            </h3>
+
+                            <p>
+                                {% trans "Presença, prevenção e compromisso com a segurança escolar." %}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- FOTO 2 -->
+                    <div class="carousel-item">
+
+                        <img
+                            src="{% static 'img/home/teatro_fantoches.jpg' %}"
+                            class="d-block w-100"
+                            alt="{% trans 'Atividade educativa com teatro de fantoches' %}"
+                            loading="lazy"
+                        >
+
+                        <div class="carousel-caption">
+                            <h3>
+                                {% trans "Educação e prevenção" %}
+                            </h3>
+
+                            <p>
+                                {% trans "Ações educativas que aproximam a RECOM da comunidade escolar." %}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- FOTO 3 -->
+                    <div class="carousel-item">
+
+                        <img
+                            src="{% static 'img/home/acao_educativa.jpg' %}"
+                            class="d-block w-100"
+                            alt="{% trans 'Ação educativa realizada pela RECOM' %}"
+                            loading="lazy"
+                        >
+
+                        <div class="carousel-caption">
+                            <h3>
+                                {% trans "Cidadania nas escolas" %}
+                            </h3>
+
+                            <p>
+                                {% trans "Diálogo e conscientização para fortalecer a convivência escolar." %}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- FOTO 4 -->
+                    <div class="carousel-item">
+
+                        <img
+                            src="{% static 'img/home/mediacao.jpg' %}"
+                            class="d-block w-100"
+                            alt="Atuação da RECOM em atividades de mediação"
+                        >
+
+                        <div class="carousel-caption">
+
+                            <h2>Mediação Escolar</h2>
+
+                            <p>
+                                Diálogo, prevenção e resolução pacífica de conflitos
+                                no ambiente escolar.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <!-- FOTO 5 -->
+                    <div class="carousel-item">
+
+                        <img
+                            src="{% static 'img/home/ronda_escolar.jpg' %}"
+                            class="d-block w-100"
+                            alt="{% trans 'Ronda Escolar Comunitária em atividade' %}"
+                            loading="lazy"
+                        >
+
+                        <div class="carousel-caption">
+                            <h3>
+                                {% trans "Segurança escolar" %}
+                            </h3>
+
+                            <p>
+                                {% trans "Acompanhamento e presença preventiva nas unidades escolares." %}
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <button
+                    class="carousel-control-prev"
+                    type="button"
+                    data-bs-target="#carouselRecom"
+                    data-bs-slide="prev"
+                    aria-label="{% trans 'Foto anterior' %}"
+                >
+                    <span
+                        class="carousel-control-prev-icon"
+                        aria-hidden="true"
+                    ></span>
+                </button>
+
+                <button
+                    class="carousel-control-next"
+                    type="button"
+                    data-bs-target="#carouselRecom"
+                    data-bs-slide="next"
+                    aria-label="{% trans 'Próxima foto' %}"
+                >
+                    <span
+                        class="carousel-control-next-icon"
+                        aria-hidden="true"
+                    ></span>
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         FUNCIONALIDADES
+    ========================================== -->
+
     <section class="features-section">
 
         <div class="container">
@@ -73,13 +290,15 @@
 
             <div class="features-title-line"></div>
 
-
             <div class="row g-3">
 
                 <!-- GESTÃO DE ESCOLAS -->
                 <div class="col-xl-3 col-md-6">
 
-                    <div class="feature-card">
+                    <a
+                        href="{% url 'core:institucional_escolas' %}"
+                        class="feature-card feature-card-link"
+                    >
 
                         <div class="feature-icon">
                             <i class="bi bi-building"></i>
@@ -93,15 +312,22 @@
                             {% trans "Cadastro, consulta e acompanhamento das unidades escolares atendidas pela Ronda Escolar Comunitária." %}
                         </p>
 
-                    </div>
+                        <span class="feature-more">
+                            {% trans "Saiba mais" %}
+                            <i class="bi bi-arrow-right"></i>
+                        </span>
+
+                    </a>
 
                 </div>
 
-
-                <!-- PROBLEMÁTICAS -->
+                <!-- REGISTRO DE PROBLEMÁTICAS -->
                 <div class="col-xl-3 col-md-6">
 
-                    <div class="feature-card">
+                    <a
+                        href="{% url 'core:institucional_problematicas' %}"
+                        class="feature-card feature-card-link"
+                    >
 
                         <div class="feature-icon">
                             <i class="bi bi-exclamation-triangle-fill"></i>
@@ -115,15 +341,22 @@
                             {% trans "Identificação e acompanhamento das principais situações que afetam o ambiente escolar." %}
                         </p>
 
-                    </div>
+                        <span class="feature-more">
+                            {% trans "Saiba mais" %}
+                            <i class="bi bi-arrow-right"></i>
+                        </span>
+
+                    </a>
 
                 </div>
 
-
-                <!-- VISITAS -->
+                <!-- REGISTRO DE VISITAS -->
                 <div class="col-xl-3 col-md-6">
 
-                    <div class="feature-card">
+                    <a
+                        href="{% url 'core:institucional_visitas' %}"
+                        class="feature-card feature-card-link"
+                    >
 
                         <div class="feature-icon">
                             <i class="bi bi-clipboard-check-fill"></i>
@@ -137,15 +370,22 @@
                             {% trans "Registro das rondas, visitas e ações realizadas pelas equipes da RECOM nas escolas." %}
                         </p>
 
-                    </div>
+                        <span class="feature-more">
+                            {% trans "Saiba mais" %}
+                            <i class="bi bi-arrow-right"></i>
+                        </span>
+
+                    </a>
 
                 </div>
-
 
                 <!-- ACOMPANHAMENTO -->
                 <div class="col-xl-3 col-md-6">
 
-                    <div class="feature-card">
+                    <a
+                        href="{% url 'core:institucional_acompanhamento' %}"
+                        class="feature-card feature-card-link"
+                    >
 
                         <div class="feature-icon">
                             <i class="bi bi-bar-chart-fill"></i>
@@ -159,14 +399,138 @@
                             {% trans "Consulta de históricos, indicadores e relatórios para apoiar o acompanhamento das ações." %}
                         </p>
 
-                    </div>
+                        <span class="feature-more">
+                            {% trans "Saiba mais" %}
+                            <i class="bi bi-arrow-right"></i>
+                        </span>
+
+                    </a>
 
                 </div>
 
             </div>
 
+        </div>
 
-            <!-- COMPROMISSO -->
+    </section>
+
+
+    <!-- ==========================================
+         RECOM EM AÇÃO - GALERIA
+    ========================================== -->
+
+    <section class="home-gallery-section">
+
+        <div class="container">
+
+            <h2 class="features-title">
+                {% trans "RECOM em Ação" %}
+            </h2>
+
+            <div class="features-title-line"></div>
+
+            <p class="home-section-description">
+                {% trans "Conheça algumas das atividades desenvolvidas pela Ronda Escolar Comunitária." %}
+            </p>
+
+            <div class="row g-3">
+
+                <div class="col-lg-4 col-md-6">
+                    <figure class="home-gallery-card">
+
+                        <img
+                            src="{% static 'img/home/teatro_fantoches2.jpg' %}"
+                            alt="{% trans 'Apresentação de teatro de fantoches' %}"
+                            loading="lazy"
+                        >
+
+                        <figcaption>
+                            {% trans "Teatro de fantoches" %}
+                        </figcaption>
+
+                    </figure>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <figure class="home-gallery-card">
+
+                        <img
+                            src="{% static 'img/home/visita_escolar.jpg' %}"
+                            alt="{% trans 'Visita realizada em unidade escolar' %}"
+                            loading="lazy"
+                        >
+
+                        <figcaption>
+                            {% trans "Visitas escolares" %}
+                        </figcaption>
+
+                    </figure>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <figure class="home-gallery-card">
+
+                        <img
+                            src="{% static 'img/home/acao_educativa.jpg' %}"
+                            alt="{% trans 'Ação educativa com a comunidade escolar' %}"
+                            loading="lazy"
+                        >
+
+                        <figcaption>
+                            {% trans "Ações educativas" %}
+                        </figcaption>
+
+                    </figure>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <figure class="home-gallery-card">
+
+                        <img
+                            src="{% static 'img/home/ronda_escolar.jpg' %}"
+                            alt="{% trans 'Ronda escolar preventiva' %}"
+                            loading="lazy"
+                        >
+
+                        <figcaption>
+                            {% trans "Rondas preventivas" %}
+                        </figcaption>
+
+                    </figure>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <figure class="home-gallery-card">
+
+                        <img
+                            src="{% static 'img/home/mediacao.jpg' %}"
+                            alt="{% trans 'Atividade de mediação de conflito' %}"
+                            loading="lazy"
+                        >
+
+                        <figcaption>
+                            {% trans "Mediação de conflitos" %}
+                        </figcaption>
+
+                    </figure>
+                </div>
+
+                
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         COMPROMISSO INSTITUCIONAL
+    ========================================== -->
+
+    <section class="home-commitment-section">
+
+        <div class="container">
+
             <div class="commitment-box">
 
                 <div class="row align-items-center g-3">
@@ -179,7 +543,6 @@
 
                     </div>
 
-
                     <div class="col-lg commitment-content">
 
                         <h4>
@@ -191,7 +554,6 @@
                         </p>
 
                     </div>
-
 
                     <div class="col-lg-3">
 

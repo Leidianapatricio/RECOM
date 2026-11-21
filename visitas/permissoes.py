@@ -1,9 +1,10 @@
+
 """Permissões compartilhadas de visitas escolares do RECOM."""
 
 from datetime import datetime
 
 from django.conf import settings
-from django.db.models import Q, F
+from django.db.models import Q
 from django.utils import timezone
 
 from cartao_programa.models import (
@@ -12,6 +13,8 @@ from cartao_programa.models import (
 )
 
 from usuarios.models import Usuario
+
+from .periodos import horario_compativel
 
 
 CORTE_PADRAO = "2026-11-05T00:00:00-03:00"
@@ -108,7 +111,6 @@ def visita_legada(visita):
             timezone.get_current_timezone(),
         )
 
-    # Visitas avulsas criadas até 15/11/2026.
     if not visita.missao_cartao_id:
 
         limite = datetime.fromisoformat(
@@ -117,7 +119,6 @@ def visita_legada(visita):
 
     else:
 
-        # Preserva a regra das visitas programadas.
         limite = limite_visitas_legadas()
 
     return criado < limite
@@ -204,6 +205,7 @@ def integrante_da_equipe_na_data(
         or not usuario.ativo
         or usuario.perfil != "GCM"
         or not visita.data_visita
+        or visita.horario is None
     ):
         return False
 
@@ -215,18 +217,26 @@ def integrante_da_equipe_na_data(
 
         missao = visita.missao_cartao
 
-        return (
+        if (
             missao.cartao.plantao_id
-            == missao.viatura.plantao_id
+            != missao.viatura.plantao_id
+        ):
+            return False
 
-            and missao.cartao.plantao.data
-            == visita.data_visita
+        # Verifica o período do plantão, considerando
+        # também a madrugada do dia seguinte.
 
-            and EfetivoViatura.objects.filter(
-                gcm_id=usuario.pk,
-                viatura_id=missao.viatura_id,
-            ).exists()
-        )
+        if not horario_compativel(
+            missao.cartao.plantao,
+            visita.data_visita,
+            visita.horario,
+        ):
+            return False
+
+        return EfetivoViatura.objects.filter(
+            gcm_id=usuario.pk,
+            viatura_id=missao.viatura_id,
+        ).exists()
 
     # -----------------------------------------------------
     # VISITAS AVULSAS
@@ -236,14 +246,16 @@ def integrante_da_equipe_na_data(
 
         cartao = visita.cartao_programa
 
-        return (
-            cartao.plantao.data
-            == visita.data_visita
+        if not horario_compativel(
+            cartao.plantao,
+            visita.data_visita,
+            visita.horario,
+        ):
+            return False
 
-            and integrante_do_cartao_programa(
-                cartao,
-                usuario,
-            )
+        return integrante_do_cartao_programa(
+            cartao,
+            usuario,
         )
 
     return False
@@ -266,6 +278,7 @@ def _pode_alterar_visita(
         return False
 
     # ADMINISTRADOR E COORDENADOR
+
     if gestor_de_visitas(request, usuario):
         return True
 
@@ -280,11 +293,13 @@ def _pode_alterar_visita(
         return False
 
     # VISITAS LEGADAS
+
     if visita_legada(visita):
         return True
 
     # AUTOR DA VISITA AVULSA
-    # Pode editar e excluir, mesmo sem Cartão Programa.
+    # Mantém a regra original, inclusive quando
+    # a visita não possui Cartão Programa.
 
     if (
         not visita.missao_cartao_id
@@ -293,6 +308,7 @@ def _pode_alterar_visita(
         return True
 
     # INTEGRANTES DA ESCALA
+
     return integrante_da_equipe_na_data(
         visita,
         usuario,
@@ -353,11 +369,18 @@ def filtro_visitas_avulsas_gcm(usuario):
         "viatura__plantao_id"
     )
 
+    # Cartões associados aos plantões do GCM.
+    #
+    # O filtro SQL identifica os cartões permitidos.
+    # A validação precisa do intervalo de horário
+    # permanece em integrante_da_equipe_na_data().
+
     return Q(
         missao_cartao__isnull=True
     ) & (
 
         # Visitas avulsas legadas.
+
         Q(
             criado_em__lt=datetime.fromisoformat(
                 CORTE_VISITAS_AVULSAS
@@ -365,15 +388,15 @@ def filtro_visitas_avulsas_gcm(usuario):
         )
 
         # Visitas registradas pelo próprio GCM.
+
         | Q(
             registrado_por_id=usuario.pk
         )
 
-        # Visitas dos integrantes do mesmo cartão.
+        # Visitas compartilhadas com os integrantes
+        # do Cartão Programa, inclusive na madrugada.
+
         | Q(
             cartao_programa__plantao_id__in=plantoes,
-            cartao_programa__plantao__data=F(
-                "data_visita"
-            ),
         )
     )

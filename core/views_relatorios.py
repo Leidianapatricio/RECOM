@@ -1,7 +1,11 @@
 
-import csv
-from datetime import date
+from datetime import date, time
 from io import BytesIO
+from collections import OrderedDict
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
 from xml.sax.saxutils import escape
 
 from django.contrib.auth.decorators import login_required
@@ -26,6 +30,7 @@ from reportlab.platypus import (
 )
 
 from escolas.models import Escola, EscolaProblematica, TipoProblematica
+from cartao_programa.models import EfetivoViatura
 from usuarios.models import Usuario
 from visitas.models import RondaVisita
 
@@ -132,7 +137,7 @@ def _visitas_permitidas(request):
 
 def _consultar_visitas(request):
     """
-    Consulta compartilhada pela tela, PDF e CSV.
+    Consulta compartilhada pela tela, PDF e XLSX.
 
     Todos os filtros são aplicados antes da paginação.
     """
@@ -444,55 +449,154 @@ def relatorio_problematicas(request):
     )
 
 
+
+
+def _xlsx_seguro(valor):
+    """Evita interpretação de texto externo como fórmula no Excel/Sheets."""
+    if valor is None:
+        return ""
+    if isinstance(valor, str):
+        valor = valor.replace("\x00", "")
+        if valor.lstrip().startswith(("=", "+", "-", "@")):
+            return "'" + valor
+        return valor
+    return valor
+
+
+def _estilizar_aba(aba, larguras=None):
+    aba.freeze_panes = "A2"
+    aba.auto_filter.ref = aba.dimensions
+    for celula in aba[1]:
+        celula.fill = PatternFill("solid", fgColor="092B49")
+        celula.font = Font(bold=True, color="FFFFFF")
+        celula.alignment = Alignment(wrap_text=True, vertical="center")
+    aba.row_dimensions[1].height = 30
+    for indice, largura in enumerate(larguras or [], 1):
+        aba.column_dimensions[get_column_letter(indice)].width = largura
+    for linha in aba.iter_rows(min_row=2):
+        for celula in linha:
+            celula.alignment = Alignment(vertical="top", wrap_text=True)
+
+
+def _resposta_xlsx(workbook, nome):
+    memoria = BytesIO()
+    workbook.save(memoria)
+    resposta = HttpResponse(
+        memoria.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    resposta["Content-Disposition"] = f'attachment; filename="{nome}"'
+    return resposta
+
 # =============================================================
-# AGRUPAMENTO POR CARTÃO PROGRAMA / VIATURA
+# AGRUPAMENTO POR CARTÃO PROGRAMA (SEM REPETIR CABEÇALHOS)
 # =============================================================
+
+ORDEM_FUNCOES = {"C": 0, "M": 1, "P1": 2, "P2": 3}
+
+
+def _cartao_da_visita(visita):
+    """Usa o cartão da missão ou o vínculo direto da visita avulsa."""
+    if visita.missao_cartao_id:
+        return visita.missao_cartao.cartao
+    return visita.cartao_programa
+
+
+def _viatura_da_visita(visita):
+    """Nunca deduz viatura a partir do cartão ou do plantão."""
+    if visita.viatura_id:
+        return visita.viatura
+    if visita.missao_cartao_id:
+        return visita.missao_cartao.viatura
+    return None
+
+
+def _nome_equipe_visita(visita):
+    viatura = _viatura_da_visita(visita)
+    if viatura and viatura.equipe_id:
+        return viatura.equipe.nome
+    return visita.get_equipe_display() if visita.equipe else "Não informada"
+
+
+def _texto_efetivo(efetivo):
+    return " | ".join(
+        f"{item.funcao}: {item.gcm.nome}"
+        for item in efetivo if item.gcm_id
+    ) or "Não identificado"
+
+
+def _escalas_do_plantao(plantao_id):
+    """Retorna efetivos por viatura; não atribui uma escala a visitas avulsas."""
+    escalas = (
+        EfetivoViatura.objects
+        .filter(viatura__plantao_id=plantao_id)
+        .select_related("gcm", "viatura", "viatura__equipe")
+        .order_by("viatura_id", "gcm__nome")
+    )
+    por_viatura = OrderedDict()
+    for escala in escalas:
+        vid = escala.viatura_id
+        if vid not in por_viatura:
+            v = escala.viatura
+            por_viatura[vid] = {
+                "viatura": v,
+                "equipe": v.equipe.nome if v.equipe_id else "Não informada",
+                "efetivo": [],
+            }
+        por_viatura[vid]["efetivo"].append(escala)
+    for dados in por_viatura.values():
+        dados["efetivo"].sort(
+            key=lambda item: (ORDEM_FUNCOES.get(item.funcao, 9), item.gcm.nome if item.gcm_id else "")
+        )
+    return list(por_viatura.values())
+
 
 def _grupos_visitas(visitas):
-    """Agrupa registros por missão vinculada à viatura do plantão.
-
-    Os registros avulsos permanecem em grupo próprio. A ordem dos
-    grupos segue a primeira ocorrência no conjunto recebido.
-    """
-    grupos = {}
+    """Um grupo por CP; visitas sem CP em grupo independente."""
+    grupos = OrderedDict()
     for visita in visitas:
-        missao = visita.missao_cartao
-        viatura = missao.viatura if missao else None
-        chave = (missao.cartao_id, viatura.pk) if missao else (None, None)
-
+        cartao = _cartao_da_visita(visita)
+        chave = ("cp", cartao.pk) if cartao else ("sem_cp", None)
         if chave not in grupos:
-            if viatura:
-                efetivo = sorted(
-                    viatura.efetivo.all(),
-                    key=lambda item: {"C": 0, "M": 1, "P1": 2, "P2": 3}.get(item.funcao, 9)
-                )
-                titulo = (
-                    f"Cartão Programa {missao.cartao.plantao.data:%d/%m/%Y}"
-                    f" — VTR {viatura.identificacao}"
-                )
-                equipe = viatura.equipe.nome if viatura.equipe_id else "Equipe não informada"
+            if cartao:
+                titulo = f"CP {cartao.pk} — {cartao.plantao.data:%d/%m/%Y}"
+                escalas = _escalas_do_plantao(cartao.plantao_id)
             else:
-                efetivo = []
-                titulo = "Visitas sem missão vinculada"
-                equipe = "Não se aplica"
-
+                titulo = "Visitas sem Cartão Programa"
+                escalas = []
             grupos[chave] = {
+                "cartao": cartao,
                 "titulo": titulo,
-                "equipe": equipe,
-                "efetivo": efetivo,
+                "escalas": escalas,
                 "visitas": [],
             }
         grupos[chave]["visitas"].append(visita)
-    return list(grupos.values())
+
+    resultado = list(grupos.values())
+    for grupo in resultado:
+        grupo["visitas"].sort(
+            key=lambda v: (v.data_visita, v.horario or time.min, v.pk)
+        )
+    return resultado
+
+
+def _efetivo_escalado_cp(escalas):
+    """Lista as guarnições escaladas no CP, sem atribuí-las à visita."""
+    if not escalas:
+        return "Não identificado"
+    return " | ".join(
+        f"{escala['equipe']} / {escala['viatura'].identificacao}: "
+        f"{_texto_efetivo(escala['efetivo'])}"
+        for escala in escalas
+    )
 
 
 def _visitas_com_efetivo(visitas):
-    """Evita consultas repetidas ao buscar os integrantes das viaturas."""
+    """Carrega relações necessárias para relatório, evitando consultas por linha."""
     return visitas.select_related(
-        "escola", "missao_cartao__cartao__plantao",
-        "missao_cartao__viatura__equipe"
-    ).prefetch_related(
-        "missao_cartao__viatura__efetivo__gcm"
+        "escola", "cartao_programa__plantao", "viatura__equipe",
+        "missao_cartao__cartao__plantao",
+        "missao_cartao__viatura__equipe",
     )
 
 
@@ -561,146 +665,164 @@ def relatorio_visitas(request):
 
 
 # =============================================================
-# EXPORTAÇÃO CSV - VISITAS COM EFETIVO DESIGNADO
+# EXPORTAÇÃO XLSX - VISITAS / ESCALAS / RESUMO
 # =============================================================
 
 @login_required
-def exportar_visitas_csv(request):
-
-    # Mantém os filtros e as permissões já existentes.
-    visitas, filtros = _consultar_visitas(request)
-
-    resposta = HttpResponse(
-        content_type="text/csv; charset=utf-8"
-    )
-
-    resposta["Content-Disposition"] = (
-        'attachment; filename="relatorio_visitas_recom.csv"'
-    )
-
-    # BOM para reconhecimento de UTF-8 pelo Excel.
-    resposta.write("\ufeff")
-
-    escritor = csv.writer(
-        resposta,
-        delimiter=";"
-    )
-
-    # ==========================================
-    # CABEÇALHO DAS VISITAS
-    # ==========================================
-
-    cabecalho = [
-        "Data",
-        "Horário",
-        "Escola",
-        "Polo",
-        "Equipe",
-        "Tipo de visita",
-        "Situação",
-        "Relato",
-        "Orientações / Providências",
+def exportar_visitas_xlsx(request):
+    """Relatório visual por CP e base tabular independente para estatísticas."""
+    visitas, _ = _consultar_visitas(request)
+    grupos = _grupos_visitas(_visitas_com_efetivo(visitas))
+    workbook = Workbook()
+    aba = workbook.active
+    aba.title = "Visitas por cartão"
+    azul = "092B49"
+    claro = "EAF0F5"
+    titulos = [
+        "Data", "Horário", "Escola", "Polo", "Tipo de registro",
+        "Atividade realizada", "Situação", "Viatura da visita",
+        "Relato", "Providências",
     ]
+    larguras = [16, 12, 34, 16, 23, 30, 22, 23, 58, 58]
+    for i, largura in enumerate(larguras, 1):
+        aba.column_dimensions[get_column_letter(i)].width = largura
+    aba.sheet_view.showGridLines = False
+    aba.merge_cells("A1:J1")
+    aba["A1"] = "RECOM — Ronda Escolar Comunitária | Relatório de Visitas"
+    aba["A1"].font = Font(bold=True, color="FFFFFF", size=15)
+    aba["A1"].fill = PatternFill("solid", fgColor=azul)
+    aba["A1"].alignment = Alignment(vertical="center")
+    aba.row_dimensions[1].height = 34
+    aba.freeze_panes = "A2"
 
-    # ==========================================
-    # AGRUPAR VISITAS POR CARTÃO PROGRAMA / VTR
-    # ==========================================
-
-    # Reutiliza as funções que já identificam
-    # o efetivo e organizam os grupos do PDF.
-    visitas_com_efetivo = _visitas_com_efetivo(
-        visitas
-    )
-
-    grupos = _grupos_visitas(
-        visitas_com_efetivo
-    )
-
-    # ==========================================
-    # ESCREVER CADA GRUPO NO CSV
-    # ==========================================
+    base = workbook.create_sheet("Base estatística")
+    base.append([
+        "Data", "Horário", "Cartão Programa", "Data do plantão",
+        "Equipe", "Viatura da visita", "Efetivo escalado no CP",
+        "Escola", "Polo", "Tipo de registro", "Atividade realizada",
+        "Situação", "Relato", "Providências",
+    ])
+    total = 0
+    avulsas = 0
 
     for grupo in grupos:
-
-        # Linha em branco entre grupos.
-        escritor.writerow([])
-
-        # Identificação do Cartão Programa e viatura.
-        escritor.writerow([
-            "Cartão Programa / Viatura",
-            grupo["titulo"],
-        ])
-
-        # Identificação da equipe.
-        escritor.writerow([
-            "Equipe designada",
-            grupo["equipe"],
-        ])
-
-        # Efetivo designado.
-        efetivo = []
-
-        for integrante in grupo["efetivo"]:
-
-            funcao = integrante.funcao
-
-            nome = (
-                integrante.gcm.nome
-                if integrante.gcm
-                else "Não identificado"
+        cartao = grupo["cartao"]
+        escalas = grupo["escalas"]
+        escalas_por_viatura = {e["viatura"].pk: e for e in escalas}
+        efetivo_cp = _efetivo_escalado_cp(escalas) if cartao else "Sem CP"
+        equipes = list(dict.fromkeys(e["equipe"] for e in escalas))
+        equipe_cabecalho = ", ".join(equipes) if equipes else "Não identificada"
+        viaturas = ", ".join(e["viatura"].identificacao for e in escalas) or "Não identificadas"
+        titulo_grupo = grupo["titulo"]
+        inicio = aba.max_row + 2
+        aba.merge_cells(start_row=inicio, start_column=1, end_row=inicio, end_column=10)
+        c = aba.cell(inicio, 1, titulo_grupo)
+        c.font = Font(bold=True, color="FFFFFF", size=12)
+        c.fill = PatternFill("solid", fgColor=azul)
+        aba.row_dimensions[inicio].height = 25
+        detalhes = (
+            [("Equipe(s)", equipe_cabecalho), ("Viatura(s) escalada(s)", viaturas),
+             ("Efetivo escalado no CP", efetivo_cp)]
+            if cartao else [("Vínculo", "Visitas sem Cartão Programa; sem efetivo atribuído")]
+        )
+        detalhes.append(("Total de visitas", len(grupo["visitas"])))
+        for indice, (rotulo, valor) in enumerate(detalhes, inicio + 1):
+            aba.merge_cells(start_row=indice, start_column=2, end_row=indice, end_column=10)
+            aba.cell(indice, 1, rotulo).font = Font(bold=True, color=azul)
+            c = aba.cell(indice, 2, _xlsx_seguro(valor))
+            c.alignment = Alignment(
+                horizontal="left",
+                vertical="center",
+                wrap_text=True,
             )
-
-            efetivo.append(
-                f"{funcao}: {nome}"
-            )
-
-        escritor.writerow([
-            "Efetivo designado",
-            " | ".join(efetivo)
-            if efetivo
-            else "Não identificado",
-        ])
-
-        # Linha em branco antes da tabela.
-        escritor.writerow([])
-
-        # Cabeçalho da tabela de visitas.
-        escritor.writerow(cabecalho)
-
-        # ======================================
-        # REGISTROS DE VISITAS DO GRUPO
-        # ======================================
-
+            aba.row_dimensions[indice].height = 32 if rotulo == "Efetivo escalado no CP" else 22
+        cab = inicio + 1 + len(detalhes)
+        for coluna, nome in enumerate(titulos, 1):
+            c = aba.cell(cab, coluna, nome)
+            c.font = Font(bold=True, color="FFFFFF")
+            c.fill = PatternFill("solid", fgColor=azul)
+            c.alignment = Alignment(wrap_text=True, vertical="center")
+        aba.row_dimensions[cab].height = 30
         for visita in grupo["visitas"]:
+            viatura = _viatura_da_visita(visita)
+            escala_visita = escalas_por_viatura.get(viatura.pk) if viatura else None
+            if escala_visita:
+                nome_equipe = escala_visita["equipe"]
+            elif cartao and len(equipes) == 1:
+                nome_equipe = equipes[0]
+            else:
+                nome_equipe = _nome_equipe_visita(visita)
+            programada = bool(visita.missao_cartao_id)
+            tipo = "Visita programada" if programada else "Visita avulsa"
+            total += 1
+            avulsas += int(not programada)
+            dados = (
+                visita.data_visita, visita.horario, visita.escola.nome,
+                visita.escola.get_polo_display(), tipo,
+                visita.get_tipo_visita_display(), visita.get_situacao_display(),
+                viatura.identificacao if viatura else "Não identificada",
+                visita.relato or "", visita.orientacoes or "",
+            )
+            linha = aba.max_row + 1
+            for coluna, valor in enumerate(dados, 1):
+                c = aba.cell(linha, coluna, _xlsx_seguro(valor))
+                c.alignment = Alignment(wrap_text=True, vertical="top")
+                if (linha - cab) % 2 == 0:
+                    c.fill = PatternFill("solid", fgColor="F3F6F9")
+            aba.cell(linha, 1).number_format = "DD/MM/YYYY"
+            aba.cell(linha, 2).number_format = "HH:MM"
+            aba.row_dimensions[linha].height = 32
+            base.append([_xlsx_seguro(v) for v in (
+                visita.data_visita, visita.horario,
+                f"CP {cartao.pk}" if cartao else "Não vinculado",
+                cartao.plantao.data if cartao else None,
+                nome_equipe, viatura.identificacao if viatura else "Não identificada",
+                efetivo_cp, visita.escola.nome, visita.escola.get_polo_display(),
+                tipo, visita.get_tipo_visita_display(), visita.get_situacao_display(),
+                visita.relato or "", visita.orientacoes or "",
+            )])
+            base.cell(base.max_row, 1).number_format = "DD/MM/YYYY"
+            base.cell(base.max_row, 2).number_format = "HH:MM"
+            base.cell(base.max_row, 4).number_format = "DD/MM/YYYY"
 
-            escritor.writerow([
-                visita.data_visita.strftime("%d/%m/%Y"),
-                (
-                    visita.horario.strftime("%H:%M")
-                    if visita.horario
-                    else ""
-                ),
-                visita.escola.nome,
-                visita.escola.get_polo_display(),
-                visita.get_equipe_display(),
-                visita.get_tipo_visita_display(),
-                visita.get_situacao_display(),
-                visita.relato or "",
-                visita.orientacoes or "",
+    _estilizar_aba(base, [15, 12, 20, 19, 30, 24, 75, 34, 16, 22, 29, 22, 65, 65])
+    escalas_aba = workbook.create_sheet("Escalas do plantão")
+    escalas_aba.append(["Cartão Programa", "Data do plantão", "Viatura", "Equipe", "Efetivo escalado"])
+    for grupo in grupos:
+        cartao = grupo["cartao"]
+        if not cartao:
+            continue
+        for escala in grupo["escalas"]:
+            escalas_aba.append([
+                f"CP {cartao.pk}", cartao.plantao.data,
+                _xlsx_seguro(escala["viatura"].identificacao),
+                _xlsx_seguro(escala["equipe"]),
+                _xlsx_seguro(_texto_efetivo(escala["efetivo"])),
             ])
+            escalas_aba.cell(escalas_aba.max_row, 2).number_format = "DD/MM/YYYY"
+    _estilizar_aba(escalas_aba, [22, 20, 24, 34, 65])
+    resumo = workbook.create_sheet("Resumo")
+    resumo.append(["Indicador", "Quantidade"])
+    resumo.append(["Visitas programadas", total - avulsas])
+    resumo.append(["Visitas avulsas", avulsas])
+    resumo.append(["Total de visitas", total])
+    resumo.append(["Cartões Programa com visitas", sum(bool(g["cartao"]) for g in grupos)])
+    _estilizar_aba(resumo, [38, 18])
+    return _resposta_xlsx(workbook, "relatorio_visitas_recom.xlsx")
 
-    return resposta
+
+# Compatibilidade temporária com URLs antigas.
+exportar_visitas_csv = exportar_visitas_xlsx
 
 
 # =============================================================
-# EXPORTAÇÃO PDF
+# EXPORTAÇÃO PDF - CABEÇALHO ÚNICO POR CARTÃO
 # =============================================================
 
 @login_required
 def exportar_visitas_pdf(request):
     visitas, _ = _consultar_visitas(request)
-    visitas = _visitas_com_efetivo(visitas)
-    grupos = _grupos_visitas(visitas)
+    grupos = _grupos_visitas(_visitas_com_efetivo(visitas))
     total_visitas = sum(len(grupo["visitas"]) for grupo in grupos)
 
     buffer = BytesIO()
@@ -725,7 +847,7 @@ def exportar_visitas_pdf(request):
     )
     celula = ParagraphStyle(
         "CelulaRECOM", parent=estilos["Normal"],
-        fontName="Helvetica", fontSize=9, leading=12,
+        fontName="Helvetica", fontSize=8, leading=10,
         alignment=TA_LEFT, wordWrap="CJK",
     )
     cabecalho = ParagraphStyle(
@@ -737,8 +859,8 @@ def exportar_visitas_pdf(request):
         fontName="Helvetica-Bold", fontSize=10, leading=13,
         textColor=colors.HexColor("#092B49"),
     )
-    efetivo_estilo = ParagraphStyle(
-        "EfetivoRECOM", parent=estilos["Normal"],
+    detalhe_estilo = ParagraphStyle(
+        "DetalheRECOM", parent=estilos["Normal"],
         fontSize=9, leading=12,
     )
 
@@ -753,36 +875,47 @@ def exportar_visitas_pdf(request):
         Spacer(1, 2 * mm),
     ]
     largura_util = pagina[0] - 16 * mm
-    proporcoes = [0.085, 0.055, 0.15, 0.05, 0.07, 0.09, 0.10, 0.20, 0.20]
+    proporcoes = [0.085, 0.055, 0.16, 0.055, 0.11, 0.08, 0.105, 0.175, 0.175]
     larguras = [largura_util * p for p in proporcoes]
-    nomes = ["Data", "Hora", "Escola", "Polo", "Equipe", "Tipo",
-             "Situação", "Relato", "Orientações / Providências"]
+    nomes = [
+        "Data", "Hora", "Escola", "Polo", "Atividade", "Viatura",
+        "Situação", "Relato", "Orientações / Providências",
+    ]
 
     if not grupos:
         elementos.append(Paragraph("Nenhuma visita encontrada.", subtitulo))
 
     for grupo in grupos:
         elementos.append(Paragraph(escape(grupo["titulo"]), grupo_estilo))
-        elementos.append(Paragraph("Equipe: " + escape(grupo["equipe"]), efetivo_estilo))
-        if grupo["efetivo"]:
-            texto_efetivo = " | ".join(
-                f"{escape(item.funcao)}: {escape(item.gcm.nome)}"
-                for item in grupo["efetivo"]
-            )
+        elementos.append(Paragraph(
+            f"Total de visitas deste grupo: {len(grupo['visitas'])}", detalhe_estilo
+        ))
+        if grupo["cartao"]:
+            if grupo["escalas"]:
+                for escala in grupo["escalas"]:
+                    linha = (
+                        f"{escala['equipe']} — {escala['viatura'].identificacao} — "
+                        f"Efetivo: {_texto_efetivo(escala['efetivo'])}"
+                    )
+                    elementos.append(paragrafo(linha, detalhe_estilo))
+            else:
+                elementos.append(Paragraph("Efetivo escalado não identificado.", detalhe_estilo))
         else:
-            texto_efetivo = "Efetivo não vinculado" if grupo["titulo"].startswith("Cartão") else "Efetivo não identificado (visita avulsa)"
-        elementos.append(Paragraph("Efetivo: " + texto_efetivo, efetivo_estilo))
+            elementos.append(Paragraph(
+                "Sem vínculo com Cartão Programa; efetivo não atribuído.", detalhe_estilo
+            ))
         elementos.append(Spacer(1, 2 * mm))
 
         dados = [[paragrafo(nome, cabecalho) for nome in nomes]]
         for visita in grupo["visitas"]:
+            viatura = _viatura_da_visita(visita)
             dados.append([
                 paragrafo(visita.data_visita.strftime("%d/%m/%Y")),
                 paragrafo(visita.horario.strftime("%H:%M") if visita.horario else ""),
                 paragrafo(visita.escola.nome),
                 paragrafo(visita.escola.get_polo_display()),
-                paragrafo(visita.get_equipe_display()),
                 paragrafo(visita.get_tipo_visita_display()),
+                paragrafo(viatura.identificacao if viatura else "Não identificada"),
                 paragrafo(visita.get_situacao_display()),
                 paragrafo(visita.relato),
                 paragrafo(visita.orientacoes),

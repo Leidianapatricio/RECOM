@@ -3,6 +3,9 @@ import unicodedata
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+
+from .periodos import filtrar_cartoes_por_momento, horario_compativel
 
 from cartao_programa.models import ViaturaPlantao
 from usuarios.models import Usuario
@@ -203,7 +206,6 @@ def dados_da_missao(missao):
         "escola": missao.escola,
         "viatura": missao.viatura,
         "equipe": codigo_equipe,
-        "data_visita": missao.cartao.plantao.data,
         "tipo_visita": tipo_visita,
     }
 
@@ -343,6 +345,10 @@ class RondaVisitaForm(forms.ModelForm):
 
         self.missao = missao
         self.usuario_logado = usuario_logado
+        if not self.is_bound and not self.instance.pk:
+            agora = timezone.localtime()
+            self.initial.setdefault("data_visita", agora.date())
+            self.initial.setdefault("horario", agora.time().replace(second=0, microsecond=0))
 
         # -------------------------------------------------
         # CARTÕES PROGRAMA DISPONÍVEIS
@@ -369,8 +375,8 @@ class RondaVisitaForm(forms.ModelForm):
         )
 
         self.fields["cartao_programa"].help_text = (
-            "Selecione o Cartão Programa correspondente "
-            "à data da visita, caso esteja escalado."
+            "Cartão correspondente ao dia e horário da visita, "
+            "inclusive plantão ordinário iniciado no dia anterior."
         )
 
         # Impede a transferência de registros existentes
@@ -396,8 +402,6 @@ class RondaVisitaForm(forms.ModelForm):
             self.initial["cartao_programa"] = cartao_id
 
             if self.instance.pk and cartao_id:
-
-                self.fields["data_visita"].disabled = True
 
                 self.fields["equipe"].disabled = True
 
@@ -561,75 +565,43 @@ class RondaVisitaForm(forms.ModelForm):
             "data_visita"
         )
 
-        # Identifica automaticamente o cartão quando
-        # o GCM possui apenas uma escala na data da visita.
+        horario = cleaned_data.get("horario")
+        if cartao is not None and data_visita and horario is not None:
+            if not horario_compativel(cartao.plantao, data_visita, horario):
+                self.add_error(
+                    "cartao_programa",
+                    "O Cartão Programa não corresponde à data e ao horário "
+                    "da visita. Para o extraordinário, somente a data do "
+                    "plantão pode ser validada até cadastrarmos seus horários.",
+                )
 
         if (
             not self.instance.pk
             and data_visita
-            and not cartao
+            and horario is not None
+            and cartao is None
             and "cartao_programa" not in self.errors
         ):
-
-            disponiveis = cartoes_disponiveis(
-                self.usuario_logado
-            ).filter(
-                plantao__data=data_visita
-            )
-
             auth = self.usuario_logado
-
             eh_gcm = (
                 auth is not None
                 and auth.is_authenticated
                 and auth.is_active
                 and not auth.is_superuser
                 and Usuario.objects.filter(
-                    user=auth,
-                    ativo=True,
-                    perfil="GCM",
+                    user=auth, ativo=True, perfil="GCM"
                 ).exists()
             )
-
             if eh_gcm:
-
-                opcoes = list(
-                    disponiveis[:2]
-                )
-
+                opcoes = list(filtrar_cartoes_por_momento(
+                    cartoes_disponiveis(auth), data_visita, horario
+                ).order_by("pk")[:2])
                 if len(opcoes) == 1:
-
-                    cartao = opcoes[0]
-
-                    cleaned_data["cartao_programa"] = (
-                        cartao
-                    )
-
+                    cleaned_data["cartao_programa"] = opcoes[0]
                 elif len(opcoes) > 1:
-
                     self.add_error(
                         "cartao_programa",
-                        "Selecione o Cartão Programa "
-                        "da sua escala nesta data."
+                        "Há mais de um Cartão Programa compatível. Selecione o correto.",
                     )
-
-                # Se não estiver escalado, a visita
-                # permanece sem Cartão Programa.
-
-        # -------------------------------------------------
-        # VALIDAR DATA DO CARTÃO PROGRAMA
-        # -------------------------------------------------
-
-        if (
-            cartao is not None
-            and data_visita is not None
-            and cartao.plantao.data != data_visita
-        ):
-
-            self.add_error(
-                "cartao_programa",
-                "Selecione um Cartão Programa "
-                "correspondente à data da visita."
-            )
 
         return cleaned_data

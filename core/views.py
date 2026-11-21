@@ -504,3 +504,35 @@ def dashboard_mediador(request):
         "dashboard/mediador.html",
         contexto
     )
+
+# =========================================================
+# PÁGINAS INSTITUCIONAIS PÚBLICAS
+# =========================================================
+
+def institucional_escolas(request):
+    return render(
+        request,
+        "core/institucional/escolas.html"
+    )
+
+
+def institucional_problematicas(request):
+    return render(
+        request,
+        "core/institucional/problematicas.html"
+    )
+
+
+def institucional_visitas(request):
+    return render(
+        request,
+        "core/institucional/visitas.html"
+    )
+
+
+def institucional_acompanhamento(request):
+    return render(
+        request,
+        "core/institucional/acompanhamento.html"
+    )
+

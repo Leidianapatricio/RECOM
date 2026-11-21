@@ -1,0 +1,106 @@
+
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}
+Registro de Visitas | RECOM
+{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'css/institucional.css' %}?v=3"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="institucional-recom">
+
+    <div class="container">
+
+        <!-- CABEÇALHO -->
+        <section class="institucional-hero">
+
+            <div class="institucional-hero-titulo">
+
+                <i class="bi bi-clipboard-check"></i>
+
+                <h1>
+                    {% trans "Registro de Visitas" %}
+                </h1>
+
+            </div>
+
+            <p>
+                {% trans "Registro das rondas, visitas e atividades realizadas pelas equipes da RECOM nas unidades escolares." %}
+            </p>
+
+        </section>
+
+        <!-- CONTEÚDO -->
+        <section class="institucional-conteudo">
+
+            <div class="institucional-texto">
+
+                <h2>
+                    {% trans "Presença e prevenção nas escolas" %}
+                </h2>
+
+                <p>
+                    {% trans "As visitas escolares fortalecem a presença preventiva da RECOM e a aproximação com a comunidade escolar. O sistema permite registrar e acompanhar as atividades desenvolvidas pelas equipes." %}
+                </p>
+
+                <h3>
+                    {% trans "Principais atividades" %}
+                </h3>
+
+                <ul class="institucional-lista">
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>
+                            {% trans "Registro de visitas programadas no Cartão Programa." %}
+                        </span>
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>
+                            {% trans "Registro de visitas não programadas." %}
+                        </span>
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>
+                            {% trans "Registro das atividades, orientações e providências realizadas durante as visitas." %}
+                        </span>
+                    </li>
+
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>
+                            {% trans "Consulta do histórico das atividades realizadas." %}
+                        </span>
+                    </li>
+
+                </ul>
+
+                <a
+                    href="{% url 'core:home' %}"
+                    class="institucional-voltar"
+                >
+                    <i class="bi bi-arrow-left"></i>
+                    {% trans "Voltar para a página inicial" %}
+                </a>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+{% endblock %}

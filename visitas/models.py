@@ -2,6 +2,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
+from .periodos import horario_compativel
+
 from escolas.models import Escola
 
 
@@ -288,34 +290,23 @@ class RondaVisita(models.Model):
                     "viatura vinculada à missão."
                 )
 
-            # A data deve corresponder ao plantão.
-            if (
-                self.data_visita
-                and self.data_visita
-                != missao.viatura.plantao.data
-            ):
+        # Validar o momento da visita em relação ao plantão vinculado.
+        # Para extraordinários, ainda não há horários no modelo Plantao;
+        # por isso não presumimos extensão para a madrugada seguinte.
+        plantao = None
+        if self.missao_cartao_id:
+            plantao = self.missao_cartao.cartao.plantao
+        elif self.cartao_programa_id:
+            plantao = self.cartao_programa.plantao
+        elif self.viatura_id:
+            plantao = self.viatura.plantao
+
+        if plantao and self.data_visita and self.horario is not None:
+            if not horario_compativel(plantao, self.data_visita, self.horario):
                 erros["data_visita"] = (
-                    "A data da visita deve corresponder "
-                    "à data do plantão da missão."
-                )
-
-        # Validação para qualquer visita com viatura.
-        if self.viatura_id and self.data_visita:
-
-            if self.data_visita != self.viatura.plantao.data:
-                erros["data_visita"] = (
-                    "A data da visita deve corresponder "
-                    "à data do plantão da viatura."
-                )
-        # ==========================================
-        # VALIDAÇÃO DO CARTÃO PROGRAMA
-        # ==========================================
-
-        if self.cartao_programa_id and self.data_visita:
-            if self.cartao_programa.plantao.data != self.data_visita:
-                erros["cartao_programa"] = (
-                    "O Cartão Programa selecionado deve "
-                    "corresponder à data da visita."
+                    "A data e o horário da visita não pertencem ao plantão. "
+                    "No serviço ordinário, o intervalo é das 07h às 07h "
+                    "do dia seguinte."
                 )
 
         if self.missao_cartao_id and self.cartao_programa_id:
