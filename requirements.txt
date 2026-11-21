@@ -3,3 +3,4 @@ psycopg[binary]
 python-dotenv
 pdfplumber
 reportlab
+openpyxl>=3.1,<4
