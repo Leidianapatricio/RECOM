@@ -353,30 +353,35 @@ class ViaturaPlantaoForm(forms.ModelForm):
         if tipo == "ORDINARIO":
             if not equipe:
                 self.add_error(
-                    "equipe", "Selecione a equipe responsável pelo serviço ordinário."
-                )
-            elif ordinarias.exclude(equipe=equipe).exists():
-                self.add_error(
                     "equipe",
-                    "Nesta data já existe outra equipe no serviço ordinário. "
-                    "Todas as viaturas ordinárias devem utilizar a mesma equipe.",
+                    "Selecione a equipe responsável pelo serviço ordinário."
                 )
 
-        if tipo == "EXTRAORDINARIO" and equipe:
-            # O extraordinário aceita várias equipes, mas não a equipe
-            # que está cumprindo o serviço ordinário na mesma data.
-            if ordinarias.filter(equipe=equipe).exists():
+            elif ViaturaPlantao.objects.filter(
+                plantao__data=self.plantao.data,
+                tipo_servico="EXTRAORDINARIO",
+                equipe=equipe,
+            ).exclude(pk=self.instance.pk).exists():
                 self.add_error(
                     "equipe",
-                    "Esta equipe já está no serviço ordinário nesta data. "
-                    "Selecione outra equipe para o extraordinário.",
+                    "Esta equipe já está vinculada a uma viatura extraordinária "
+                    "nesta data. Não pode assumir também o serviço ordinário."
                 )
+                if tipo == "EXTRAORDINARIO" and equipe:
+                    # O extraordinário aceita várias equipes, mas não a equipe
+                    # que está cumprindo o serviço ordinário na mesma data.
+                    if ordinarias.filter(equipe=equipe).exists():
+                        self.add_error(
+                            "equipe",
+                            "Esta equipe já está no serviço ordinário nesta data. "
+                            "Selecione outra equipe para o extraordinário.",
+                        )
 
-        if inicial is not None and final is not None and final < inicial:
-            self.add_error(
-                "km_final", "A quilometragem final não pode ser menor que a inicial."
-            )
-        return dados
+                if inicial is not None and final is not None and final < inicial:
+                    self.add_error(
+                        "km_final", "A quilometragem final não pode ser menor que a inicial."
+                    )
+                return dados
 
 
 # =====================================================

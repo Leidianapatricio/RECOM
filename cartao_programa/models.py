@@ -194,8 +194,11 @@ class ViaturaPlantao(models.Model):
         super().clean()
         erros = {}
 
+        # Serviço ordinário exige uma equipe responsável.
         if self.tipo_servico == "ORDINARIO" and not self.equipe_id:
-            erros["equipe"] = "Selecione a equipe responsável pelo serviço ordinário."
+            erros["equipe"] = (
+                "Selecione a equipe responsável pelo serviço ordinário."
+            )
 
         if self.plantao_id and self.equipe_id:
             ordinarias = (
@@ -208,26 +211,24 @@ class ViaturaPlantao(models.Model):
             )
 
             if self.tipo_servico == "ORDINARIO":
-                if ordinarias.exclude(equipe_id=self.equipe_id).exists():
-                    erros["equipe"] = (
-                        "Já existe outra equipe responsável pelo serviço ordinário "
-                        "nesta data. Todas as viaturas ordinárias devem usar a mesma equipe."
-                    )
-                elif ViaturaPlantao.objects.filter(
+                # Permite várias equipes e viaturas ordinárias na mesma data.
+                # Preserva a restrição de equipe vinculada ao extraordinário.
+                if ViaturaPlantao.objects.filter(
                     plantao__data=self.plantao.data,
                     tipo_servico="EXTRAORDINARIO",
                     equipe_id=self.equipe_id,
                 ).exclude(pk=self.pk).exists():
                     erros["equipe"] = (
-                        "Esta equipe já está vinculada a uma viatura extraordinária "
-                        "nesta data. Não pode assumir também o serviço ordinário."
+                        "Esta equipe já está vinculada a uma viatura "
+                        "extraordinária nesta data. Não pode assumir "
+                        "também o serviço ordinário."
                     )
 
             elif self.tipo_servico == "EXTRAORDINARIO":
                 if ordinarias.filter(equipe_id=self.equipe_id).exists():
                     erros["equipe"] = (
-                        "A equipe do serviço extraordinário deve ser diferente "
-                        "da equipe ordinária desta data."
+                        "A equipe do serviço extraordinário deve ser "
+                        "diferente da equipe ordinária desta data."
                     )
 
         if (
@@ -235,7 +236,9 @@ class ViaturaPlantao(models.Model):
             and self.km_final is not None
             and self.km_final < self.km_inicial
         ):
-            erros["km_final"] = "A KM final não pode ser menor que a KM inicial."
+            erros["km_final"] = (
+                "A KM final não pode ser menor que a KM inicial."
+            )
 
         if erros:
             raise ValidationError(erros)
@@ -300,7 +303,9 @@ class EfetivoViatura(models.Model):
         erros = {}
 
         if self.gcm_id and self.gcm.perfil != "GCM":
-            erros["gcm"] = "Somente usuários com perfil GCM podem integrar o efetivo."
+            erros["gcm"] = (
+                "Somente usuários com perfil GCM podem integrar o efetivo."
+            )
 
         if self.gcm_id and self.viatura_id:
             data = self.viatura.plantao.data
@@ -309,24 +314,11 @@ class EfetivoViatura(models.Model):
                 gcm_id=self.gcm_id,
                 viatura__plantao__data=data,
             ).exclude(pk=self.pk)
-            if escalas_existentes.exists():
-                erros["gcm"] = "Este GCM já está escalado em outra VTR nesta data."
 
-            # A equipe do ordinário não pode compor o efetivo extraordinário.
-            if self.viatura.tipo_servico == "EXTRAORDINARIO":
-                equipes_ordinarias = ViaturaPlantao.objects.filter(
-                    plantao__data=data,
-                    tipo_servico="ORDINARIO",
-                    equipe__isnull=False,
-                ).values_list("equipe_id", flat=True)
-                if IntegranteEquipe.objects.filter(
-                    gcm_id=self.gcm_id,
-                    equipe_id__in=equipes_ordinarias,
-                ).exists():
-                    erros["gcm"] = (
-                        "Este GCM pertence à equipe responsável pelo ordinário "
-                        "nesta data e não pode integrar o extraordinário."
-                    )
+            if escalas_existentes.exists():
+                erros["gcm"] = (
+                    "Este GCM já está escalado em outra VTR nesta data."
+                )
 
         if erros:
             raise ValidationError(erros)
