@@ -297,6 +297,10 @@ class OcorrenciaForm(BootstrapModelForm):
 
         self.fields["equipe_apoiada"].required = False
 
+        # Categoria obrigatória, sem opção vazia no RadioSelect.
+        self.fields["categoria"].choices = Ocorrencia.Categoria.choices
+        self.fields["categoria"].required = True
+
         # --------------------------------------------------
         # ESCOLAS
         # --------------------------------------------------

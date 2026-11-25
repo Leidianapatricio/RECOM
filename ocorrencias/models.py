@@ -238,6 +238,7 @@ class Ocorrencia(models.Model):
             self.TipoOcorrencia.ROUBO,
             self.TipoOcorrencia.AMEACA,
             self.TipoOcorrencia.AGRESSAO,
+            self.TipoOcorrencia.OUTRA,
         }
 
         if (
