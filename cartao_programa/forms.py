@@ -414,7 +414,10 @@ class EfetivoViaturaForm(forms.ModelForm):
         self.fields["observacao"].label = "Observação"
         self.fields["observacao"].required = False
 
-        gcms = Usuario.objects.filter(perfil="GCM", ativo=True)
+        gcms = Usuario.objects.filter(
+            perfil__in=["GCM", "COORDENADOR", "MEDIADOR"],
+            ativo=True,
+        )
         if self.viatura is not None:
             escalados = EfetivoViatura.objects.filter(
                 viatura__plantao__data=self.viatura.plantao.data,

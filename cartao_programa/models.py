@@ -302,9 +302,14 @@ class EfetivoViatura(models.Model):
         super().clean()
         erros = {}
 
-        if self.gcm_id and self.gcm.perfil != "GCM":
+        if self.gcm_id and self.gcm.perfil not in (
+            "GCM",
+            "COORDENADOR",
+            "MEDIADOR",
+        ):
             erros["gcm"] = (
-                "Somente usuários com perfil GCM podem integrar o efetivo."
+                "Somente usuários com perfil GCM, Coordenador "
+                "ou Mediador podem integrar o efetivo."
             )
 
         if self.gcm_id and self.viatura_id:
